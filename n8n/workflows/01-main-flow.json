@@ -1,0 +1,389 @@
+{
+  "name": "Socio - Fluxo Principal WhatsApp",
+  "nodes": [
+    {
+      "id": "webhook-evolution",
+      "name": "Webhook Evolution API",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 300],
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "socio-whatsapp",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "webhookId": "socio-whatsapp"
+    },
+    {
+      "id": "respond-webhook",
+      "name": "Respond 200 OK",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [460, 180],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ ok: true }) }}"
+      }
+    },
+    {
+      "id": "filter-inbound",
+      "name": "Filtrar mensagens inbound",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [460, 300],
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict" },
+          "conditions": [
+            {
+              "id": "check-event",
+              "leftValue": "={{ $json.body.event }}",
+              "rightValue": "messages.upsert",
+              "operator": { "type": "string", "operation": "equals" }
+            },
+            {
+              "id": "check-not-from-me",
+              "leftValue": "={{ $json.body.data.key.fromMe }}",
+              "rightValue": true,
+              "operator": { "type": "boolean", "operation": "notEquals" }
+            }
+          ],
+          "combinator": "and"
+        }
+      }
+    },
+    {
+      "id": "extract-message",
+      "name": "Extrair dados da mensagem",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [680, 300],
+      "parameters": {
+        "jsCode": "const body = $input.first().json.body;\nconst data = body.data;\nconst key = data.key;\n\nconst phone = key.remoteJid.replace(/@.*$/, '');\nconst messageType = data.messageType;\nconst isAudio = messageType === 'audioMessage';\n\nlet text = null;\nif (messageType === 'conversation') {\n  text = data.message.conversation;\n} else if (messageType === 'extendedTextMessage') {\n  text = data.message.extendedTextMessage?.text;\n}\n\nreturn [{\n  json: {\n    phone,\n    pushName: data.pushName,\n    messageId: key.id,\n    instanceName: body.instance,\n    isAudio,\n    text,\n    audioData: isAudio ? data.message.audioMessage : null,\n    timestamp: data.messageTimestamp,\n  }\n}];"
+      }
+    },
+    {
+      "id": "route-audio-or-text",
+      "name": "Audio ou texto?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [900, 300],
+      "parameters": {
+        "conditions": {
+          "conditions": [
+            {
+              "id": "is-audio",
+              "leftValue": "={{ $json.isAudio }}",
+              "rightValue": true,
+              "operator": { "type": "boolean", "operation": "equals" }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "download-audio",
+      "name": "Baixar audio (Evolution API)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1120, 200],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.EVOLUTION_API_URL }}/chat/getBase64FromMediaMessage/{{ $json.instanceName }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [{ "name": "apikey", "value": "={{ $env.EVOLUTION_API_KEY }}" }]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            { "name": "message.key.id", "value": "={{ $json.messageId }}" },
+            { "name": "convertToMp4", "value": false }
+          ]
+        }
+      }
+    },
+    {
+      "id": "transcribe-whisper",
+      "name": "Transcrever com Whisper",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1340, 200],
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/audio/transcriptions",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Authorization", "value": "=Bearer {{ $env.OPENAI_API_KEY }}" }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            { "name": "model", "value": "whisper-1" },
+            { "name": "language", "value": "pt" },
+            { "name": "response_format", "value": "json" },
+            { "name": "file", "value": "={{ Buffer.from($json.base64, 'base64') }}" }
+          ]
+        }
+      }
+    },
+    {
+      "id": "lookup-user",
+      "name": "Buscar usuario pelo telefone",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1560, 300],
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $env.NEXT_PUBLIC_SUPABASE_URL }}/rest/v1/users?phone=eq.{{ $json.phone }}&select=id,name,profile_type,monthly_goal,dream,work_hours_start,work_hours_end,plan",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "apikey", "value": "={{ $env.SUPABASE_SERVICE_ROLE_KEY }}" },
+            { "name": "Authorization", "value": "=Bearer {{ $env.SUPABASE_SERVICE_ROLE_KEY }}" }
+          ]
+        }
+      }
+    },
+    {
+      "id": "save-message",
+      "name": "Salvar mensagem no Supabase",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1780, 300],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.NEXT_PUBLIC_SUPABASE_URL }}/rest/v1/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "apikey", "value": "={{ $env.SUPABASE_SERVICE_ROLE_KEY }}" },
+            { "name": "Authorization", "value": "=Bearer {{ $env.SUPABASE_SERVICE_ROLE_KEY }}" },
+            { "name": "Prefer", "value": "return=representation" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"user_id\": \"{{ $('Buscar usuario pelo telefone').item.json[0].id }}\",\n  \"phone\": \"{{ $json.phone }}\",\n  \"content\": \"{{ $json.text ?? $json.transcription ?? null }}\",\n  \"transcription\": \"{{ $json.transcription ?? null }}\",\n  \"direction\": \"inbound\",\n  \"processed\": false\n}"
+      }
+    },
+    {
+      "id": "classify-intent",
+      "name": "Classificar intencao (gpt-4o-mini)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2000, 300],
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/chat/completions",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Authorization", "value": "=Bearer {{ $env.OPENAI_API_KEY }}" },
+            { "name": "Content-Type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"gpt-4o-mini\",\n  \"temperature\": 0.1,\n  \"max_tokens\": 500,\n  \"response_format\": { \"type\": \"json_object\" },\n  \"messages\": [{\n    \"role\": \"user\",\n    \"content\": \"Voce e o Socio, assistente de negocios de {{ $('Buscar usuario pelo telefone').item.json[0].name }}.\\n\\nMensagem recebida: \\\"{{ $('Salvar mensagem no Supabase').item.json[0].content }}\\\"\\n\\nResponda APENAS com JSON: { \\\"intent\\\": \\\"financial|appointment|task|query|unknown\\\", \\\"confidence\\\": 0.0, \\\"data\\\": {}, \\\"response\\\": \\\"resposta max 3 linhas\\\", \\\"action\\\": \\\"save_transaction|create_appointment|create_task|query_data|send_response\\\" }\"\n  }]\n}"
+      }
+    },
+    {
+      "id": "parse-intent",
+      "name": "Parsear resposta da IA",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2220, 300],
+      "parameters": {
+        "jsCode": "const content = $input.first().json.choices[0].message.content;\nlet intent;\ntry {\n  intent = JSON.parse(content);\n} catch (e) {\n  intent = { intent: 'unknown', confidence: 0, data: {}, response: 'Nao entendi. Pode repetir?', action: 'send_response' };\n}\n\n// RN-03: confidence < 0.70 → pede clareza\nif (intent.confidence < 0.70 && intent.intent !== 'unknown') {\n  intent.intent = 'unknown';\n  intent.action = 'send_response';\n  intent.response = 'Nao entendi bem. Voce quis registrar uma receita, despesa ou agendar algo?';\n}\n\nconst messageId = $('Salvar mensagem no Supabase').item.json[0].id;\nconst userId = $('Buscar usuario pelo telefone').item.json[0].id;\nconst phone = $('Extrair dados da mensagem').item.json.phone;\nconst instanceName = $('Extrair dados da mensagem').item.json.instanceName;\n\nreturn [{ json: { intent, messageId, userId, phone, instanceName } }];"
+      }
+    },
+    {
+      "id": "route-by-intent",
+      "name": "Rotear por intencao",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3,
+      "position": [2440, 300],
+      "parameters": {
+        "mode": "rules",
+        "rules": {
+          "rules": [
+            {
+              "conditions": {
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.intent.intent }}",
+                    "rightValue": "financial",
+                    "operator": { "type": "string", "operation": "equals" }
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "financeiro"
+            },
+            {
+              "conditions": {
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.intent.intent }}",
+                    "rightValue": "appointment",
+                    "operator": { "type": "string", "operation": "equals" }
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "agenda"
+            },
+            {
+              "conditions": {
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.intent.intent }}",
+                    "rightValue": "task",
+                    "operator": { "type": "string", "operation": "equals" }
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "tarefa"
+            }
+          ],
+          "fallbackOutput": "extra"
+        }
+      }
+    },
+    {
+      "id": "handler-financial",
+      "name": "Salvar transacao financeira",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2660, 200],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.NEXT_PUBLIC_SUPABASE_URL }}/rest/v1/transactions",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "apikey", "value": "={{ $env.SUPABASE_SERVICE_ROLE_KEY }}" },
+            { "name": "Authorization", "value": "=Bearer {{ $env.SUPABASE_SERVICE_ROLE_KEY }}" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"user_id\": \"{{ $json.userId }}\",\n  \"type\": \"{{ $json.intent.data.type }}\",\n  \"amount\": {{ $json.intent.data.amount }},\n  \"category\": \"{{ $json.intent.data.category ?? 'outros' }}\",\n  \"description\": \"{{ $json.intent.data.description }}\",\n  \"payment_method\": \"{{ $json.intent.data.payment_method }}\",\n  \"competence_date\": \"{{ $json.intent.data.competence_date }}\",\n  \"is_paid\": true,\n  \"entity\": \"pj\"\n}"
+      }
+    },
+    {
+      "id": "send-response",
+      "name": "Enviar resposta no WhatsApp",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2880, 300],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.EVOLUTION_API_URL }}/message/sendText/{{ $json.instanceName }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "apikey", "value": "={{ $env.EVOLUTION_API_KEY }}" },
+            { "name": "Content-Type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"number\": \"{{ $json.phone }}\",\n  \"options\": { \"delay\": 1200, \"presence\": \"composing\" },\n  \"textMessage\": { \"text\": \"{{ $json.intent.response }}\" }\n}"
+      }
+    },
+    {
+      "id": "mark-processed",
+      "name": "Marcar mensagem como processada",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [3100, 300],
+      "parameters": {
+        "method": "PATCH",
+        "url": "={{ $env.NEXT_PUBLIC_SUPABASE_URL }}/rest/v1/messages?id=eq.{{ $json.messageId }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "apikey", "value": "={{ $env.SUPABASE_SERVICE_ROLE_KEY }}" },
+            { "name": "Authorization", "value": "=Bearer {{ $env.SUPABASE_SERVICE_ROLE_KEY }}" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={ \"processed\": true, \"intent\": \"{{ $json.intent.intent }}\", \"intent_confidence\": {{ $json.intent.confidence }} }"
+      }
+    }
+  ],
+  "connections": {
+    "Webhook Evolution API": {
+      "main": [[
+        { "node": "Respond 200 OK", "type": "main", "index": 0 },
+        { "node": "Filtrar mensagens inbound", "type": "main", "index": 0 }
+      ]]
+    },
+    "Filtrar mensagens inbound": {
+      "main": [
+        [{ "node": "Extrair dados da mensagem", "type": "main", "index": 0 }],
+        []
+      ]
+    },
+    "Extrair dados da mensagem": {
+      "main": [[{ "node": "Audio ou texto?", "type": "main", "index": 0 }]]
+    },
+    "Audio ou texto?": {
+      "main": [
+        [{ "node": "Baixar audio (Evolution API)", "type": "main", "index": 0 }],
+        [{ "node": "Buscar usuario pelo telefone", "type": "main", "index": 0 }]
+      ]
+    },
+    "Baixar audio (Evolution API)": {
+      "main": [[{ "node": "Transcrever com Whisper", "type": "main", "index": 0 }]]
+    },
+    "Transcrever com Whisper": {
+      "main": [[{ "node": "Buscar usuario pelo telefone", "type": "main", "index": 0 }]]
+    },
+    "Buscar usuario pelo telefone": {
+      "main": [[{ "node": "Salvar mensagem no Supabase", "type": "main", "index": 0 }]]
+    },
+    "Salvar mensagem no Supabase": {
+      "main": [[{ "node": "Classificar intencao (gpt-4o-mini)", "type": "main", "index": 0 }]]
+    },
+    "Classificar intencao (gpt-4o-mini)": {
+      "main": [[{ "node": "Parsear resposta da IA", "type": "main", "index": 0 }]]
+    },
+    "Parsear resposta da IA": {
+      "main": [[{ "node": "Rotear por intencao", "type": "main", "index": 0 }]]
+    },
+    "Rotear por intencao": {
+      "main": [
+        [{ "node": "Salvar transacao financeira", "type": "main", "index": 0 }],
+        [{ "node": "Enviar resposta no WhatsApp", "type": "main", "index": 0 }],
+        [{ "node": "Enviar resposta no WhatsApp", "type": "main", "index": 0 }],
+        [{ "node": "Enviar resposta no WhatsApp", "type": "main", "index": 0 }]
+      ]
+    },
+    "Salvar transacao financeira": {
+      "main": [[{ "node": "Enviar resposta no WhatsApp", "type": "main", "index": 0 }]]
+    },
+    "Enviar resposta no WhatsApp": {
+      "main": [[{ "node": "Marcar mensagem como processada", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": ""
+  },
+  "tags": [{ "name": "socio" }, { "name": "whatsapp" }]
+}

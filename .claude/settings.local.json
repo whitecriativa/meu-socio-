@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cp \"/Users/luizhenriquematias/Desktop/Curso C Coude/apps/web/next.config.ts\" \"/Users/luizhenriquematias/Desktop/Curso C Coude/apps/web/next.config.mjs.bak\")",
+      "Bash(mv \"/Users/luizhenriquematias/Desktop/Curso C Coude/apps/web/next.config.ts\" \"/Users/luizhenriquematias/Desktop/Curso C Coude/apps/web/next.config.mjs\")"
+    ]
+  }
+}
