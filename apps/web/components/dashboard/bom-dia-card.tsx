@@ -1,5 +1,6 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import { Sparkles } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 
@@ -15,8 +16,12 @@ function fmt(value: number) {
 }
 
 export function BomDiaCard({ name, message, revenue_yesterday, goal_percent }: BomDiaCardProps) {
-  const hour = new Date().getHours()
-  const greeting = hour < 12 ? 'Bom dia' : hour < 18 ? 'Boa tarde' : 'Boa noite'
+  const [greeting, setGreeting] = useState('Olá')
+
+  useEffect(() => {
+    const hour = new Date().getHours()
+    setGreeting(hour < 12 ? 'Bom dia' : hour < 18 ? 'Boa tarde' : 'Boa noite')
+  }, [])
 
   return (
     <Card className="bg-[#5B3FD4] border-0 text-white overflow-hidden relative">
