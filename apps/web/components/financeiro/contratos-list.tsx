@@ -47,7 +47,7 @@ const today = new Date().toISOString().substring(0, 10)
 
 function effectiveStatus(inst: Installment): 'pago' | 'atrasado' | 'pendente' {
   if (inst.status === 'pago')                         return 'pago'
-  if (inst.due_date < today && inst.status !== 'pago') return 'atrasado'
+  if (inst.due_date < today) return 'atrasado'
   return 'pendente'
 }
 
