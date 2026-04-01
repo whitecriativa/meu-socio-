@@ -1,0 +1,405 @@
+{
+  "name": "Sócio — Fluxo Principal WhatsApp",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "whatsapp-inbound",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-node",
+      "name": "Webhook WhatsApp",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 300],
+      "webhookId": "socio-whatsapp-inbound"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({status: 'ok'}) }}",
+        "options": {}
+      },
+      "id": "respond-immediately",
+      "name": "Responde 200 Imediato",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [460, 180]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true
+          },
+          "conditions": [
+            {
+              "id": "is-audio",
+              "leftValue": "={{ $json.body.data.message.audioMessage }}",
+              "rightValue": "",
+              "operator": {
+                "type": "exists"
+              }
+            }
+          ]
+        }
+      },
+      "id": "check-audio",
+      "name": "É Áudio?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [460, 380]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/audio/transcriptions",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer {{ $env.OPENAI_API_KEY }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "model",
+              "value": "whisper-1"
+            },
+            {
+              "name": "language",
+              "value": "pt"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "transcribe-audio",
+      "name": "Transcreve Áudio (Whisper)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [680, 280]
+    },
+    {
+      "parameters": {
+        "operation": "select",
+        "schema": {
+          "__rl": true,
+          "value": "public",
+          "mode": "list"
+        },
+        "table": {
+          "__rl": true,
+          "value": "users",
+          "mode": "list"
+        },
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "phone",
+              "condition": "equals",
+              "keyValue": "={{ $json.body.data.key.remoteJid.replace('@s.whatsapp.net', '') }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "lookup-user",
+      "name": "Busca Usuário (Supabase)",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [900, 380]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/chat/completions",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer {{ $env.OPENAI_API_KEY }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "model",
+              "value": "gpt-4o-mini"
+            },
+            {
+              "name": "max_tokens",
+              "value": "500"
+            },
+            {
+              "name": "messages",
+              "value": "={{ JSON.stringify([\n  {\n    role: 'system',\n    content: `Você é o Sócio, assistente de negócios de ${$node['Busca Usuário (Supabase)'].json.name || 'usuário'}.\nPerfil: ${$node['Busca Usuário (Supabase)'].json.profile_type || 'autônomo'}\nMeta mensal: R$ ${$node['Busca Usuário (Supabase)'].json.monthly_goal || '5000'}\nSonho: ${$node['Busca Usuário (Supabase)'].json.dream || 'realizar objetivos'}\n\nIdentifique a intenção e responda SOMENTE em JSON válido:\n{\n  \"intent\": \"financial|appointment|task|query|onboarding|unknown\",\n  \"data\": {},\n  \"response\": \"resposta curta e humana para o WhatsApp (máx 3 linhas)\",\n  \"action\": \"save_transaction|create_appointment|create_task|query_data|send_response\"\n}`\n  },\n  {\n    role: 'user',\n    content: $node['É Áudio?'].json.text || $json.body.data.message.conversation || ''\n  }\n]) }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "detect-intent",
+      "name": "Detecta Intenção (GPT-4o-mini)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1120, 380]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "conditions": [
+            {
+              "id": "is-financial",
+              "leftValue": "={{ JSON.parse($json.choices[0].message.content).intent }}",
+              "rightValue": "financial",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ]
+        }
+      },
+      "id": "route-intent",
+      "name": "Roteia por Intenção",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3,
+      "position": [1340, 380]
+    },
+    {
+      "parameters": {
+        "operation": "insert",
+        "schema": {
+          "__rl": true,
+          "value": "public",
+          "mode": "list"
+        },
+        "table": {
+          "__rl": true,
+          "value": "transactions",
+          "mode": "list"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "user_id": "={{ $node['Busca Usuário (Supabase)'].json.id }}",
+            "description": "={{ JSON.parse($node['Detecta Intenção (GPT-4o-mini)'].json.choices[0].message.content).data.description }}",
+            "amount": "={{ JSON.parse($node['Detecta Intenção (GPT-4o-mini)'].json.choices[0].message.content).data.amount }}",
+            "type": "={{ JSON.parse($node['Detecta Intenção (GPT-4o-mini)'].json.choices[0].message.content).data.type || 'receita' }}",
+            "category": "={{ JSON.parse($node['Detecta Intenção (GPT-4o-mini)'].json.choices[0].message.content).data.category || 'servico_avulso' }}",
+            "competence_date": "={{ new Date().toISOString().split('T')[0] }}"
+          }
+        },
+        "options": {}
+      },
+      "id": "save-transaction",
+      "name": "Salva Transação (Supabase)",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [1560, 280]
+    },
+    {
+      "parameters": {
+        "operation": "insert",
+        "schema": {
+          "__rl": true,
+          "value": "public",
+          "mode": "list"
+        },
+        "table": {
+          "__rl": true,
+          "value": "messages",
+          "mode": "list"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "user_id": "={{ $node['Busca Usuário (Supabase)'].json.id }}",
+            "phone": "={{ $node['Webhook WhatsApp'].json.body.data.key.remoteJid }}",
+            "content": "={{ $node['É Áudio?'].json.text || $node['Webhook WhatsApp'].json.body.data.message.conversation }}",
+            "direction": "inbound",
+            "intent": "={{ JSON.parse($node['Detecta Intenção (GPT-4o-mini)'].json.choices[0].message.content).intent }}"
+          }
+        },
+        "options": {}
+      },
+      "id": "log-message",
+      "name": "Loga Mensagem (Supabase)",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [1560, 480]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.EVOLUTION_API_URL }}/message/sendText/{{ $env.EVOLUTION_INSTANCE }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "={{ $env.EVOLUTION_API_KEY }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "number",
+              "value": "={{ $node['Webhook WhatsApp'].json.body.data.key.remoteJid }}"
+            },
+            {
+              "name": "text",
+              "value": "={{ JSON.parse($node['Detecta Intenção (GPT-4o-mini)'].json.choices[0].message.content).response }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "send-whatsapp",
+      "name": "Envia Resposta WhatsApp",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1780, 380]
+    }
+  ],
+  "connections": {
+    "Webhook WhatsApp": {
+      "main": [
+        [
+          {
+            "node": "Responde 200 Imediato",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "É Áudio?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "É Áudio?": {
+      "main": [
+        [
+          {
+            "node": "Transcreve Áudio (Whisper)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Busca Usuário (Supabase)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Transcreve Áudio (Whisper)": {
+      "main": [
+        [
+          {
+            "node": "Busca Usuário (Supabase)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Busca Usuário (Supabase)": {
+      "main": [
+        [
+          {
+            "node": "Detecta Intenção (GPT-4o-mini)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Detecta Intenção (GPT-4o-mini)": {
+      "main": [
+        [
+          {
+            "node": "Roteia por Intenção",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Roteia por Intenção": {
+      "main": [
+        [
+          {
+            "node": "Salva Transação (Supabase)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Loga Mensagem (Supabase)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Salva Transação (Supabase)": {
+      "main": [
+        [
+          {
+            "node": "Loga Mensagem (Supabase)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loga Mensagem (Supabase)": {
+      "main": [
+        [
+          {
+            "node": "Envia Resposta WhatsApp",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0,
+  "updatedAt": "2026-03-27T00:00:00.000Z",
+  "versionId": "1"
+}

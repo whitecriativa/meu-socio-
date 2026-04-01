@@ -1,0 +1,180 @@
+{
+  "name": "Socio - Bom Dia Briefing",
+  "nodes": [
+    {
+      "id": "a1b2c3d4-0001-4000-8000-000000000001",
+      "name": "Todos os dias 7h",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [240, 300],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {"field": "cronExpression", "expression": "0 7 * * *"}
+          ]
+        }
+      }
+    },
+    {
+      "id": "a1b2c3d4-0002-4000-8000-000000000002",
+      "name": "Buscar todos usuarios",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [460, 300],
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $env.SUPABASE_URL }}/rest/v1/users?select=id,name,phone,monthly_goal,dream,profile_type",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {"name": "apikey", "value": "={{ $env.SUPABASE_SERVICE_ROLE_KEY }}"},
+            {"name": "Authorization", "value": "={{ 'Bearer ' + $env.SUPABASE_SERVICE_ROLE_KEY }}"}
+          ]
+        }
+      }
+    },
+    {
+      "id": "a1b2c3d4-0003-4000-8000-000000000003",
+      "name": "Loop por usuario",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 1,
+      "position": [680, 300],
+      "parameters": {"batchSize": 1, "options": {}}
+    },
+    {
+      "id": "a1b2c3d4-0004-4000-8000-000000000004",
+      "name": "Buscar transacoes de ontem",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [900, 300],
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $env.SUPABASE_URL }}/rest/v1/transactions?user_id=eq.{{ $('Loop por usuario').item.json.id }}&competence_date=eq.{{ new Date(Date.now() - 86400000).toISOString().substring(0,10) }}&select=type,amount,category",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {"name": "apikey", "value": "={{ $env.SUPABASE_SERVICE_ROLE_KEY }}"},
+            {"name": "Authorization", "value": "={{ 'Bearer ' + $env.SUPABASE_SERVICE_ROLE_KEY }}"}
+          ]
+        }
+      },
+      "settings": {"alwaysOutputData": true}
+    },
+    {
+      "id": "a1b2c3d4-0005-4000-8000-000000000005",
+      "name": "Buscar agendamentos de hoje",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [1120, 300],
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $env.SUPABASE_URL }}/rest/v1/appointments?user_id=eq.{{ $('Loop por usuario').item.json.id }}&datetime=gte.{{ new Date().toISOString().substring(0,10) }}T00:00:00&datetime=lte.{{ new Date().toISOString().substring(0,10) }}T23:59:59&select=service,datetime,price,notes&order=datetime.asc",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {"name": "apikey", "value": "={{ $env.SUPABASE_SERVICE_ROLE_KEY }}"},
+            {"name": "Authorization", "value": "={{ 'Bearer ' + $env.SUPABASE_SERVICE_ROLE_KEY }}"}
+          ]
+        }
+      },
+      "settings": {"alwaysOutputData": true}
+    },
+    {
+      "id": "a1b2c3d4-0006-4000-8000-000000000006",
+      "name": "Montar dados e prompt",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1340, 300],
+      "parameters": {
+        "jsCode": "const user = $('Loop por usuario').item.json;\n\n// Transacoes de ontem\nconst txArray = $('Buscar transacoes de ontem').all().map(i => i.json).filter(t => t && t.type);\nconst receita = txArray.filter(t => t.type === 'receita').reduce((s, t) => s + parseFloat(t.amount || 0), 0);\nconst despesa = txArray.filter(t => t.type === 'despesa').reduce((s, t) => s + parseFloat(t.amount || 0), 0);\nconst liquido = receita - despesa;\n\n// Agendamentos de hoje (input atual)\nconst apts = $input.all().map(i => i.json).filter(a => a && a.datetime);\n\nlet agendamentos;\nif (apts.length === 0) {\n  agendamentos = 'Nenhum agendamento para hoje.';\n} else {\n  agendamentos = apts.map(a => {\n    const hora = new Date(a.datetime).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });\n    const cliente = a.notes ? ` — ${a.notes}` : '';\n    return `${hora}: ${a.service}${cliente}`;\n  }).join('\\n');\n}\n\nconst hoje = new Date().toLocaleDateString('pt-BR', {weekday: 'long', day: 'numeric', month: 'long'});\n\nreturn [{\n  json: {\n    userId: user.id,\n    userName: user.name,\n    userPhone: user.phone,\n    meta: user.monthly_goal || 0,\n    sonho: user.dream || '',\n    receita: receita.toFixed(2),\n    despesa: despesa.toFixed(2),\n    liquido: liquido.toFixed(2),\n    agendamentos,\n    totalAgendamentos: apts.length,\n    hoje\n  }\n}];"
+      }
+    },
+    {
+      "id": "a1b2c3d4-0007-4000-8000-000000000007",
+      "name": "Gerar briefing com IA",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [1560, 300],
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/chat/completions",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {"name": "Authorization", "value": "={{ 'Bearer ' + $env.OPENAI_API_KEY }}"},
+            {"name": "Content-Type", "value": "application/json"}
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"gpt-4o-mini\",\n  \"temperature\": 0.7,\n  \"max_tokens\": 350,\n  \"messages\": [{\n    \"role\": \"user\",\n    \"content\": \"Voce e o Socio, parceiro de negocios de {{ $json.userName }}.\\n\\nGere o Bom Dia de hoje ({{ $json.hoje }}) de forma acolhedora e direta.\\n\\nDADOS DE ONTEM:\\n- Receita: R$ {{ $json.receita }}\\n- Despesa: R$ {{ $json.despesa }}\\n- Liquido: R$ {{ $json.liquido }}\\n- Meta mensal: R$ {{ $json.meta }}\\n\\nAGENDA DE HOJE ({{ $json.totalAgendamentos }} compromisso(s)):\\n{{ $json.agendamentos }}\\n\\nSONHO: {{ $json.sonho }}\\n\\nEscreva em no maximo 6 linhas. Saudacao pelo nome, resultado de ontem (so se houver lancamentos), agenda de hoje, frase de incentivo baseada no sonho. Use emojis. Sem asteriscos.\"\n  }]\n}"
+      }
+    },
+    {
+      "id": "a1b2c3d4-0008-4000-8000-000000000008",
+      "name": "Extrair briefing",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1780, 300],
+      "parameters": {
+        "jsCode": "const briefing = $input.first().json.choices[0].message.content;\nconst dados = $('Montar dados e prompt').item.json;\nreturn [{ json: { ...dados, briefing } }];"
+      }
+    },
+    {
+      "id": "a1b2c3d4-0009-4000-8000-000000000009",
+      "name": "Enviar Bom Dia WhatsApp",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [2000, 300],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.EVOLUTION_API_URL }}/message/sendText/meu-socio-instance",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {"name": "apikey", "value": "={{ $env.EVOLUTION_API_KEY }}"},
+            {"name": "Content-Type", "value": "application/json"}
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"number\": \"{{ $json.userPhone }}\",\n  \"options\": { \"delay\": 1200, \"presence\": \"composing\" },\n  \"textMessage\": { \"text\": \"{{ $json.briefing }}\" }\n}"
+      }
+    }
+  ],
+  "connections": {
+    "Todos os dias 7h": {
+      "main": [[{"node": "Buscar todos usuarios", "type": "main", "index": 0}]]
+    },
+    "Buscar todos usuarios": {
+      "main": [[{"node": "Loop por usuario", "type": "main", "index": 0}]]
+    },
+    "Loop por usuario": {
+      "main": [
+        [{"node": "Buscar transacoes de ontem", "type": "main", "index": 0}],
+        []
+      ]
+    },
+    "Buscar transacoes de ontem": {
+      "main": [[{"node": "Buscar agendamentos de hoje", "type": "main", "index": 0}]]
+    },
+    "Buscar agendamentos de hoje": {
+      "main": [[{"node": "Montar dados e prompt", "type": "main", "index": 0}]]
+    },
+    "Montar dados e prompt": {
+      "main": [[{"node": "Gerar briefing com IA", "type": "main", "index": 0}]]
+    },
+    "Gerar briefing com IA": {
+      "main": [[{"node": "Extrair briefing", "type": "main", "index": 0}]]
+    },
+    "Extrair briefing": {
+      "main": [[{"node": "Enviar Bom Dia WhatsApp", "type": "main", "index": 0}]]
+    },
+    "Enviar Bom Dia WhatsApp": {
+      "main": [[{"node": "Loop por usuario", "type": "main", "index": 0}]]
+    }
+  },
+  "settings": {"executionOrder": "v1", "saveManualExecutions": true},
+  "tags": [{"name": "socio"}, {"name": "briefing"}],
+  "meta": {"instanceId": "socio-bom-dia"}
+}

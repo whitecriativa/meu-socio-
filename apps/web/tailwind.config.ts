@@ -10,12 +10,12 @@ const config: Config = {
     extend: {
       colors: {
         brand: {
-          green: '#2D6A4F',
-          orange: '#F4845F',
+          primary: '#5B3FD4',
+          accent:  '#52D68A',
         },
       },
       fontFamily: {
-        sans: ['Inter', 'sans-serif'],
+        sans: ['DM Sans', 'sans-serif'],
       },
     },
   },

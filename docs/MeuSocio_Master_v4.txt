@@ -1,0 +1,519 @@
+🤝
+MEU SÓCIO
+O parceiro de negócios que cabe no WhatsApp
+Documento Mestre do Produto  ·  Versão 3.0
+White Criativa  ·  Luiz Henrique Matias  ·  2026
+
+⚠️  Documento Vivo
+Este documento está em evolução contínua. Todas as ideias desde o início da concepção do produto estão registradas aqui. Versão 3.0.
+
+1. Visão do Produto
+
+Para o MEI brasileiro que trabalha sozinho e não tem sócio, contador ou sistema de gestão.
+15 milhões de pessoas. Todas no WhatsApp. Nenhuma solução feita para elas.
+
+O que é o Meu Sócio
+O Meu Sócio é o primeiro parceiro de negócios do pequeno empreendedor brasileiro. Ele não é um app que a pessoa precisa aprender a usar. É uma conversa no WhatsApp — por voz ou texto — que cuida do financeiro, do comercial e do administrativo do negócio.
+
+O usuário fala: 'Atendi a Ana, limpeza de pele, R$ 180, pix.' O Sócio registra, atualiza o caixa, conta os pontos de gamificação e responde: 'Anotado! Você já faturou R$ 1.340 hoje. Faltam R$ 660 para bater sua meta diária.'
+
+Proposta de Valor
+O Meu Sócio é o primeiro funcionário do MEI. Ele cuida do que o empreendedor não sabe, não tem tempo ou não gosta de fazer — sem exigir que ele aprenda nada novo.
+
+Público-alvo — O MEI Brasileiro
+Não é só a manicure. São todos os 15 milhões de MEIs ativos no Brasil:
+	•	Prestadores de serviço: beleza, estética, saúde, educação, técnico
+	•	Representantes comerciais e vendedores autônomos
+	•	Freelancers digitais: designer, dev, fotógrafo, videomaker, copywriter
+	•	Profissionais liberais: advogado, psicólogo, nutricionista, médico
+	•	Pequenos comerciantes e prestadores de serviço em geral
+
+A Caliana é médica e não sabe quanto ganha de verdade. O João tem uma empresa de iluminação e não sabe qual produto tem maior margem. A Mariana é manicure e não sabe se o preço que cobra cobre todos os seus custos. O Meu Sócio resolve para todos eles.
+
+2. Filosofia de Interface
+
+📱 WhatsApp
+ONDE TUDO ACONTECE
+Voz, texto ou áudio. O usuário não muda de hábito. O Sócio se adapta a ele. Tudo que acontece aqui é refletido no painel.
+🖥️  Painel Web
+ONDE ELE VISUALIZA
+Gráficos, relatórios, exportações, calculadoras. Opcional — o produto funciona 100% só pelo WhatsApp.
+
+Regra de ouro
+O usuário nunca digita a mesma coisa duas vezes. O que ele faz no WhatsApp aparece automaticamente em todo o restante do sistema.
+
+3. Onboarding — Primeira Experiência
+
+Na primeira mensagem, o Sócio conduz um onboarding conversacional de 5 perguntas. Sem formulário, sem link, sem app para baixar.
+
+Fluxo de onboarding pelo WhatsApp:
+Sócio: 'Oi! Sou o Sócio, seu parceiro de negócios. Como posso te chamar?'
+Sócio: 'Qual é a sua profissão ou área de atuação?'
+Sócio: 'Você atende em domicílio, em estúdio próprio ou em outro local?'
+Sócio: 'Quantos clientes você atende por semana em média?'
+Sócio: 'Última pergunta: qual é o seu grande sonho? Pode ser uma viagem, uma casa, um carro — qualquer coisa.'
+Com essas 5 respostas, o sistema configura o plano de contas, calibra as metas, personaliza o tom e já está pronto para começar.
+
+4. Todos os Módulos do Produto
+
+O Meu Sócio é modular. O usuário usa o que precisa e evolui com o negócio.
+
+🌅  BOM DIA SÓCIO
+O primeiro sócio que fala com o usuário todo dia de manhã
+	•	Briefing personalizado todo dia às 7h no WhatsApp
+	•	Faturamento do dia anterior e acumulado do mês
+	•	Progresso na meta mensal com termômetro visual em texto
+	•	Agenda do dia com lembretes dos compromissos
+	•	Mensagem motivacional gerada pela IA baseada nos dados reais do negócio
+	•	'Faltam R$ 800 para bater sua meta. No ritmo atual, você chega no dia 27. Bora!'
+	•	Alerta de contas a vencer e clientes inativos
+	•	Tarefas prioritárias do dia (máx. 3)
+
+💰  SÓCIO FINANCEIRO — CFO Artificial
+6 camadas de inteligência financeira para quem nunca teve contador
+	•	CAMADA 1 — Lançamentos por voz: fala a venda ou despesa, o sistema categoriza automaticamente
+	•	CAMADA 2 — Plano de contas por perfil: prestadora de serviços e freelancer digital têm estruturas diferentes
+	•	CAMADA 3 — 6 indicadores em tempo real: ticket médio, retenção, custo por atendimento, margem líquida, ponto de equilíbrio, inadimplência
+	•	CAMADA 4 — IA Consultiva: alertas proativos, análise preditiva, sugestões de decisão
+	•	CAMADA 5 — Separação PJ/PF: pró-labore sugerido pela IA, dois bolsos paralelos nunca se misturam
+	•	CAMADA 6 — Exportação para o contador: DRE, Livro Caixa, notas fiscais — um arquivo por mês
+	•	Anexo de extrato bancário em PDF: IA lê e categoriza automaticamente
+	•	Gestão de contas fixas: luz, água, aluguel, internet — com lembrete antes do vencimento
+	•	Lembrete de cobrança gentil para clientes com pagamento pendente
+	•	Fluxo de caixa projetado para 30, 60 e 90 dias
+
+📚  EDUCAÇÃO FINANCEIRA CONVERSACIONAL
+Ensinar o que é margem, custo e lucro — de forma leve e no momento certo
+	•	O Sócio explica conceitos quando o dado registrado abre uma oportunidade de aprendizado
+	•	Margem de contribuição vs margem líquida — na linguagem do usuário
+	•	Custo fixo vs custo variável — com exemplos do próprio negócio
+	•	Ponto de equilíbrio — 'você precisa de X atendimentos por mês para não ter prejuízo'
+	•	Custo real por atendimento incluindo tudo (tempo, insumo, fixo, imposto)
+	•	Diferença entre faturamento e lucro — 'você faturou R$ 8.000 mas seu lucro foi R$ 2.400'
+	•	Custo de funcionário: salário + encargos + benefícios calculados automaticamente
+	•	ROI de anúncio: 'você gastou R$ 300 e gerou R$ 1.200 em clientes novos — ROI de 400%'
+	•	Sabedoria financeira no estilo Warren Buffett — simples, aplicável, sem jargão
+	•	Nunca é invasivo: só aparece quando o dado justifica o ensinamento
+
+🧮  CALCULADORA DE PRECIFICAÇÃO
+Saber se o preço cobrado está realmente pagando as contas
+	•	Usuário informa o preço que quer cobrar — Sócio calcula se está correto
+	•	Usa dados reais já cadastrados: custos fixos, volume de atendimentos, impostos
+	•	Calcula: custo fixo por atendimento + insumos + imposto + pró-labore = preço mínimo
+	•	Mostra a margem atual e a margem saudável para o perfil
+	•	Sugere o preço ideal baseado nas metas financeiras do usuário
+	•	Calculadora de valor da hora: 'sua hora como médica vale R$ X baseado nos seus custos'
+	•	Funciona para qualquer profissão: serviço, produto ou hora de consultoria
+	•	Disponível no WhatsApp por pergunta e no painel web como calculadora visual
+
+🎯  SÓCIO METAS
+O sonho como motor do negócio
+	•	Sonho definido no onboarding — vira o norte de tudo
+	•	Meta mensal de faturamento personalizada por perfil
+	•	Termômetro diário de progresso em texto no WhatsApp
+	•	Projeção: 'no ritmo atual você chega na meta no dia X'
+	•	Celebração automática ao bater meta com menção ao sonho
+	•	'Mariana, você bateu a meta! A viagem para a Europa está cada vez mais perto!'
+	•	Alerta quando o ritmo atual não vai bater a meta — com sugestão de ação
+
+📅  SÓCIO AGENDA + MINI CRM
+A agenda que vira um relacionamento com o cliente
+	•	Agendamento por voz: 'marca a Ana pra sexta às 14h'
+	•	Integração nativa com Google Calendar
+	•	Link público de autoagendamento para o cliente
+	•	Confirmação automática com imagem para o cliente
+	•	Cancelamento com justificativa registrada
+	•	Histórico completo por cliente: quantas vezes voltou, o que consumiu, total gasto (LTV)
+	•	Pipeline de relacionamento: Novo → Proposta → Agendado → Atendido → Fidelizado
+	•	Nível de fidelidade calculado automaticamente (1-5, 6-10, 11+ visitas)
+	•	Observações por cliente registradas por voz a qualquer momento
+	•	'A Carla veio 8 vezes. Gasto total: R$ 640. É sua 3ª cliente mais valiosa.'
+
+🔁  SÓCIO COMERCIAL — Follow-up e Reativação
+Vender para o mesmo cliente é 7x mais barato que conquistar um novo
+	•	Alerta automático de clientes inativos por período configurável
+	•	Sócio sugere o texto de reativação — usuário manda com um toque (sem custo de API)
+	•	'Ana não vem há 35 dias. Aqui está o texto para reativar ela — é só copiar e mandar.'
+	•	Agrupamento de inativos por período para ação em lote
+	•	Calendário sazonal com 21 dias de antecedência: Dia das Mães, Natal, Black Friday, etc.
+	•	'Faltam 3 semanas para o Dia das Mães. É sua maior data. Quer montar uma promoção?'
+	•	Sugestões de marketing baseadas nos dados do negócio e na data do calendário
+	•	ROI de cada ação de reativação rastreado automaticamente
+
+✅  SÓCIO TAREFAS — Prioridade Inteligente
+Resolver o que importa, não o que aparece primeiro
+	•	Registro de tarefas por voz a qualquer momento
+	•	Classificação automática na Matriz de Eisenhower adaptada para autônomo
+	•	Urgente + Importante → faz agora | Importante → agenda | Urgente → simplifica | Nenhum → questiona
+	•	Lista de máximo 3 prioridades por dia — sem sobrecarga
+	•	Check-in diário à tarde: 'concluiu as prioridades? O que fica para amanhã?'
+	•	Histórico de tarefas com contexto de quando foi feito e o que foi postergado
+
+📡  SÓCIO RADAR — Atendimento Sem Perder Ninguém
+Nenhum cliente fica sem resposta por mais de 30 minutos
+	•	Monitora conversas do WhatsApp do dono sem resposta
+	•	Alerta configurável: 'você tem 2 clientes aguardando resposta há 30 minutos'
+	•	Classifica o contato: novo lead, cliente recorrente ou VIP
+	•	Gera sugestão de resposta rápida — dono aprova e envia
+	•	Relatório semanal: tempo médio de resposta e impacto estimado na receita
+	•	Não é bot que responde pelo dono — é radar que avisa na hora certa
+
+🎮  GAMIFICAÇÃO — O Sistema que Cria Hábito
+O usuário não cancela quando está no nível 4 faltando 2 missões para o nível 5
+	•	Sistema de pontos: cada ação gera pontos (+10 receita, +30 reativação, +150 meta batida)
+	•	6 níveis de evolução: 🌱 Semente → 🌿 Broto → 🌳 Árvore → ⭐ Estrela → 💎 Cristal → 🏆 Sócio Ouro
+	•	Missões diárias, semanais e mensais com recompensas
+	•	10 badges permanentes: Primeira Venda, Em Chamas, Meta Batida, Empresária e mais
+	•	Streaks com proteção aos fins de semana — não quebra se descansar no sábado
+	•	Protetor de streak: 1 por mês para não perder a sequência em emergência
+	•	Pontos e nível nunca regridem — conquistas são permanentes
+	•	Notificação de streak em risco às 18h se não registrou nada no dia
+
+🏦  SAÚDE FINANCEIRA E INVESTIMENTOS
+Incentivar o empreendedor a crescer e investir o que sobra
+	•	Indicador de saúde financeira mensal: semáforo verde/amarelo/vermelho
+	•	Quando sobra dinheiro: 'Você está com R$ 2.400 de reserva. Já pensou em investir?'
+	•	Parceria com R3 Investimentos: sugestão de produtos de investimento no app
+	•	Educação sobre reserva de emergência: mínimo 3 meses de custos fixos
+	•	Sabedoria de grandes economistas em linguagem simples: Warren Buffett, Peter Lynch
+	•	Calculadora de independência financeira: 'com esse ritmo, você pode se aposentar em X anos'
+
+🤝  MARKETPLACE DE ESPECIALISTAS
+Conectar o empreendedor com quem pode ajudá-lo a crescer
+	•	Aba de contato com especialistas por área: marketing, contabilidade, jurídico, investimentos
+	•	Marketing e produção de conteúdo: White Criativa (seu negócio)
+	•	Investimentos e RPPS: R3 Investimentos (seu sócio)
+	•	Contador online: parceiros cadastrados por região
+	•	O Sócio identifica o momento certo e apresenta o especialista
+	•	Gatilhos: 'bateu meta 3 meses seguidos → oferecer tráfego pago'
+	•	Gatilhos: 'ROI de anúncio ruim → oferecer consultoria de marketing'
+	•	Modelo: lead qualificado pelo app → vendido pela White Criativa
+
+🔧  SÓCIO SERVIÇOS
+O diretório de profissionais de confiança
+	•	Lista de profissionais locais cadastrados: eletricista, contador, designer, advogado
+	•	Busca por categoria e região
+	•	Avaliações e contato direto
+	•	Modelo de receita extra: mensalidade dos profissionais cadastrados
+
+🧠  MEMÓRIA DO NEGÓCIO
+Histórico inteligente de tudo que aconteceu
+	•	Tudo que foi dito, vendido, agendado e prometido fica salvo e indexado
+	•	Perguntas em linguagem natural: 'quanto faturei em março?', 'quem é meu cliente mais fiel?'
+	•	Comparativos automáticos entre períodos
+	•	O dono nunca perde uma informação — o Sócio lembra por ele
+
+5. Stack Técnica
+
+Construído com ferramentas no-code e low-code. Sem precisar de desenvolvedor sênior para começar.
+
+Ferramenta
+Função
+Custo estimado
+Evolution API
+WhatsApp do dono com o Sócio
+~R$ 100/mês
+n8n (Railway)
+Cérebro — conecta tudo automaticamente
+~R$ 100/mês
+OpenAI gpt-4o-mini
+Identificação de intenção (rápido e barato)
+~R$ 0,50/cliente/mês
+OpenAI gpt-4o
+IA consultiva e briefing diário
+~R$ 2/cliente/mês
+OpenAI Whisper
+Transcrição de áudios do WhatsApp
+Incluso
+Supabase
+Banco de dados com RLS nativo
+Gratuito até escala
+Google Calendar API
+Agenda integrada
+Gratuito
+Next.js 14 + Vercel
+Painel web do cliente
+~R$ 100/mês
+Stripe
+Cobrança das mensalidades
+2,9% + R$ 0,30/transação
+TOTAL (20 clientes)
+—
+~R$ 500/mês
+
+Custo real por cliente
+OpenAI: ~R$ 2,50 por cliente por mês. Você cobra R$ 197. Margem bruta de infra: 98,7%.
+
+6. Planos e Precificação
+
+Funcionalidade
+🌱 Essencial
+R$ 147/mês
+⚡ Profissional
+R$ 247/mês
+🚀 Acelerador
+R$ 397/mês
+Financeiro por voz
+✅
+✅
+✅
+Bom Dia Sócio
+✅
+✅
+✅
+Metas e gamificação
+✅
+✅
+✅
+Agenda + Google Cal
+✅
+✅
+✅
+Tarefas priorizadas
+✅
+✅
+✅
+Educação financeira
+✅
+✅
+✅
+Calculadora precificação
+✅
+✅
+✅
+Calendário sazonal
+✅
+✅
+✅
+Mini CRM + histórico
+❌
+✅
+✅
+Painel web completo
+❌
+✅
+✅
+Autoagendamento cliente
+❌
+✅
+✅
+Separação PJ/PF
+❌
+✅
+✅
+Indicadores avançados
+❌
+❌
+✅
+DRE pro contador
+❌
+❌
+✅
+Módulo Radar
+❌
+❌
+✅
+Saúde financeira + invest.
+❌
+❌
+✅
+Marketplace especialistas
+❌
+❌
+✅
+
+7. Roadmap de Construção
+
+Fase
+O que construir
+Marco de validação
+FASE 0
+✅ Concluído
+Estrutura do projeto, banco de dados com 16 tabelas, RLS, painel web com 6 páginas, n8n no Railway
+Infraestrutura completa no ar
+FASE 1
+⏳ Aguardando chip
+Conectar Evolution API, webhook WhatsApp, identificação de intenção, lançamento financeiro por voz, Bom Dia Sócio
+Primeiro 'oi' respondido automaticamente
+FASE 2
+Mês 2
+Agenda + Google Calendar, mini CRM, metas, gamificação, calculadora de precificação, educação financeira
+5 clientes beta pagando
+FASE 3
+Mês 3
+Módulo Radar, follow-up com texto sugerido, calendário sazonal, exportação DRE, separação PJ/PF
+20 clientes — R$ 5.000 MRR
+FASE 4
+Mês 4+
+Marketplace especialistas, saúde financeira, investimentos, extrato bancário PDF, app mobile
+50 clientes — R$ 12.000+ MRR
+
+8. Segurança e Escalabilidade
+
+🔐  Segurança — nunca violar
+	•	Row Level Security (RLS) ativo em todas as tabelas — cada usuário só vê seus dados
+	•	Service Key do Supabase nunca exposta no frontend
+	•	Todas as chaves de API em variáveis de ambiente — nunca no código
+	•	LGPD: política de privacidade, consentimento explícito, direito à exclusão
+	•	Backup automático diário no Supabase
+	•	Monitoramento de erros no n8n em tempo real
+
+📈  Escalabilidade real
+	•	Supabase aguenta milhões de registros — mesmo banco que startups globais usam
+	•	n8n no Railway: execuções ilimitadas, migra para VPS própria acima de 50 clientes
+	•	Evolution API: 1 instância por cliente. Acima de 50 clientes → API Oficial Meta
+	•	OpenAI: escala ilimitada, custo de ~R$ 2,50 por cliente por mês
+	•	Com 100 clientes: R$ 500/mês de infra, R$ 24.700/mês de receita — margem de 98%
+
+9. Validação — Checklist de Startup
+
+
+Critério
+Status do Meu Sócio
+✅
+Problema real e frequente
+Confirmado em pesquisa com usuários reais
+✅
+Usuário claro
+MEI brasileiro — 15M no Brasil, perfil definido
+✅
+Concorrentes fracos
+Meu Assessor tem reclamações sérias no Reclame Aqui
+✅
+Disposição para pagar
+Ligado diretamente a receita e redução de custo
+✅
+Mercado grande
+15M MEIs ativos, crescendo com uberização
+✅
+Distribuição clara
+White Criativa tem clientes hoje para vender amanhã
+✅
+Timing correto
+IA acessível agora. WhatsApp API barata agora
+✅
+Fundador alinhado
+Luiz entende vendas, marketing e cliente local
+✅
+MVP construível
+Banco no ar, painel pronto, n8n rodando
+⏳
+Critério de desistência
+5 pagantes em 60 dias após lançar WhatsApp
+
+Resultado da validação
+9/10 critérios atendidos. Produto validado. A única tarefa pendente é definir os critérios de desistência — já feito na seção de métricas.
+
+10. Integração Bancária — Cobranças sem ser Fintech
+
+O Meu Sócio permite que o usuário emita boletos e links Pix para seus clientes sem precisar sair do WhatsApp. Não somos fintech — operamos como parceiros de um BaaS regulamentado.
+
+Como funciona
+Mariana fala: 'cobra a Ana R$ 150'. Sócio pergunta: 'Pix ou boleto?' Sistema gera via API do parceiro, manda link para o WhatsApp da Ana, webhook confirma pagamento, Sócio atualiza o caixa automaticamente.
+
+Parceiros avaliados
+Parceiro
+O que oferece
+Custo
+Cora (já usado pelo Luiz)
+API de cobrança, boleto, Pix — MEI friendly
+Gratuito para MEI + taxa/boleto
+Celcoin
+Boleto, Pix, split de pagamento
+Por transação
+Asaas
+Boleto, Pix, cobrança recorrente — API simples
+R$ 1,99 por boleto
+Juno (Boa Compra)
+Boleto, cartão, Pix
+Por transação
+
+💳  Modelo de receita com cobranças
+Taxa de R$ 1,50 por cobrança gerada — receita extra além das mensalidades
+	•	Usuário solicita: 'cobra a Ana R$ 150 pela sessão de hoje'
+	•	Sócio pergunta: 'Pix ou boleto?'
+	•	Sistema gera o link via API do parceiro bancário
+	•	Manda o link para o WhatsApp do cliente final
+	•	Webhook confirma o pagamento automaticamente
+	•	Sócio atualiza caixa, gamificação e histórico do cliente
+	•	Taxa cobrada do usuário: R$ 1,50 por cobrança gerada
+	•	Com 100 clientes gerando 20 cobranças/mês = R$ 3.000 extras
+	•	IMPORTANTE: não implementar antes de ter 20 clientes pagantes
+
+11. Produto Futuro — Meu Estoque
+
+Para MEIs que vendem produto físico (João da empresa de iluminação, revendedores, comerciantes). Produto separado com a mesma interface WhatsApp do Meu Sócio.
+
+📦  Meu Estoque — Interface WhatsApp para controle de estoque
+Produto separado para MEIs que vendem produto físico — mesmo DNA do Meu Sócio
+	•	João fala: 'comprei 20 lâmpadas LED por R$ 15 cada' → sistema registra entrada
+	•	João fala: 'vendi 5 lâmpadas por R$ 45 cada' → sistema registra saída
+	•	Estoque atual sempre atualizado em tempo real
+	•	Margem por produto calculada automaticamente
+	•	Alertas de estoque baixo antes de faltar
+	•	Relatório de giro de estoque e produtos mais lucrativos
+	•	Pode ser integrado ao Meu Sócio no futuro como módulo premium
+	•	Desenvolvimento planejado após atingir 100 clientes no Meu Sócio
+
+12. Estado Atual e Próximos Passos
+
+
+O que foi construído
+Status
+✅
+Banco de dados — 16 tabelas com RLS completo
+Rodando em produção no Supabase
+✅
+Painel web — 6 páginas (Dashboard, Financeiro, Agenda, Clientes, Tarefas, Metas)
+localhost:3000 funcionando
+✅
+n8n — workflow de 9 blocos importado
+https://n8n-production-cad37.up.railway.app
+✅
+Documentação completa — START, HANDOFF, CONTEXT, PLAN, SPEC
+Todos atualizados em 29/03/2026
+⏳
+Conectar painel ao Supabase (substituir mockados)
+Próxima tarefa
+⏳
+WhatsApp via Evolution API
+Aguardando chip dedicado
+📋
+Calculadora de precificação e valor da hora
+Planejado
+📋
+Bom Dia Sócio (cron 7h)
+Planejado
+📋
+Onboarding conversacional
+Planejado
+📋
+Integração bancária Cora/Celcoin
+Fase 4 — após 20 clientes
+📋
+Deploy Vercel + domínio
+Após validação com beta
+
+13. Métricas de Validação — 60 dias
+
+✅ Continua se...
+⚠️ Pivota se...
+🛑 Para se...
+5 MEIs pagando qualquer valor
+Menos de 3 pagantes em 60 dias
+Zero pagantes em 90 dias
+3 deles mandando mensagem todo dia
+Ninguém usa financeiro por voz
+Produto funcionando e sem uso
+NPS médio acima de 8
+Mesma reclamação de 3+ usuários
+Custo maior que receita por 3 meses
+Pelo menos 1 depoimento espontâneo
+Taxa de churn acima de 30%/mês
+Fundador sem motivação para continuar
+
+"O Meu Sócio é o primeiro parceiro de negócios
+que o MEI brasileiro sempre precisou
+e nunca pôde ter."
+
+Meu Sócio  ·  Documento Mestre v4.0  ·  White Criativa  ·  29/03/2026

@@ -1,0 +1,18 @@
+{
+  "event": "messages.upsert",
+  "instance": "meu-socio-instance",
+  "data": {
+    "key": {
+      "remoteJid": "11999999999@s.whatsapp.net",
+      "fromMe": false,
+      "id": "TEST-MSG-001"
+    },
+    "pushName": "Mariana Teste",
+    "messageType": "conversation",
+    "message": {
+      "conversation": "Registra receita de 180 reais de manicure no pix hoje"
+    },
+    "messageTimestamp": 1711812000
+  }
+}
+

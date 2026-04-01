@@ -2,6 +2,8 @@
   "$schema": "https://json.schemastore.org/tsconfig",
   "extends": "../../tsconfig.json",
   "compilerOptions": {
+    // Next.js precisa de DOM para globals como window, alert, document, etc.
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
     // Next.js usa bundler, nao NodeNext
     "module": "ESNext",
     "moduleResolution": "bundler",

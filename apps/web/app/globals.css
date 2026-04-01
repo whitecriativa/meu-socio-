@@ -1,14 +1,18 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  --color-brand-green: #2D6A4F;
-  --color-brand-orange: #F4845F;
+  --color-primary: #5B3FD4;
+  --color-accent:  #52D68A;
 }
 
 @layer base {
   body {
-    @apply bg-gray-50 text-gray-900 antialiased;
+    background-color: #F8F9FA;
+    font-family: 'DM Sans', sans-serif;
+    @apply text-gray-900 antialiased;
   }
 }

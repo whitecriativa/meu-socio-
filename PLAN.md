@@ -1,441 +1,492 @@
-# PLAN.md — Plano de Desenvolvimento do Sócio
-## Documento para Plan Mode do Claude Code
+# PLAN.md — Plano de Desenvolvimento do Meu Sócio
+## Documento Mestre v4.0 · White Criativa · Luiz Henrique Matias · 2026
 
 > Este arquivo deve ser lido pelo Claude Code antes de qualquer implementação.
-> Execute: `claude --plan` ou inicie uma sessão e diga "entre em plan mode e leia o PLAN.md"
+> Documento vivo — atualizado conforme o produto evolui.
 
 ---
 
 ## 1. VISÃO GERAL DO SISTEMA
 
-O Sócio é um **sistema de gestão inteligente para autônomos** que opera via WhatsApp como interface principal, com painel web como interface secundária.
+O **Meu Sócio** é o primeiro parceiro de negócios do pequeno empreendedor brasileiro.
 
-O usuário fala ou escreve no WhatsApp → o sistema entende a intenção → executa a ação → responde de forma conversacional.
+Não é um app que a pessoa precisa aprender a usar. É uma conversa no WhatsApp — por voz ou texto — que cuida do financeiro, do comercial e do administrativo do negócio.
 
-Não é um chatbot. É um CFO + gerente comercial + assistente de agenda que vive no app que o autônomo já usa todos os dias.
+> "O Meu Sócio é o primeiro parceiro de negócios que o MEI brasileiro sempre precisou e nunca pôde ter."
 
----
+**Exemplo de uso:** O usuário fala: *"Atendi a Ana, limpeza de pele, R$ 180, pix."* O Sócio registra, atualiza o caixa, conta os pontos de gamificação e responde: *"Anotado! Você já faturou R$ 1.340 hoje. Faltam R$ 660 para bater sua meta diária."*
 
-## 2. TECNOLOGIAS DEFINIDAS
+### Filosofia de Interface
 
-### 2.1 Stack Completa
+| WhatsApp | Painel Web |
+|---|---|
+| ONDE TUDO ACONTECE | ONDE ELE VISUALIZA |
+| Voz, texto ou áudio. O usuário não muda de hábito. O Sócio se adapta a ele. Tudo que acontece aqui é refletido no painel. | Gráficos, relatórios, exportações, calculadoras. Opcional — o produto funciona 100% só pelo WhatsApp. |
 
-```
-CAMADA DE COMUNICAÇÃO
-└── Evolution API v2
-    Protocolo: WebSocket + REST
-    Função: Transformar WhatsApp em API bidirecional
-
-CAMADA DE AUTOMAÇÃO
-└── n8n (self-hosted via Docker)
-    Versão: latest stable
-    Função: Orquestrador central — recebe webhooks, chama IA, salva dados, envia respostas
-
-CAMADA DE INTELIGÊNCIA ARTIFICIAL
-└── OpenAI API
-    Modelos:
-      - gpt-4o-mini → identificação de intenção (rápido, barato)
-      - gpt-4o       → análise consultiva e briefing diário (mais profundo)
-      - whisper-1    → transcrição de áudios do WhatsApp
-    Função: Entender linguagem natural, classificar intenções, gerar respostas humanizadas
-
-CAMADA DE DADOS
-└── Supabase (PostgreSQL 15)
-    Função: Banco de dados principal com Row Level Security nativo
-    Extras: Auth, Storage (para documentos/NF), Realtime (painel web ao vivo)
-
-CAMADA DE AGENDA
-└── Google Calendar API v3
-    Função: Sincronização bidirecional de agendamentos
-
-CAMADA DE PAGAMENTOS
-└── Stripe
-    Função: Cobrança recorrente das mensalidades dos planos
-
-CAMADA DE PAINEL WEB
-└── Next.js 14 (App Router)
-└── TypeScript (strict mode)
-└── Tailwind CSS
-└── Shadcn/UI (componentes)
-└── Recharts (gráficos)
-└── Zustand (estado global)
-└── React Query (cache e sync com Supabase)
-
-CAMADA DE INFRAESTRUTURA
-└── Vercel → deploy do painel web (Next.js)
-└── Railway ou Render → n8n + Evolution API (Docker)
-└── Supabase Cloud → banco de dados
-```
+**Regra de ouro:** O usuário nunca digita a mesma coisa duas vezes. O que ele faz no WhatsApp aparece automaticamente em todo o restante do sistema.
 
 ---
 
-## 3. POR QUE CADA TECNOLOGIA FOI ESCOLHIDA
+## 2. PÚBLICO-ALVO — O MEI Brasileiro
 
-### Evolution API — por que não Z-API ou Baileys direto?
+**Não é só a manicure. São todos os 15 milhões de MEIs ativos no Brasil:**
 
-**Z-API** é uma opção, mas cobra por instância e tem limitações de customização. A **Evolution API** é open source, roda no seu servidor, custo fixo, e tem suporte ativo da comunidade brasileira. Para um produto que vai escalar para 100+ clientes cada um com sua instância, a diferença de custo é enorme.
+- Prestadores de serviço: beleza, estética, saúde, educação, técnico
+- Representantes comerciais e vendedores autônomos
+- Freelancers digitais: designer, dev, fotógrafo, videomaker, copywriter
+- Profissionais liberais: advogado, psicólogo, nutricionista, médico
+- Pequenos comerciantes e prestadores de serviço em geral
 
-**Baileys direto** daria mais controle, mas exigiria manter a biblioteca atualizada manualmente toda vez que o WhatsApp muda o protocolo. A Evolution API já cuida disso.
+**Exemplos reais:**
+- A Caliana é médica e não sabe quanto ganha de verdade
+- O João tem uma empresa de iluminação e não sabe qual produto tem maior margem
+- A Mariana é manicure e não sabe se o preço que cobra cobre todos os seus custos
 
-**Decisão:** Evolution API até 50 clientes. Migrar para API Oficial Meta acima de 50 para eliminar risco de banimento.
+**15 milhões de pessoas. Todas no WhatsApp. Nenhuma solução feita para elas.**
 
----
-
-### n8n — por que não código puro (Node.js/Express)?
-
-O Luiz não é desenvolvedor full-time. O n8n permite:
-- Visualizar o fluxo completo sem ler código
-- Modificar comportamentos sem deploy
-- Adicionar integrações novas em minutos
-- Testar fluxos isoladamente
-- Time não técnico consegue entender o que está acontecendo
-
-**Para o estágio atual do produto**, n8n é a escolha correta. Quando o produto tiver 500+ usuários e precisar de performance extrema, aí faz sentido migrar partes críticas para código puro. Hoje não.
-
-**Self-hosted via Docker** porque o n8n Cloud tem limite de execuções e fica caro com escala. No Railway ou Render você paga pelo servidor e tem execuções ilimitadas.
+> ⚠️ O sistema é 100% agnóstico de profissão. O usuário define sua profissão, suas categorias e seus serviços. Nunca hardcodar nada para uma profissão específica.
 
 ---
 
-### OpenAI API — por que não Claude API, Gemini ou Llama?
+## 3. STACK TÉCNICA
 
-**Claude API (Anthropic)** seria excelente em qualidade, mas os modelos são mais lentos para tarefas simples de classificação e o custo por token é maior para o volume que o produto vai gerar. Para o Bom Dia Sócio e análise consultiva, Claude seria ótimo — mas para classificar 50 mensagens por dia de cada usuário, gpt-4o-mini é mais eficiente.
+| Ferramenta | Função | Custo estimado |
+|---|---|---|
+| Evolution API | WhatsApp do dono com o Sócio | ~R$ 100/mês |
+| n8n (Railway) | Cérebro — conecta tudo automaticamente | ~R$ 100/mês |
+| OpenAI gpt-4o-mini | Identificação de intenção (rápido e barato) | ~R$ 0,50/cliente/mês |
+| OpenAI gpt-4o | IA consultiva e briefing diário | ~R$ 2/cliente/mês |
+| OpenAI Whisper | Transcrição de áudios do WhatsApp | Incluso |
+| Supabase | Banco de dados com RLS nativo | Gratuito até escala |
+| Google Calendar API | Agenda integrada | Gratuito |
+| Next.js 14 + Vercel | Painel web do cliente | ~R$ 100/mês |
+| Stripe | Cobrança das mensalidades | 2,9% + R$ 0,30/transação |
+| **TOTAL (20 clientes)** | — | **~R$ 500/mês** |
 
-**Gemini** tem boa performance mas a API ainda tem inconsistências de comportamento em português.
+**Custo real por cliente:** OpenAI ~R$ 2,50/cliente/mês. Você cobra R$ 247. Margem bruta de infra: 98,7%.
 
-**Llama (self-hosted)** exigiria GPU própria — custo proibitivo para este estágio.
-
-**Decisão:** gpt-4o-mini para tarefas rápidas (classificação, confirmações), gpt-4o para tarefas analíticas (DRE consultivo, briefing). Revisar após 6 meses — o mercado de modelos muda rápido.
-
----
-
-### Supabase — por que não Firebase, PlanetScale ou MongoDB?
-
-**Firebase** é fácil mas o modelo de preço escala mal com muitas leituras/escritas pequenas (exatamente o padrão do Sócio — muitas mensagens curtas). Além disso, NoSQL dificulta relatórios financeiros que precisam de JOINs.
-
-**PlanetScale** é ótimo mas não tem Row Level Security nativo — você teria que implementar a segurança multi-tenant manualmente.
-
-**MongoDB** tem o mesmo problema do Firebase: sem RLS nativo e queries financeiras complexas ficam verbosas.
-
-**Supabase** tem:
-- PostgreSQL real (SQL completo para relatórios financeiros)
-- RLS nativo (segurança multi-tenant sem esforço)
-- Auth integrado (não precisa de serviço separado)
-- Storage integrado (para notas fiscais e documentos)
-- Realtime integrado (painel web atualiza sem polling)
-- SDK TypeScript excelente
-- Plano gratuito generoso para começar
-
-**É a escolha certa para este produto.**
-
----
-
-### Next.js 14 — por que não React puro, Vue ou Nuxt?
-
-**React puro (Vite/CRA)** exigiria configurar SSR, routing e otimizações manualmente. Next.js já traz tudo isso pronto.
-
-**Vue/Nuxt** — boa opção, mas o ecossistema de componentes (Shadcn, Radix) e a comunidade de tutoriais são maiores no React/Next para este tipo de painel administrativo.
-
-**Next.js 14 com App Router** foi escolhido porque:
-- Server Components reduzem JavaScript no cliente
-- API Routes permitem criar endpoints sem servidor separado
-- Integração com Supabase é bem documentada
-- Deploy no Vercel é trivial (zero config)
-
----
-
-## 4. FUNCIONALIDADES DO SISTEMA
-
-### 4.1 Fluxo Central (obrigatório no MVP)
+### Arquitetura de Pastas
 
 ```
-F01 - Receber mensagem via WhatsApp (texto ou áudio)
-F02 - Transcrever áudio para texto (Whisper)
-F03 - Identificar intenção da mensagem (OpenAI)
-F04 - Executar ação correspondente à intenção
-F05 - Responder no WhatsApp com confirmação
-F06 - Salvar tudo no Supabase com RLS
-```
-
-### 4.2 Módulo Financeiro
-
-```
-F10 - Registrar receita por voz/texto
-F11 - Registrar despesa por voz/texto
-F12 - Categorizar lançamento automaticamente por perfil do usuário
-F13 - Separar lançamentos empresa (PJ) vs pessoal (PF)
-F14 - Calcular caixa do dia em tempo real
-F15 - Gerar DRE mensal automático
-F16 - Calcular 6 indicadores: ticket médio, retenção, custo/atendimento,
-       margem líquida, ponto de equilíbrio, inadimplência
-F17 - Projetar faturamento 30/60/90 dias com fator sazonal
-F18 - Gerar alertas proativos de saúde financeira
-F19 - Sugerir decisões financeiras baseadas nos dados
-F20 - Sugerir pró-labore ideal com base no caixa disponível
-F21 - Exportar DRE e Livro Caixa em PDF e CSV
-```
-
-### 4.3 Módulo Agenda
-
-```
-F30 - Criar agendamento por voz ("Marca a Ana pra sexta às 14h")
-F31 - Sincronizar com Google Calendar
-F32 - Gerar link público de autoagendamento
-F33 - Enviar confirmação automática para o cliente (plano superior)
-F34 - Registrar cancelamento com justificativa
-F35 - Enviar lembrete automático 24h antes para o dono
-F36 - Controlar status: confirmado, cancelado, concluído, no_show
-```
-
-### 4.4 Módulo Metas
-
-```
-F40 - Registrar sonho do usuário na entrada (a viagem, a casa, o carro)
-F41 - Definir meta mensal de faturamento
-F42 - Calcular progresso diário da meta
-F43 - Projetar data de chegada ao sonho no ritmo atual
-F44 - Celebrar automaticamente quando meta é atingida
-```
-
-### 4.5 Bom Dia Sócio
-
-```
-F50 - Enviar briefing diário às 7h para todos os usuários ativos
-F51 - Incluir: faturamento ontem, progresso da meta, agenda do dia, prioridade
-F52 - Gerar mensagem motivacional personalizada baseada no contexto real
-F53 - Alertar sobre contas a vencer e clientes inativos
-```
-
-### 4.6 Módulo Tarefas
-
-```
-F60 - Registrar tarefa por voz/texto
-F61 - Classificar tarefa na Matriz de Eisenhower automaticamente
-F62 - Gerar lista de no máximo 3 prioridades do dia
-F63 - Check-in diário à tarde: "concluiu as prioridades?"
-F64 - Histórico de tarefas com contexto
-```
-
-### 4.7 Módulo Radar (Atendimento)
-
-```
-F70 - Monitorar conversas WhatsApp sem resposta
-F71 - Alertar dono após X minutos configurável (padrão: 30min)
-F72 - Classificar contato: novo lead / recorrente / VIP
-F73 - Gerar sugestão de resposta para aprovação do dono
-F74 - Relatório semanal de tempo médio de resposta
-```
-
-### 4.8 Carteira de Clientes
-
-```
-F80 - Criar cliente automaticamente quando mencionado pela primeira vez
-F81 - Registrar histórico de atendimentos por cliente
-F82 - Calcular LTV (lifetime value) por cliente
-F83 - Alertar clientes inativos há X dias
-F84 - Reativação com aprovação do dono
-```
-
-### 4.9 Painel Web
-
-```
-F90 - Dashboard: métricas do dia e do mês
-F91 - Página financeiro: DRE, fluxo de caixa, indicadores com gráficos
-F92 - Página agenda: calendário + lista
-F93 - Página clientes: carteira com histórico
-F94 - Página tarefas: lista priorizada
-F95 - Página metas: termômetro visual
-F96 - Página relatórios: exportações
-F97 - Página configurações: perfil, horários, planos, integrações
-```
-
-### 4.10 Segurança e Infraestrutura
-
-```
-F100 - Row Level Security em todas as tabelas (user_id em toda query)
-F101 - Autenticação via Supabase Auth (magic link ou Google OAuth)
-F102 - Todas as API Keys em variáveis de ambiente
-F103 - Log de todas as chamadas de IA com custo estimado
-F104 - Backup automático diário do Supabase
-F105 - Monitoramento de erros no n8n
+socio/
+├── CLAUDE.md               → instruções do projeto
+├── PLAN.md                 → este arquivo
+├── apps/
+│   ├── web/                → painel Next.js (cliente vê aqui)
+│   │   ├── app/            → App Router Next.js 14
+│   │   ├── components/     → componentes reutilizáveis
+│   │   └── lib/            → utilitários e clientes de API
+│   └── api/                → backend Node.js/Express (opcional)
+├── packages/
+│   ├── database/           → schemas Supabase e migrations
+│   ├── ai/                 → prompts e lógica de IA
+│   └── whatsapp/           → integração Evolution API
+├── n8n/
+│   └── workflows/          → exports dos fluxos n8n em JSON
+└── docs/
+    └── modules/            → documentação de cada módulo
 ```
 
 ---
 
-## 5. REGRAS DE NEGÓCIO
+## 4. MÓDULOS DO PRODUTO
 
-### RN-01 Isolamento de dados (CRÍTICA — nunca violar)
-Cada usuário só acessa seus próprios dados. Nenhuma query pode retornar dados de outro usuário. RLS ativo em 100% das tabelas. Violação desta regra é falha crítica de segurança.
+### 🌅 BOM DIA SÓCIO
+*O primeiro sócio que fala com o usuário todo dia de manhã*
 
-### RN-02 Identificação de usuário via telefone
-O usuário é identificado pelo número de telefone do WhatsApp. Um número = uma conta. Não há login por email no WhatsApp — a autenticação do painel web usa Supabase Auth separadamente mas vinculado ao mesmo user_id.
+- Briefing personalizado todo dia às 7h no WhatsApp
+- Faturamento do dia anterior e acumulado do mês
+- Progresso na meta mensal com termômetro visual em texto
+- Agenda do dia com lembretes dos compromissos
+- Mensagem motivacional gerada pela IA baseada nos dados reais do negócio
+- "Faltam R$ 800 para bater sua meta. No ritmo atual, você chega no dia 27. Bora!"
+- Alerta de contas a vencer e clientes inativos
+- Tarefas prioritárias do dia (máx. 3)
+
+---
+
+### 💰 SÓCIO FINANCEIRO — CFO Artificial
+*6 camadas de inteligência financeira para quem nunca teve contador*
+
+- **CAMADA 1** — Lançamentos por voz: fala a venda ou despesa, o sistema categoriza automaticamente
+- **CAMADA 2** — Plano de contas por perfil: cada profissão tem estrutura própria (definida pelo usuário)
+- **CAMADA 3** — 6 indicadores em tempo real: ticket médio, retenção, custo por atendimento, margem líquida, ponto de equilíbrio, inadimplência
+- **CAMADA 4** — IA Consultiva: alertas proativos, análise preditiva, sugestões de decisão
+- **CAMADA 5** — Separação PJ/PF: pró-labore sugerido pela IA, dois bolsos paralelos nunca se misturam
+- **CAMADA 6** — Exportação para o contador: DRE, Livro Caixa, notas fiscais — um arquivo por mês
+- Anexo de extrato bancário em PDF: IA lê e categoriza automaticamente
+- Gestão de contas fixas com lembrete antes do vencimento
+- Lembrete de cobrança gentil para clientes com pagamento pendente
+- Fluxo de caixa projetado para 30, 60 e 90 dias
+
+---
+
+### 📚 EDUCAÇÃO FINANCEIRA CONVERSACIONAL
+*Ensinar o que é margem, custo e lucro — de forma leve e no momento certo*
+
+- O Sócio explica conceitos quando o dado registrado abre uma oportunidade de aprendizado
+- Margem de contribuição vs margem líquida — na linguagem do usuário
+- Custo fixo vs custo variável — com exemplos do próprio negócio
+- Ponto de equilíbrio: "você precisa de X atendimentos por mês para não ter prejuízo"
+- Custo real por atendimento incluindo tudo (tempo, insumo, fixo, imposto)
+- Diferença entre faturamento e lucro
+- ROI de anúncio calculado automaticamente
+- Sabedoria financeira no estilo Warren Buffett — simples, aplicável, sem jargão
+- Nunca é invasivo: só aparece quando o dado justifica o ensinamento
+
+---
+
+### 🧮 CALCULADORA DE PRECIFICAÇÃO
+*Saber se o preço cobrado está realmente pagando as contas*
+
+- Usuário informa o preço que quer cobrar — Sócio calcula se está correto
+- Usa dados reais já cadastrados: custos fixos, volume de atendimentos, impostos
+- Calcula: custo fixo por atendimento + insumos + imposto + pró-labore = preço mínimo
+- Mostra a margem atual e a margem saudável para o perfil
+- Sugere o preço ideal baseado nas metas financeiras do usuário
+- Calculadora de valor da hora para qualquer profissão
+- Disponível no WhatsApp por pergunta e no painel web como calculadora visual
+
+---
+
+### 🎯 SÓCIO METAS
+*O sonho como motor do negócio*
+
+- Sonho definido no onboarding — vira o norte de tudo
+- Meta mensal de faturamento personalizada por perfil
+- Termômetro diário de progresso em texto no WhatsApp
+- Projeção: "no ritmo atual você chega na meta no dia X"
+- Celebração automática ao bater meta com menção ao sonho
+- Alerta quando o ritmo atual não vai bater a meta — com sugestão de ação
+
+---
+
+### 📅 SÓCIO AGENDA + MINI CRM
+*A agenda que vira um relacionamento com o cliente*
+
+- Agendamento por voz: "marca a Ana pra sexta às 14h"
+- Integração nativa com Google Calendar
+- Link público de autoagendamento para o cliente
+- Confirmação automática com imagem para o cliente
+- Cancelamento com justificativa registrada
+- Histórico completo por cliente: quantas vezes voltou, o que consumiu, total gasto (LTV)
+- Pipeline de relacionamento: Novo → Proposta → Agendado → Atendido → Fidelizado
+- Nível de fidelidade calculado automaticamente (1-5, 6-10, 11+ visitas)
+- Observações por cliente registradas por voz a qualquer momento
+
+---
+
+### 🔄 SÓCIO COMERCIAL — Follow-up e Reativação
+*Vender para o mesmo cliente é 7x mais barato que conquistar um novo*
+
+- Alerta automático de clientes inativos por período configurável
+- Sócio sugere o texto de reativação — usuário manda com um toque (sem custo de API)
+- "Ana não vem há 35 dias. Aqui está o texto para reativar ela — é só copiar e mandar."
+- Agrupamento de inativos por período para ação em lote
+- Calendário sazonal com 21 dias de antecedência: Dia das Mães, Natal, Black Friday, etc.
+- Sugestões de marketing baseadas nos dados do negócio e na data do calendário
+- ROI de cada ação de reativação rastreado automaticamente
+
+---
+
+### ✅ SÓCIO TAREFAS — Prioridade Inteligente
+*Resolver o que importa, não o que aparece primeiro*
+
+- Registro de tarefas por voz a qualquer momento
+- Classificação automática na Matriz de Eisenhower adaptada para autônomo
+- Urgente + Importante → faz agora | Importante → agenda | Urgente → simplifica | Nenhum → questiona
+- Lista de máximo 3 prioridades por dia — sem sobrecarga
+- Check-in diário à tarde: "concluiu as prioridades? O que fica para amanhã?"
+- Histórico de tarefas com contexto de quando foi feito e o que foi postergado
+
+---
+
+### 📡 SÓCIO RADAR — Atendimento Sem Perder Ninguém
+*Nenhum cliente fica sem resposta por mais de 30 minutos*
+
+- Monitora conversas do WhatsApp do dono sem resposta
+- Alerta configurável: "você tem 2 clientes aguardando resposta há 30 minutos"
+- Classifica o contato: novo lead, cliente recorrente ou VIP
+- Gera sugestão de resposta rápida — dono aprova e envia
+- Relatório semanal: tempo médio de resposta e impacto estimado na receita
+- Não é bot que responde pelo dono — é radar que avisa na hora certa
+
+---
+
+### 🎮 GAMIFICAÇÃO — O Sistema que Cria Hábito
+*O usuário não cancela quando está no nível 4 faltando 2 missões para o nível 5*
+
+- Sistema de pontos: cada ação gera pontos (+10 receita, +30 reativação, +150 meta batida)
+- 6 níveis: 🌱 Semente → 🌿 Broto → 🌳 Árvore → ⭐ Estrela → 💎 Cristal → 🏆 Sócio Ouro
+- Missões diárias, semanais e mensais com recompensas
+- 10 badges permanentes: Primeira Venda, Em Chamas, Meta Batida, Empresária e mais
+- Streaks com proteção aos fins de semana — não quebra se descansar no sábado
+- Protetor de streak: 1 por mês para emergências
+- Pontos e nível nunca regridem — conquistas são permanentes
+- Notificação de streak em risco às 18h se não registrou nada no dia
+
+---
+
+### 🏦 SAÚDE FINANCEIRA E INVESTIMENTOS
+*Incentivar o empreendedor a crescer e investir o que sobra*
+
+- Indicador de saúde financeira mensal: semáforo verde/amarelo/vermelho
+- Quando sobra dinheiro: "Você está com R$ 2.400 de reserva. Já pensou em investir?"
+- Parceria com R3 Investimentos: sugestão de produtos de investimento no app
+- Educação sobre reserva de emergência: mínimo 3 meses de custos fixos
+- Calculadora de independência financeira
+
+---
+
+### 🤝 MARKETPLACE DE ESPECIALISTAS
+*Conectar o empreendedor com quem pode ajudá-lo a crescer*
+
+- Aba de contato com especialistas por área: marketing, contabilidade, jurídico, investimentos
+- Marketing e produção de conteúdo: White Criativa
+- Investimentos e RPPS: R3 Investimentos
+- Contador online: parceiros cadastrados por região
+- Gatilhos inteligentes: "bateu meta 3 meses seguidos → oferecer tráfego pago"
+- Modelo: lead qualificado pelo app → vendido pela White Criativa
+
+---
+
+### 🧠 MEMÓRIA DO NEGÓCIO
+*Histórico inteligente de tudo que aconteceu*
+
+- Tudo que foi dito, vendido, agendado e prometido fica salvo e indexado
+- Perguntas em linguagem natural: "quanto faturei em março?", "quem é meu cliente mais fiel?"
+- Comparativos automáticos entre períodos
+- O dono nunca perde uma informação — o Sócio lembra por ele
+
+---
+
+### 💳 INTEGRAÇÃO BANCÁRIA — Cobranças sem ser Fintech
+
+O Meu Sócio permite emitir boletos e links Pix para os clientes sem sair do WhatsApp. Não somos fintech — operamos como parceiros de um BaaS regulamentado.
+
+| Parceiro | O que oferece | Custo |
+|---|---|---|
+| **Cora** (já usado pelo Luiz) | API de cobrança, boleto, Pix — MEI friendly | Gratuito para MEI + taxa/boleto |
+| Celcoin | Boleto, Pix, split de pagamento | Por transação |
+| Asaas | Boleto, Pix, cobrança recorrente — API simples | R$ 1,99 por boleto |
+| Juno (Boa Compra) | Boleto, cartão, Pix | Por transação |
+
+**Modelo de receita:** Taxa de R$ 1,50 por cobrança gerada.
+> ⚠️ Não implementar antes de ter 20 clientes pagantes.
+
+---
+
+## 5. BANCO DE DADOS — Tabelas Principais (Supabase)
+
+```sql
+-- Usuários (donos do negócio)
+users: id, name, phone, profile_type, dream, monthly_goal, created_at
+
+-- Clientes do usuário
+clients: id, user_id, name, phone, last_contact, total_spent, status
+
+-- Lançamentos financeiros
+transactions: id, user_id, client_id, type, amount, category, payment_method, description, competence_date, paid_at
+
+-- Agendamentos
+appointments: id, user_id, client_id, service, datetime, status, price, notes
+
+-- Tarefas
+tasks: id, user_id, title, priority, quadrant, due_date, completed_at
+
+-- Mensagens (log do WhatsApp)
+messages: id, user_id, phone, content, direction, intent, created_at
+
+-- Métricas diárias (cache)
+daily_metrics: id, user_id, date, revenue, expenses, appointments_count, new_clients
+```
+
+**CRÍTICO:** RLS ativo em todas as tabelas. Cada query DEVE filtrar por `user_id`. Nunca expor dados de um usuário para outro.
+
+---
+
+## 6. PLANOS E PRECIFICAÇÃO
+
+| Funcionalidade | 🌱 Essencial R$ 147/mês | ⚡ Profissional R$ 247/mês | 🚀 Acelerador R$ 397/mês |
+|---|---|---|---|
+| Financeiro por voz | ✅ | ✅ | ✅ |
+| Bom Dia Sócio | ✅ | ✅ | ✅ |
+| Metas e gamificação | ✅ | ✅ | ✅ |
+| Agenda + Google Cal | ✅ | ✅ | ✅ |
+| Tarefas priorizadas | ✅ | ✅ | ✅ |
+| Educação financeira | ✅ | ✅ | ✅ |
+| Calculadora precificação | ✅ | ✅ | ✅ |
+| Calendário sazonal | ✅ | ✅ | ✅ |
+| Mini CRM + histórico | ❌ | ✅ | ✅ |
+| Painel web completo | ❌ | ✅ | ✅ |
+| Autoagendamento cliente | ❌ | ✅ | ✅ |
+| Separação PJ/PF | ❌ | ✅ | ✅ |
+| Indicadores avançados | ❌ | ❌ | ✅ |
+| DRE pro contador | ❌ | ❌ | ✅ |
+| Módulo Radar | ❌ | ❌ | ✅ |
+| Saúde financeira + invest. | ❌ | ❌ | ✅ |
+| Marketplace especialistas | ❌ | ❌ | ✅ |
+
+---
+
+## 7. ONBOARDING CONVERSACIONAL
+
+Na primeira mensagem, o Sócio conduz um onboarding de 5 perguntas. Sem formulário, sem link, sem app.
+
+```
+Sócio: "Oi! Sou o Sócio, seu parceiro de negócios. Como posso te chamar?"
+Sócio: "Qual é a sua profissão ou área de atuação?"
+Sócio: "Você atende em domicílio, em estúdio próprio ou em outro local?"
+Sócio: "Quantos clientes você atende por semana em média?"
+Sócio: "Última pergunta: qual é o seu grande sonho? Pode ser uma viagem, uma casa, um carro — qualquer coisa."
+```
+
+Com essas 5 respostas, o sistema configura o plano de contas, calibra as metas, personaliza o tom e já está pronto para começar.
+
+---
+
+## 8. ROADMAP DE CONSTRUÇÃO
+
+| Fase | O que construir | Marco de validação | Status |
+|---|---|---|---|
+| **FASE 0** | Estrutura do projeto, banco de dados com RLS, painel web com 6 páginas, n8n no Railway | Infraestrutura completa no ar | ✅ Concluído |
+| **FASE 1** | Conectar Evolution API, webhook WhatsApp, identificação de intenção, lançamento financeiro por voz, Bom Dia Sócio | Primeiro "oi" respondido automaticamente | ⏳ Aguardando chip |
+| **FASE 2** | Agenda + Google Calendar, mini CRM, metas, gamificação, calculadora de precificação, educação financeira | 5 clientes beta pagando | 🔲 Mês 2 |
+| **FASE 3** | Módulo Radar, follow-up com texto sugerido, calendário sazonal, exportação DRE, separação PJ/PF | 20 clientes — R$ 5.000 MRR | 🔲 Mês 3 |
+| **FASE 4** | Marketplace especialistas, saúde financeira, investimentos, extrato bancário PDF, app mobile | 50 clientes — R$ 12.000+ MRR | 🔲 Mês 4+ |
+
+---
+
+## 9. ESTADO ATUAL (atualizado em 01/04/2026)
+
+| O que foi construído | Status |
+|---|---|
+| ✅ Banco de dados — RLS completo | Rodando em produção no Supabase |
+| ✅ Painel web — 7 páginas (Dashboard, Financeiro, Agenda, Clientes, Tarefas, Metas, Configurações) | localhost:3000 funcionando |
+| ✅ Dashboard conectado ao Supabase (dados reais) | Sem dados mockados |
+| ✅ Módulo Financeiro — lançamentos + DRE + indicadores | Formulário web funcional |
+| ✅ Módulo Agenda — calendário + agendamentos | Formulário web funcional |
+| ✅ Módulo Clientes/CRM — lista + detalhe + reativação | Formulário web funcional |
+| ✅ Módulo Tarefas — Eisenhower + gamificação | Formulário web funcional |
+| ✅ Módulo Metas — termômetro + badges + níveis | Formulário web funcional |
+| ✅ n8n — workflow principal + Bom Dia Sócio | Rodando no Railway |
+| ⏳ WhatsApp via Evolution API | Aguardando chip dedicado |
+| 🔲 Calculadora de precificação | Planejado |
+| 🔲 Onboarding conversacional | Planejado |
+| 🔲 Google Calendar integração real | Planejado |
+| 🔲 Integração bancária Cora/Celcoin | Fase 4 — após 20 clientes |
+| 🔲 Deploy Vercel + domínio | Após validação com beta |
+
+---
+
+## 10. REGRAS DE NEGÓCIO
+
+### RN-01 Isolamento de dados (CRÍTICA)
+Cada usuário só acessa seus próprios dados. RLS ativo em 100% das tabelas. Violação = falha crítica de segurança.
+
+### RN-02 Sistema agnóstico de profissão
+O sistema NUNCA é nichado para uma profissão específica. O usuário define sua profissão, categorias e serviços livremente. Não há listas fixas de profissões, serviços ou categorias — apenas sugestões genéricas como datalist.
 
 ### RN-03 Intenção desconhecida
-Se a OpenAI não identificar a intenção com confiança acima de 70%, o sistema deve pedir clareza educadamente. Nunca assumir intenção errada e salvar dado incorreto. Exemplo: "Não entendi bem. Você quis registrar uma receita ou uma despesa?"
+Se a OpenAI não identificar a intenção com confiança acima de 70%, o sistema pede clareza educadamente. Nunca assumir intenção errada.
 
-### RN-04 Áudio obrigatoriamente transcrito antes de processar
-Toda mensagem de áudio deve ser transcrita via Whisper antes de ser enviada para identificação de intenção. Nunca enviar áudio diretamente para a OpenAI de classificação.
+### RN-04 Áudio transcrito antes de processar
+Toda mensagem de áudio deve ser transcrita via Whisper antes de identificação de intenção.
 
-### RN-05 Lançamento financeiro sempre com data de competência
-A data de competência (quando o serviço foi prestado) é diferente da data de pagamento. O sistema sempre registra ambas. Para o DRE, usa data de competência. Para fluxo de caixa, usa data de pagamento.
+### RN-05 Lançamento financeiro com data de competência
+Data de competência (quando o serviço foi prestado) ≠ data de pagamento. O DRE usa data de competência. Fluxo de caixa usa data de pagamento.
 
 ### RN-06 Pró-labore não é despesa operacional
-Pró-labore é retirada do sócio — vai para a categoria `despesas_pessoais.prolabore` e é apresentado separado no DRE. Nunca categorizar como despesa operacional.
+Pró-labore vai para `despesas_pessoais.prolabore` — nunca categorizar como despesa operacional.
 
-### RN-07 Projeção financeira requer mínimo de dados
-A projeção de faturamento só é gerada quando o usuário tem pelo menos 7 dias de histórico no mês atual. Antes disso, exibir apenas o acumulado sem projeção.
+### RN-07 Projeção financeira requer dados mínimos
+Projeção só é gerada com pelo menos 7 dias de histórico no mês atual.
 
 ### RN-08 Agendamento no passado
-O sistema não cria agendamentos para datas/horários no passado. Se o usuário tentar, perguntar se quer registrar como atendimento já realizado (lançamento financeiro) ou confirmar que a data está certa.
+Sistema não cria agendamentos para datas no passado sem confirmação. Pergunta se quer registrar como atendimento já realizado.
 
 ### RN-09 Cliente duplicado
-Antes de criar um novo cliente, o sistema verifica se já existe um cliente com nome similar (distância de Levenshtein ≤ 2) ou mesmo telefone. Se encontrar, pergunta ao dono se é o mesmo cliente.
+Antes de criar novo cliente, verificar nome similar (Levenshtein ≤ 2) ou mesmo telefone.
 
 ### RN-10 Limite de mensagens motivacionais repetidas
-O sistema nunca envia a mesma mensagem motivacional nos últimos 30 dias. Manter histórico das últimas 30 mensagens enviadas por usuário para evitar repetição.
+Nunca enviar a mesma mensagem motivacional nos últimos 30 dias por usuário.
 
-### RN-11 Horário de atendimento do Radar
-O Radar de Atendimento só monitora conversas dentro do horário de trabalho configurado pelo usuário (padrão: 08h às 19h). Fora desse horário, não gera alertas de resposta pendente.
+### RN-11 Horário do Radar
+O Radar só monitora conversas dentro do horário de trabalho configurado (padrão: 08h–19h).
 
-### RN-12 Exportação de dados pessoais (LGPD)
-Qualquer usuário pode solicitar a exportação de todos os seus dados em formato JSON. O sistema deve gerar e entregar em até 72h. Também deve permitir a exclusão completa da conta e todos os dados associados.
+### RN-12 LGPD
+Exportação completa dos dados em JSON em até 72h. Exclusão completa da conta disponível.
 
-### RN-13 Planos e funcionalidades
-
-```
-ESSENCIAL (R$ 147/mês)
-└── F01-F06 (fluxo central)
-└── F10-F15 (financeiro básico)
-└── F30-F31, F35-F36 (agenda básica)
-└── F40-F43 (metas)
-└── F50-F53 (bom dia sócio)
-└── F60-F64 (tarefas)
-└── F80-F83 (carteira básica)
-
-PROFISSIONAL (R$ 247/mês)
-└── Tudo do Essencial
-└── F16-F20 (indicadores e IA consultiva)
-└── F32-F34 (autoagendamento e confirmação cliente)
-└── F90-F97 (painel web completo)
-└── F84 (reativação de inativos)
-
-ACELERADOR (R$ 397/mês)
-└── Tudo do Profissional
-└── F21 (exportação DRE para contador)
-└── F70-F74 (módulo radar)
-└── F17, F19 (projeção e sugestões avançadas)
-└── Suporte prioritário
-```
+### RN-13 Integração bancária
+Não implementar antes de ter 20 clientes pagantes.
 
 ### RN-14 Custo por usuário
-O custo de infraestrutura por usuário ativo não pode exceder R$ 25/mês (para manter margem saudável no plano Essencial). Monitorar uso de tokens da OpenAI por usuário mensalmente.
+Custo de infra por usuário ativo não pode exceder R$ 25/mês. Monitorar uso de tokens da OpenAI mensalmente.
 
 ### RN-15 Graceful degradation
-Se a OpenAI API estiver fora do ar, o sistema deve:
-1. Confirmar recebimento da mensagem para o usuário
-2. Colocar na fila de reprocessamento (Supabase queue)
-3. Processar quando a API voltar
-4. Nunca deixar mensagem sem resposta por mais de 10 minutos sem aviso
+Se a OpenAI API estiver fora: confirmar recebimento, colocar na fila, processar quando voltar. Nunca deixar mensagem sem resposta por mais de 10 minutos sem aviso.
 
 ---
 
-## 6. ORDEM DE IMPLEMENTAÇÃO (Plan Mode)
+## 11. MÉTRICAS DE VALIDAÇÃO — 60 dias
 
-O Claude Code deve seguir esta ordem. Não pular etapas.
-
-```
-FASE 0 — Fundação (fazer antes de tudo)
-└── [x] Estrutura de pastas do projeto
-└── [x] Configuração TypeScript strict
-└── [x] Schema do banco com RLS (Supabase)
-└── [x] Variáveis de ambiente (.env.example)
-└── [x] CI básico (typecheck + lint no push)
-
-FASE 1 — MVP Core
-└── [x] Webhook Evolution API recebendo mensagens
-└── [x] Transcrição de áudio (Whisper)
-└── [x] Identificação de intenção (gpt-4o-mini)
-└── [x] Handler financeiro (salvar transaction)
-└── [x] Resposta no WhatsApp
-└── [x] Dashboard web básico
-
-FASE 2 — Módulos Principais
-└── [ ] Módulo Agenda + Google Calendar
-└── [ ] Módulo Metas
-└── [ ] Módulo Tarefas
-└── [ ] Bom Dia Sócio (cron diário)
-└── [ ] Carteira de clientes
-
-FASE 3 — IA Consultiva
-└── [ ] 6 indicadores financeiros
-└── [ ] DRE automático
-└── [ ] Alertas proativos
-└── [ ] Projeção de faturamento
-└── [ ] Separação PJ/PF
-
-FASE 4 — Expansão
-└── [ ] Módulo Radar
-└── [ ] Autoagendamento público
-└── [ ] Exportação para contador
-└── [ ] Stripe (cobrança dos planos)
-└── [ ] Diretório de profissionais
-```
+| ✅ Continua se... | ⚠️ Pivota se... | 🔴 Para se... |
+|---|---|---|
+| 5 MEIs pagando qualquer valor | Menos de 3 pagantes em 60 dias | Zero pagantes em 90 dias |
+| 3 deles mandando mensagem todo dia | Ninguém usa financeiro por voz | Produto funcionando e sem uso |
+| NPS médio acima de 8 | Mesma reclamação de 3+ usuários | Custo maior que receita por 3 meses |
+| Pelo menos 1 depoimento espontâneo | Taxa de churn acima de 30%/mês | Fundador sem motivação para continuar |
 
 ---
 
-## 7. DECISÕES ARQUITETURAIS REGISTRADAS
+## 12. PRODUTO FUTURO — MEU ESTOQUE
+
+Para MEIs que vendem produto físico (revendedores, comerciantes). Produto separado com a mesma interface WhatsApp.
+
+- João fala: "comprei 20 lâmpadas LED por R$ 15 cada" → sistema registra entrada
+- João fala: "vendi 5 lâmpadas por R$ 45 cada" → sistema registra saída
+- Estoque atual sempre atualizado em tempo real
+- Margem por produto calculada automaticamente
+- Alertas de estoque baixo antes de faltar
+- **Desenvolvimento planejado após atingir 100 clientes no Meu Sócio**
+
+---
+
+## 13. DECISÕES ARQUITETURAIS
 
 | Decisão | Escolha | Motivo | Data |
 |---|---|---|---|
-| WhatsApp API | Evolution API | Open source, custo fixo, comunidade BR | v2.0 |
-| Orquestração | n8n self-hosted | Visual, sem limite de exec, acessível para não-dev | v2.0 |
-| IA classificação | gpt-4o-mini | Rápido, barato, suficiente para intenção | v2.0 |
-| IA consultiva | gpt-4o | Qualidade necessária para análise financeira | v2.0 |
-| Banco de dados | Supabase | RLS nativo, SQL real, auth integrado | v2.0 |
-| Frontend | Next.js 14 | App Router, SSR, Vercel deploy | v2.0 |
-| Infraestrutura | Railway + Vercel | Simples, custo controlado, sem DevOps complexo | v2.0 |
-| Pagamentos | Stripe | Padrão de mercado, SDK excelente | v2.0 |
+| WhatsApp API | Evolution API | Open source, custo fixo, comunidade BR | v1.0 |
+| Orquestração | n8n self-hosted | Visual, sem limite de exec, acessível para não-dev | v1.0 |
+| IA classificação | gpt-4o-mini | Rápido, barato, suficiente para intenção | v1.0 |
+| IA consultiva | gpt-4o | Qualidade necessária para análise financeira | v1.0 |
+| Banco de dados | Supabase | RLS nativo, SQL real, auth integrado | v1.0 |
+| Frontend | Next.js 14 | App Router, SSR, Vercel deploy | v1.0 |
+| Infraestrutura | Railway + Vercel | Simples, custo controlado | v1.0 |
+| Pagamentos | Stripe | Padrão de mercado, SDK excelente | v1.0 |
+| Server Actions | adminClient() inline | Evitar `import 'server-only'` em Server Actions | v4.0 |
+| Supabase client | createClient direto | lib/supabase-server.ts não funciona em actions | v4.0 |
+| Profissão | Campo livre (datalist) | Sistema agnóstico — nunca nichado | v4.0 |
 
 ---
 
-## 8. COMO USAR ESTE ARQUIVO NO CLAUDE CODE
+## 14. COMO CLAUDE CODE DEVE TRABALHAR
 
-### Iniciar Plan Mode
-
-```bash
-# Na pasta do projeto
-claude
-
-# Dentro do Claude Code, diga:
-"Leia o PLAN.md completamente e entre em plan mode.
-Antes de escrever qualquer código, me apresente:
-1. Sua compreensão do sistema
-2. A ordem que você vai implementar
-3. Qualquer dúvida ou decisão que precise da minha aprovação"
-```
-
-### Durante o desenvolvimento
+1. **Antes de qualquer alteração**, leia este PLAN.md para entender o módulo em questão
+2. **Sempre usar** `adminClient()` inline em Server Components e Server Actions — nunca importar de `lib/supabase-server.ts`
+3. **Sempre verificar** se RLS está ativo antes de criar tabelas
+4. **Nunca nichado** — categorias são datalist com sugestões genéricas, profissão é campo livre
+5. **Commitar** incrementalmente — um módulo por vez, testado
+6. **TypeScript strict** — zero erros em `npx tsc --noEmit` (exceto supabase-server.ts que é legado)
+7. **export const dynamic = 'force-dynamic'** em todas as páginas com fetch de dados
 
 ```bash
-# Sempre que for implementar uma funcionalidade nova:
-"Vou implementar [F10 - Registrar receita por voz].
-Leia a RN-05 e RN-03 antes de começar.
-Me mostre o plano antes de escrever código."
-
-# Antes de qualquer merge/deploy:
-"Execute /revisar-seguranca e verifique RN-01 em todos os arquivos novos."
-
-# Quando encontrar uma decisão arquitetural nova:
-"Registre esta decisão na seção 7 do PLAN.md:
-Decisão: [o que foi decidido]
-Escolha: [o que foi escolhido]
-Motivo: [por quê]"
-```
-
-### Checklist antes de cada sessão
-
-```
-[ ] Estou na pasta correta do projeto?
-[ ] O PLAN.md e CLAUDE.md estão atualizados?
-[ ] A tarefa de hoje está na ordem correta do item 6?
-[ ] Sei qual RN se aplica ao que vou implementar?
+# Padrão correto de adminClient em qualquer arquivo server-side:
+function adminClient() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    { auth: { autoRefreshToken: false, persistSession: false } },
+  )
+}
 ```
