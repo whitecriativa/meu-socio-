@@ -12,6 +12,7 @@ import {
   Calculator,
   Settings,
   MessageCircle,
+  Zap,
 } from 'lucide-react'
 
 const NAV_ITEMS = [
@@ -21,6 +22,7 @@ const NAV_ITEMS = [
   { href: '/clientes',      label: 'Clientes',     icon: Users },
   { href: '/tarefas',       label: 'Tarefas',      icon: CheckSquare },
   { href: '/metas',         label: 'Metas',        icon: Target },
+  { href: '/gamificacao',   label: 'Conquistas',   icon: Zap },
   { href: '/calculadora',   label: 'Calculadora',  icon: Calculator },
 ]
 

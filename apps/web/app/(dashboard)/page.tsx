@@ -1,4 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
+import Link from 'next/link'
+import { Bell, Zap, Flame } from 'lucide-react'
 import { BomDiaCard } from '@/components/dashboard/bom-dia-card'
 import { MetricCards } from '@/components/dashboard/metric-cards'
 import { AppointmentsCard } from '@/components/dashboard/appointments-card'
@@ -18,9 +20,11 @@ function fmt(v: number) {
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v)
 }
 
-type TxRow    = { type: string | null; amount: number | null; competence_date: string | null }
-type AptRow   = { id: string; service: string | null; datetime: string | null; status: string | null; clients: { name: string | null }[] | null }
-type TaskRow  = { id: string; title: string | null; quadrant: string | null; completed_at: string | null }
+type TxRow     = { type: string | null; amount: number | null; competence_date: string | null }
+type AptRow    = { id: string; service: string | null; datetime: string | null; status: string | null; clients: { name: string | null }[] | null }
+type TaskRow   = { id: string; title: string | null; quadrant: string | null; completed_at: string | null }
+type AlertRow  = { id: string; type: string; title: string; message: string; action_url: string | null; action_label: string | null }
+type GamifRow  = { total_points: number | null; current_level: string | null; current_streak: number | null }
 
 async function getDashboardData() {
   const userId  = process.env.NEXT_PUBLIC_DEMO_USER_ID!
@@ -39,6 +43,8 @@ async function getDashboardData() {
     { count: activeClients },
     { data: apts },
     { data: tasks },
+    { data: alerts },
+    { data: gamif },
   ] = await Promise.all([
     supabase.from('users').select('name, monthly_goal, dream').eq('id', userId).single(),
     supabase.from('transactions').select('type, amount').eq('user_id', userId).eq('competence_date', today),
@@ -56,6 +62,16 @@ async function getDashboardData() {
       .eq('user_id', userId)
       .order('created_at', { ascending: false })
       .limit(5),
+    supabase.from('smart_alerts')
+      .select('id, type, title, message, action_url, action_label')
+      .eq('user_id', userId)
+      .is('read_at', null)
+      .order('triggered_at', { ascending: false })
+      .limit(3),
+    supabase.from('user_gamification')
+      .select('total_points, current_level, current_streak')
+      .eq('user_id', userId)
+      .single(),
   ])
 
   const todayTxs    = (txToday    as TxRow[] ?? [])
@@ -96,6 +112,14 @@ async function getDashboardData() {
     ? `Ontem você faturou ${fmt(revenueYesterday)}. Este mês já estás em ${goalPercent}% da meta. ${goalPercent >= 100 ? 'Meta batida! 🎉' : 'Bora continuar! 💪'}`
     : `Ontem você faturou ${fmt(revenueYesterday)}. Defina uma meta mensal em Metas para acompanhar seu progresso.`
 
+  const smartAlerts = (alerts as AlertRow[] ?? [])
+  const gamification = gamif as GamifRow | null
+
+  const LEVEL_EMOJIS: Record<string, string> = {
+    semente: '🌱', broto: '🌿', arvore: '🌳',
+    estrela: '⭐', cristal: '💎', socio_ouro: '🏆',
+  }
+
   return {
     userName:        (user?.name as string) ?? 'Usuário',
     bomDiaMessage,
@@ -110,6 +134,13 @@ async function getDashboardData() {
     dreamNote,
     appointments,
     tasks: taskList,
+    smartAlerts,
+    gamification: gamification ? {
+      points:  Number(gamification.total_points ?? 0),
+      level:   String(gamification.current_level ?? 'semente'),
+      streak:  Number(gamification.current_streak ?? 0),
+      emoji:   LEVEL_EMOJIS[String(gamification.current_level ?? 'semente')] ?? '🌱',
+    } : null,
   }
 }
 
@@ -124,6 +155,27 @@ export default async function DashboardPage() {
         revenue_yesterday={d.revenueYesterday}
         goal_percent={d.goalPercent}
       />
+
+      {/* Alertas inteligentes */}
+      {d.smartAlerts.length > 0 && (
+        <div className="space-y-2">
+          {d.smartAlerts.map((alert) => (
+            <div key={alert.id} className="flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-2xl px-4 py-3">
+              <Bell className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" />
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-amber-800">{alert.title}</p>
+                <p className="text-xs text-amber-600 mt-0.5">{alert.message}</p>
+              </div>
+              {alert.action_url && (
+                <Link href={alert.action_url} className="text-xs font-semibold text-amber-700 whitespace-nowrap underline">
+                  {alert.action_label ?? 'Ver'}
+                </Link>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
       <MetricCards
         revenue={d.revenueToday}
         expenses={d.expensesToday}
@@ -134,10 +186,32 @@ export default async function DashboardPage() {
         goal_target={d.goalTarget}
         dream_note={d.dreamNote}
       />
+
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <AppointmentsCard appointments={d.appointments} />
         <TasksCard tasks={d.tasks} />
       </div>
+
+      {/* Card gamificação */}
+      {d.gamification && (
+        <Link href="/gamificacao" className="block">
+          <div className="flex items-center gap-4 bg-white rounded-2xl border border-gray-100 shadow-sm px-5 py-4 hover:shadow-md transition-shadow">
+            <span className="text-3xl">{d.gamification.emoji}</span>
+            <div className="flex-1">
+              <p className="text-xs text-gray-400 mb-0.5">Seu nível atual</p>
+              <p className="text-sm font-bold text-gray-900 capitalize">{d.gamification.level.replace('_', ' ')}</p>
+              <p className="text-xs text-gray-500">{d.gamification.points} XP acumulados</p>
+            </div>
+            {d.gamification.streak > 0 && (
+              <div className="flex items-center gap-1 bg-orange-50 rounded-xl px-3 py-2">
+                <Flame className="w-4 h-4 text-orange-400" />
+                <span className="text-sm font-bold text-orange-600">{d.gamification.streak}</span>
+              </div>
+            )}
+            <Zap className="w-4 h-4 text-gray-300" />
+          </div>
+        </Link>
+      )}
     </div>
   )
 }

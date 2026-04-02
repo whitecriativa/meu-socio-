@@ -1,0 +1,146 @@
+{
+  "name": "005 — Alerta Diário (08h)",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [{ "field": "cronExpression", "expression": "0 8 * * *" }]
+        }
+      },
+      "id": "schedule-trigger",
+      "name": "Cron 08h diário",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.NEXT_PUBLIC_APP_URL }}/api/alerts/check",
+        "method": "POST",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [{ "name": "Content-Type", "value": "application/json" }]
+        }
+      },
+      "id": "check-alerts",
+      "name": "Verificar e Criar Alertas",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.SUPABASE_URL }}/rest/v1/smart_alerts",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "apikey", "value": "={{ $env.SUPABASE_SERVICE_KEY }}" },
+            { "name": "Authorization", "value": "=Bearer {{ $env.SUPABASE_SERVICE_KEY }}" }
+          ]
+        },
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            { "name": "select", "value": "id,title,message,action_label,action_url,user_id,users(phone,name)" },
+            { "name": "read_at", "value": "is.null" },
+            { "name": "sent_whatsapp", "value": "eq.false" }
+          ]
+        }
+      },
+      "id": "get-unsent-alerts",
+      "name": "Buscar Alertas Não Enviados",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "number": [{ "value1": "={{ $json.length }}", "operation": "larger", "value2": 0 }]
+        }
+      },
+      "id": "has-alerts",
+      "name": "Tem Alertas?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [900, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const alerts = $input.all();\nconst messages = [];\nconst grouped = {};\nfor (const item of alerts) {\n  const a = item.json;\n  const phone = a.users?.phone;\n  const name = a.users?.name || 'você';\n  if (!phone) continue;\n  if (!grouped[phone]) grouped[phone] = { phone, name, items: [] };\n  grouped[phone].items.push(a);\n}\nfor (const [phone, data] of Object.entries(grouped)) {\n  const { name, items } = data;\n  let text = `Bom dia, ${name}! Tenho ${items.length === 1 ? '1 aviso' : items.length + ' avisos'} importantes pra você 📋\\n`;\n  for (const item of items) {\n    text += `\\n⚠️ ${item.title}\\n${item.message}`;\n  }\n  text += '\\n\\nAcesse seu painel para mais detalhes: ' + (process.env.NEXT_PUBLIC_APP_URL || 'meusocio.app');\n  messages.push({ json: { phone, text, alertIds: items.map(i => i.id) } });\n}\nreturn messages;"
+      },
+      "id": "build-messages",
+      "name": "Montar Mensagens",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1120, 200]
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.EVOLUTION_API_URL }}/message/sendText/{{ $env.EVOLUTION_INSTANCE }}",
+        "method": "POST",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [{ "name": "apikey", "value": "={{ $env.EVOLUTION_API_KEY }}" }]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            { "name": "number", "value": "={{ $json.phone }}" },
+            { "name": "text",   "value": "={{ $json.text }}" }
+          ]
+        }
+      },
+      "id": "send-whatsapp",
+      "name": "Enviar WhatsApp",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1340, 200]
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.SUPABASE_URL }}/rest/v1/smart_alerts",
+        "method": "PATCH",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "apikey", "value": "={{ $env.SUPABASE_SERVICE_KEY }}" },
+            { "name": "Authorization", "value": "=Bearer {{ $env.SUPABASE_SERVICE_KEY }}" },
+            { "name": "Content-Type", "value": "application/json" }
+          ]
+        },
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [{ "name": "id", "value": "=in.({{ $json.alertIds.join(',') }})" }]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [{ "name": "sent_whatsapp", "value": "true" }]
+        }
+      },
+      "id": "mark-sent",
+      "name": "Marcar como Enviado",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1560, 200]
+    }
+  ],
+  "connections": {
+    "Cron 08h diário":            { "main": [[{ "node": "Verificar e Criar Alertas", "type": "main", "index": 0 }]] },
+    "Verificar e Criar Alertas":  { "main": [[{ "node": "Buscar Alertas Não Enviados", "type": "main", "index": 0 }]] },
+    "Buscar Alertas Não Enviados":{ "main": [[{ "node": "Tem Alertas?", "type": "main", "index": 0 }]] },
+    "Tem Alertas?":               { "main": [[{ "node": "Montar Mensagens", "type": "main", "index": 0 }]] },
+    "Montar Mensagens":           { "main": [[{ "node": "Enviar WhatsApp", "type": "main", "index": 0 }]] },
+    "Enviar WhatsApp":            { "main": [[{ "node": "Marcar como Enviado", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1" },
+  "meta": {
+    "description": "Roda às 08h todo dia. Chama /api/alerts/check para gerar alertas, depois envia via WhatsApp apenas usuários com alertas pendentes."
+  }
+}

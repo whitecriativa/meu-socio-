@@ -62,7 +62,21 @@
       "Bash(cat \"/Users/luizhenriquematias/Desktop/Curso C Coude/apps/web/app/\\(dashboard\\)/agenda/actions.ts\")",
       "Bash(cat \"/Users/luizhenriquematias/Desktop/Curso C Coude/apps/web/app/\\(dashboard\\)/financeiro/actions.ts\")",
       "Bash(npm run:*)",
-      "Bash(vercel --version)"
+      "Bash(vercel --version)",
+      "Bash(gh auth:*)",
+      "Bash(npx vercel:*)",
+      "Bash(sudo npm:*)",
+      "Bash(~/.local/bin/vercel --version)",
+      "Bash(~/.local/bin/vercel whoami:*)",
+      "Bash(ls /Users/luizhenriquematias/Desktop/Curso C Coude/apps/web/.env*)",
+      "Bash(~/.local/bin/vercel link:*)",
+      "Bash(~/.local/bin/vercel env:*)",
+      "Bash(~/.local/bin/vercel --prod --yes)",
+      "Bash(npx eslint:*)",
+      "Bash(~/.local/bin/vercel logs:*)",
+      "Bash(timeout 60 node_modules/.bin/tsc --noEmit)",
+      "Bash(node node_modules/.bin/tsc --noEmit)",
+      "Bash(node_modules/typescript/bin/tsc --noEmit)"
     ]
   }
 }

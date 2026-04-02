@@ -15,7 +15,15 @@ const SUGESTOES_DESPESA = [
   'Alimentação', 'Assinatura', 'Equipamento', 'Imposto', 'Outros',
 ]
 
-const PAGAMENTOS = ['Pix', 'Dinheiro', 'Cartão de crédito', 'Cartão de débito', 'Transferência']
+const PAGAMENTOS = [
+  { label: 'Pix',              value: 'pix' },
+  { label: 'Dinheiro',         value: 'dinheiro' },
+  { label: 'Cartão de crédito', value: 'cartao_credito' },
+  { label: 'Cartão de débito',  value: 'cartao_debito' },
+  { label: 'Transferência',    value: 'transferencia' },
+  { label: 'Boleto',           value: 'boleto' },
+  { label: 'Outro',            value: 'outro' },
+]
 
 const TODAY = new Date().toISOString().slice(0, 10)
 
@@ -173,7 +181,7 @@ export function NovoLancamentoModal() {
                   >
                     <option value="">Selecione...</option>
                     {PAGAMENTOS.map((p) => (
-                      <option key={p} value={p}>{p}</option>
+                      <option key={p.value} value={p.value}>{p.label}</option>
                     ))}
                   </select>
                 </div>

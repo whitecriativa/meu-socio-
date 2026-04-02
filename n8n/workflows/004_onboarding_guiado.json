@@ -1,0 +1,136 @@
+{
+  "name": "004 — Onboarding Guiado",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": ["message"],
+        "options": {}
+      },
+      "id": "trigger-webhook",
+      "name": "Evolution API Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [240, 300],
+      "webhookId": "onboarding-guiado"
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = $input.first().json;\nconst message = (body.data?.message?.conversation || body.data?.message?.extendedTextMessage?.text || '').toLowerCase().trim();\nconst phone = body.data?.key?.remoteJid?.replace('@s.whatsapp.net','') || '';\nconst triggers = ['configurar','config','⚙️','ajustar meu negocio','ajustar meu negócio','onboarding','iniciar'];\nconst isOnboarding = triggers.some(t => message.includes(t));\nreturn [{ json: { message, phone, isOnboarding } }];"
+      },
+      "id": "extract-intent",
+      "name": "Extrair Intenção",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [{ "value1": "={{ $json.isOnboarding }}", "value2": true }]
+        }
+      },
+      "id": "check-onboarding",
+      "name": "É Onboarding?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.SUPABASE_URL }}/rest/v1/users",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "apikey", "value": "={{ $env.SUPABASE_SERVICE_KEY }}" },
+            { "name": "Authorization", "value": "=Bearer {{ $env.SUPABASE_SERVICE_KEY }}" }
+          ]
+        },
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            { "name": "phone", "value": "=eq.{{ $json.phone }}" },
+            { "name": "select", "value": "id,name,onboarding_completed_at,profile_type,monthly_goal" }
+          ]
+        }
+      },
+      "id": "get-user",
+      "name": "Buscar Usuário",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [900, 200]
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.EVOLUTION_API_URL }}/message/sendText/{{ $env.EVOLUTION_INSTANCE }}",
+        "method": "POST",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [{ "name": "apikey", "value": "={{ $env.EVOLUTION_API_KEY }}" }]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            { "name": "number", "value": "={{ $('Extrair Intenção').item.json.phone }}" },
+            { "name": "text", "value": "Oi! 👋 Vou te ajudar a configurar seu negócio no Meu Sócio.\n\nComo você quer que eu chame seu negócio?" }
+          ]
+        }
+      },
+      "id": "send-step1",
+      "name": "Passo 1 — Nome do Negócio",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1120, 200]
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.SUPABASE_URL }}/rest/v1/message_queue",
+        "method": "POST",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "apikey", "value": "={{ $env.SUPABASE_SERVICE_KEY }}" },
+            { "name": "Authorization", "value": "=Bearer {{ $env.SUPABASE_SERVICE_KEY }}" },
+            { "name": "Content-Type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            { "name": "user_id", "value": "={{ $('Buscar Usuário').item.json[0]?.id }}" },
+            { "name": "flow_state", "value": "onboarding_step1_waiting_name" },
+            { "name": "scheduled_at", "value": "={{ new Date().toISOString() }}" }
+          ]
+        }
+      },
+      "id": "set-flow-state",
+      "name": "Salvar Estado do Fluxo",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1340, 200]
+    }
+  ],
+  "connections": {
+    "Evolution API Trigger":  { "main": [[{ "node": "Extrair Intenção", "type": "main", "index": 0 }]] },
+    "Extrair Intenção":       { "main": [[{ "node": "É Onboarding?", "type": "main", "index": 0 }]] },
+    "É Onboarding?":          { "main": [[{ "node": "Buscar Usuário", "type": "main", "index": 0 }]] },
+    "Buscar Usuário":         { "main": [[{ "node": "Passo 1 — Nome do Negócio", "type": "main", "index": 0 }]] },
+    "Passo 1 — Nome do Negócio": { "main": [[{ "node": "Salvar Estado do Fluxo", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1" },
+  "meta": {
+    "description": "Fluxo de configuração guiada do negócio via WhatsApp. Ativado quando o usuário manda 'configurar' ou '⚙️'.",
+    "steps": [
+      "Passo 1: Pede nome do negócio → salva business_name",
+      "Passo 2: Pede tipo de serviço (botões: Beleza / Saúde / Tech / Outro)",
+      "Passo 3: Pede modalidade (Presencial / Online / Ambos)",
+      "Passo 4: Pede meta de faturamento mensal",
+      "Passo 5: Confirma tudo → marca onboarding_completed_at"
+    ]
+  }
+}

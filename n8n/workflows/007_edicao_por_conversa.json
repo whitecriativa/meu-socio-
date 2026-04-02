@@ -1,0 +1,204 @@
+{
+  "name": "007 — Edição de Configurações por Conversa",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": ["message"],
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "Evolution API Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [240, 300],
+      "webhookId": "edicao-conversa"
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = $input.first().json;\nconst raw = (body.data?.message?.conversation || body.data?.message?.extendedTextMessage?.text || '').trim();\nconst msg = raw.toLowerCase();\nconst phone = body.data?.key?.remoteJid?.replace('@s.whatsapp.net','') || '';\n\nconst intents = [\n  { pattern: /mudar (meu )?nome|alterar nome/, intent: 'change_name' },\n  { pattern: /mudar (minha )?meta|alterar meta|nova meta/, intent: 'change_goal' },\n  { pattern: /mudar cnpj|atualizar cnpj/, intent: 'change_cnpj' },\n  { pattern: /meu hor[aá]rio|hor[aá]rio de atendimento/, intent: 'change_hours' },\n  { pattern: /configurar|minhas configura[cç][oõ]es/, intent: 'open_config' },\n];\n\nlet intent = null;\nfor (const { pattern, intent: i } of intents) {\n  if (pattern.test(msg)) { intent = i; break; }\n}\n\nreturn [{ json: { raw, msg, phone, intent } }];"
+      },
+      "id": "detect-intent",
+      "name": "Detectar Intenção de Edição",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [{ "value1": "={{ $json.intent }}", "operation": "isNotEmpty" }]
+        }
+      },
+      "id": "has-intent",
+      "name": "Tem Intenção?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "rules": [
+            { "value2": "change_name",  "output": 0 },
+            { "value2": "change_goal",  "output": 1 },
+            { "value2": "change_cnpj",  "output": 2 },
+            { "value2": "change_hours", "output": 3 },
+            { "value2": "open_config",  "output": 4 }
+          ]
+        },
+        "fallbackOutput": 5,
+        "inputDataFieldName": "intent"
+      },
+      "id": "route-intent",
+      "name": "Rotear por Intenção",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 2,
+      "position": [900, 300]
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.EVOLUTION_API_URL }}/message/sendText/{{ $env.EVOLUTION_INSTANCE }}",
+        "method": "POST",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [{ "name": "apikey", "value": "={{ $env.EVOLUTION_API_KEY }}" }]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            { "name": "number", "value": "={{ $('Detectar Intenção de Edição').item.json.phone }}" },
+            { "name": "text",   "value": "Qual é o novo nome do seu negócio?" }
+          ]
+        }
+      },
+      "id": "ask-name",
+      "name": "Pedir Novo Nome",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1120, 100]
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.EVOLUTION_API_URL }}/message/sendText/{{ $env.EVOLUTION_INSTANCE }}",
+        "method": "POST",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [{ "name": "apikey", "value": "={{ $env.EVOLUTION_API_KEY }}" }]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            { "name": "number", "value": "={{ $('Detectar Intenção de Edição').item.json.phone }}" },
+            { "name": "text",   "value": "Qual é a nova meta mensal de faturamento? (ex: 5000)" }
+          ]
+        }
+      },
+      "id": "ask-goal",
+      "name": "Pedir Nova Meta",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1120, 220]
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.EVOLUTION_API_URL }}/message/sendText/{{ $env.EVOLUTION_INSTANCE }}",
+        "method": "POST",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [{ "name": "apikey", "value": "={{ $env.EVOLUTION_API_KEY }}" }]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            { "name": "number", "value": "={{ $('Detectar Intenção de Edição').item.json.phone }}" },
+            { "name": "text",   "value": "Me manda o novo CNPJ com pontuação.\nEx: 12.345.678/0001-90" }
+          ]
+        }
+      },
+      "id": "ask-cnpj",
+      "name": "Pedir CNPJ",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1120, 340]
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.EVOLUTION_API_URL }}/message/sendText/{{ $env.EVOLUTION_INSTANCE }}",
+        "method": "POST",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [{ "name": "apikey", "value": "={{ $env.EVOLUTION_API_KEY }}" }]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            { "name": "number", "value": "={{ $('Detectar Intenção de Edição').item.json.phone }}" },
+            { "name": "text",   "value": "Me conta seu horário de atendimento.\nEx: segunda a sexta das 9h às 18h" }
+          ]
+        }
+      },
+      "id": "ask-hours",
+      "name": "Pedir Horário",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1120, 460]
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.EVOLUTION_API_URL }}/message/sendText/{{ $env.EVOLUTION_INSTANCE }}",
+        "method": "POST",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [{ "name": "apikey", "value": "={{ $env.EVOLUTION_API_KEY }}" }]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            { "name": "number", "value": "={{ $('Detectar Intenção de Edição').item.json.phone }}" },
+            { "name": "text",   "value": "Para editar suas configurações completas, acesse o painel:\n{{ $env.NEXT_PUBLIC_APP_URL }}/configuracoes" }
+          ]
+        }
+      },
+      "id": "send-config-link",
+      "name": "Enviar Link Configurações",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1120, 580]
+    }
+  ],
+  "connections": {
+    "Evolution API Trigger":         { "main": [[{ "node": "Detectar Intenção de Edição", "type": "main", "index": 0 }]] },
+    "Detectar Intenção de Edição":   { "main": [[{ "node": "Tem Intenção?", "type": "main", "index": 0 }]] },
+    "Tem Intenção?":                 { "main": [[{ "node": "Rotear por Intenção", "type": "main", "index": 0 }]] },
+    "Rotear por Intenção": {
+      "main": [
+        [{ "node": "Pedir Novo Nome",          "type": "main", "index": 0 }],
+        [{ "node": "Pedir Nova Meta",           "type": "main", "index": 0 }],
+        [{ "node": "Pedir CNPJ",                "type": "main", "index": 0 }],
+        [{ "node": "Pedir Horário",             "type": "main", "index": 0 }],
+        [{ "node": "Enviar Link Configurações", "type": "main", "index": 0 }]
+      ]
+    }
+  },
+  "settings": { "executionOrder": "v1" },
+  "meta": {
+    "description": "Detecta intenções de edição de configurações no WhatsApp e conduz o usuário pelo fluxo correto.",
+    "triggers": [
+      "'mudar nome' → pede novo nome → salva",
+      "'mudar meta' → pede nova meta → salva em users.monthly_goal",
+      "'mudar CNPJ' → pede CNPJ formatado → salva",
+      "'meu horário' → pede horário em texto → salva em users.work_hours",
+      "'configurar' → redireciona para /configuracoes"
+    ]
+  }
+}

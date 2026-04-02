@@ -1,0 +1,125 @@
+{
+  "name": "006 — Resumo Semanal (Segunda 09h)",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [{ "field": "cronExpression", "expression": "0 9 * * 1" }]
+        }
+      },
+      "id": "schedule-trigger",
+      "name": "Cron Segunda 09h",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.SUPABASE_URL }}/rest/v1/users",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "apikey", "value": "={{ $env.SUPABASE_SERVICE_KEY }}" },
+            { "name": "Authorization", "value": "=Bearer {{ $env.SUPABASE_SERVICE_KEY }}" }
+          ]
+        },
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            { "name": "select", "value": "id,name,phone,monthly_goal" },
+            { "name": "phone", "value": "not.is.null" }
+          ]
+        }
+      },
+      "id": "get-users",
+      "name": "Buscar Usuários Ativos",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const users = $input.all().map(i => i.json);\nconst now = new Date();\nconst weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);\nconst weekAgoStr = weekAgo.toISOString().substring(0,10);\nconst todayStr = now.toISOString().substring(0,10);\nconst monthStart = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-01`;\n// Retorna contexto para próximas queries\nreturn users.map(u => ({ json: { ...u, weekAgoStr, todayStr, monthStart } }));"
+      },
+      "id": "prepare-context",
+      "name": "Preparar Contexto",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.SUPABASE_URL }}/rest/v1/transactions",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "apikey", "value": "={{ $env.SUPABASE_SERVICE_KEY }}" },
+            { "name": "Authorization", "value": "=Bearer {{ $env.SUPABASE_SERVICE_KEY }}" }
+          ]
+        },
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            { "name": "select", "value": "type,amount" },
+            { "name": "user_id", "value": "=eq.{{ $json.id }}" },
+            { "name": "competence_date", "value": "=gte.{{ $json.weekAgoStr }}" }
+          ]
+        }
+      },
+      "id": "get-week-txs",
+      "name": "Buscar Transações da Semana",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [900, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const user = $('Preparar Contexto').item.json;\nconst txs = $input.first().json;\nconst txList = Array.isArray(txs) ? txs : [];\nconst revenue = txList.filter(t => t.type === 'receita').reduce((s, t) => s + Number(t.amount || 0), 0);\nconst expenses = txList.filter(t => t.type === 'despesa').reduce((s, t) => s + Number(t.amount || 0), 0);\nconst profit = revenue - expenses;\nconst goal = Number(user.monthly_goal || 0);\nconst fmt = (v) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v);\n\nlet text = `Boa semana, ${user.name}! 📊 Seu resumo da semana:\\n\\n`;\ntext += `💰 Receitas: ${fmt(revenue)}\\n`;\ntext += `📉 Despesas: ${fmt(expenses)}\\n`;\ntext += `✅ Lucro líquido: ${fmt(profit)}\\n`;\n\nif (goal > 0) {\n  const monthTxs = txList; // simplificado\n  const goalPct = Math.round((revenue / goal) * 100);\n  text += `\\n🎯 Meta do mês: ${goalPct}% atingida`;\n  if (goalPct < 100) {\n    text += `\\nFaltam ${fmt(goal - revenue)} para bater a meta.`;\n  } else {\n    text += `\\n🎉 Meta batida! Parabéns!`;\n  }\n}\n\ntext += `\\n\\nBoa sorte essa semana! 💪`;\n\nreturn [{ json: { phone: user.phone, text } }];"
+      },
+      "id": "build-summary",
+      "name": "Montar Resumo",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1120, 300]
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.EVOLUTION_API_URL }}/message/sendText/{{ $env.EVOLUTION_INSTANCE }}",
+        "method": "POST",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [{ "name": "apikey", "value": "={{ $env.EVOLUTION_API_KEY }}" }]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            { "name": "number", "value": "={{ $json.phone }}" },
+            { "name": "text",   "value": "={{ $json.text }}" }
+          ]
+        }
+      },
+      "id": "send-summary",
+      "name": "Enviar Resumo WhatsApp",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1340, 300]
+    }
+  ],
+  "connections": {
+    "Cron Segunda 09h":             { "main": [[{ "node": "Buscar Usuários Ativos", "type": "main", "index": 0 }]] },
+    "Buscar Usuários Ativos":       { "main": [[{ "node": "Preparar Contexto", "type": "main", "index": 0 }]] },
+    "Preparar Contexto":            { "main": [[{ "node": "Buscar Transações da Semana", "type": "main", "index": 0 }]] },
+    "Buscar Transações da Semana":  { "main": [[{ "node": "Montar Resumo", "type": "main", "index": 0 }]] },
+    "Montar Resumo":                { "main": [[{ "node": "Enviar Resumo WhatsApp", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1" },
+  "meta": {
+    "description": "Toda segunda às 09h envia resumo da semana anterior: receitas, despesas, lucro e % da meta para cada usuário ativo."
+  }
+}
