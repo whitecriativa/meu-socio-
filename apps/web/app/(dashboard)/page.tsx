@@ -1,10 +1,12 @@
 import { createClient } from '@supabase/supabase-js'
-import Link from 'next/link'
-import { Bell, Zap, Flame } from 'lucide-react'
-import { BomDiaCard } from '@/components/dashboard/bom-dia-card'
-import { MetricCards } from '@/components/dashboard/metric-cards'
-import { AppointmentsCard } from '@/components/dashboard/appointments-card'
-import { TasksCard } from '@/components/dashboard/tasks-card'
+import { HeroCard }            from '@/components/dashboard/hero-card'
+import { QuickAccess }         from '@/components/dashboard/quick-access'
+import { AlertsList }          from '@/components/dashboard/alerts-list'
+import { FinancialHealth }     from '@/components/dashboard/financial-health'
+import { AppointmentsCard }    from '@/components/dashboard/appointments-card'
+import { TasksCard }           from '@/components/dashboard/tasks-card'
+import { GamificationCompact } from '@/components/dashboard/gamification-compact'
+import { LearnPreview }        from '@/components/dashboard/learn-preview'
 
 export const dynamic = 'force-dynamic'
 
@@ -16,41 +18,41 @@ function adminClient() {
   )
 }
 
-function fmt(v: number) {
-  return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v)
-}
-
-type TxRow     = { type: string | null; amount: number | null; competence_date: string | null }
-type AptRow    = { id: string; service: string | null; datetime: string | null; status: string | null; clients: { name: string | null }[] | null }
-type TaskRow   = { id: string; title: string | null; quadrant: string | null; completed_at: string | null }
-type AlertRow  = { id: string; type: string; title: string; message: string; action_url: string | null; action_label: string | null }
-type GamifRow  = { total_points: number | null; current_level: string | null; current_streak: number | null }
+type TxRow    = { type: string | null; amount: number | null; competence_date: string | null }
+type AptRow   = { id: string; service: string | null; datetime: string | null; status: string | null; clients: { name: string | null }[] | null }
+type TaskRow  = { id: string; title: string | null; quadrant: string | null; completed_at: string | null }
+type AlertRow = { id: string; type: string; title: string; message: string; created_at: string }
+type GamifRow = { total_points: number | null; current_level: string | null; current_streak: number | null }
 
 async function getDashboardData() {
   const userId  = process.env.NEXT_PUBLIC_DEMO_USER_ID!
   const supabase = adminClient()
 
-  const now       = new Date()
-  const today     = now.toISOString().substring(0, 10)
-  const yesterday = new Date(now.getTime() - 86400000).toISOString().substring(0, 10)
+  const now        = new Date()
+  const today      = now.toISOString().substring(0, 10)
+  const yesterday  = new Date(now.getTime() - 86400000).toISOString().substring(0, 10)
   const monthStart = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`
+
+  // Mês passado
+  const prevMonth     = now.getMonth() === 0 ? 11 : now.getMonth() - 1
+  const prevYear      = now.getMonth() === 0 ? now.getFullYear() - 1 : now.getFullYear()
+  const prevMonthStart = `${prevYear}-${String(prevMonth + 1).padStart(2, '0')}-01`
+  const prevMonthEnd   = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`
 
   const [
     { data: user },
-    { data: txToday },
     { data: txYesterday },
     { data: txMonth },
-    { count: activeClients },
+    { data: txPrevMonth },
     { data: apts },
     { data: tasks },
     { data: alerts },
     { data: gamif },
   ] = await Promise.all([
-    supabase.from('users').select('name, monthly_goal, dream').eq('id', userId).single(),
-    supabase.from('transactions').select('type, amount').eq('user_id', userId).eq('competence_date', today),
+    supabase.from('users').select('name, monthly_goal').eq('id', userId).single(),
     supabase.from('transactions').select('amount').eq('user_id', userId).eq('type', 'receita').eq('competence_date', yesterday),
     supabase.from('transactions').select('type, amount').eq('user_id', userId).gte('competence_date', monthStart).lte('competence_date', today),
-    supabase.from('clients').select('id', { count: 'exact', head: true }).eq('user_id', userId).in('status', ['ativo', 'vip']),
+    supabase.from('transactions').select('amount').eq('user_id', userId).eq('type', 'receita').gte('competence_date', prevMonthStart).lt('competence_date', prevMonthEnd),
     supabase.from('appointments').select('id, service, datetime, status, clients(name)')
       .eq('user_id', userId)
       .gte('datetime', `${today}T00:00:00`)
@@ -63,7 +65,7 @@ async function getDashboardData() {
       .order('created_at', { ascending: false })
       .limit(5),
     supabase.from('smart_alerts')
-      .select('id, type, title, message, action_url, action_label')
+      .select('id, type, title, message, created_at')
       .eq('user_id', userId)
       .is('read_at', null)
       .order('triggered_at', { ascending: false })
@@ -74,19 +76,20 @@ async function getDashboardData() {
       .single(),
   ])
 
-  const todayTxs    = (txToday    as TxRow[] ?? [])
-  const yesterdayTx = (txYesterday as { amount: number | null }[] ?? [])
-  const monthTxs    = (txMonth    as TxRow[] ?? [])
+  const monthTxs = (txMonth as TxRow[] ?? [])
+  const revenueMonth  = monthTxs.filter((t) => t.type === 'receita').reduce((s, t) => s + Number(t.amount ?? 0), 0)
+  const expensesMonth = monthTxs.filter((t) => t.type === 'despesa').reduce((s, t) => s + Number(t.amount ?? 0), 0)
 
-  const revenueToday    = todayTxs.filter((t) => t.type === 'receita').reduce((s, t) => s + Number(t.amount ?? 0), 0)
-  const expensesToday   = todayTxs.filter((t) => t.type === 'despesa').reduce((s, t) => s + Number(t.amount ?? 0), 0)
-  const revenueYesterday = yesterdayTx.reduce((s, t) => s + Number(t.amount ?? 0), 0)
-  const revenueMonth    = monthTxs.filter((t) => t.type === 'receita').reduce((s, t) => s + Number(t.amount ?? 0), 0)
+  const revenueYesterday = (txYesterday as { amount: number | null }[] ?? []).reduce((s, t) => s + Number(t.amount ?? 0), 0)
+  const revenuePrevMonth = (txPrevMonth as { amount: number | null }[] ?? []).reduce((s, t) => s + Number(t.amount ?? 0), 0)
 
-  const goalTarget   = Number(user?.monthly_goal ?? 0)
-  const goalPercent  = goalTarget > 0 ? Math.min(100, Math.round((revenueMonth / goalTarget) * 100)) : 0
-  const dreamNote    = (user?.dream as string) || 'Defina seu sonho em Metas'
+  const goalTarget  = Number(user?.monthly_goal ?? 0)
+  const goalPercent = goalTarget > 0 ? Math.min(100, Math.round((revenueMonth / goalTarget) * 100)) : 0
+  const vsLastMonth = revenuePrevMonth > 0
+    ? Math.round(((revenueMonth - revenuePrevMonth) / revenuePrevMonth) * 100)
+    : 0
 
+  // Appointments
   const aptRows = (apts as AptRow[] ?? [])
   const appointments = aptRows.map((a) => ({
     id:          a.id,
@@ -96,6 +99,7 @@ async function getDashboardData() {
     status:      (a.status === 'confirmado' ? 'confirmado' : 'aguardando') as 'confirmado' | 'aguardando',
   }))
 
+  // Tasks
   const VALID_QUADRANTS = ['urgent_important', 'important_not_urgent', 'urgent_not_important'] as const
   type ValidQuadrant = typeof VALID_QUADRANTS[number]
   const taskRows = (tasks as TaskRow[] ?? [])
@@ -106,40 +110,33 @@ async function getDashboardData() {
     done:     Boolean(t.completed_at),
   }))
 
-  const avgTicket = appointments.length > 0 ? revenueToday / appointments.length : 0
-
-  const bomDiaMessage = goalTarget > 0
-    ? `Ontem você faturou ${fmt(revenueYesterday)}. Este mês já estás em ${goalPercent}% da meta. ${goalPercent >= 100 ? 'Meta batida! 🎉' : 'Bora continuar! 💪'}`
-    : `Ontem você faturou ${fmt(revenueYesterday)}. Defina uma meta mensal em Metas para acompanhar seu progresso.`
-
-  const smartAlerts = (alerts as AlertRow[] ?? [])
-  const gamification = gamif as GamifRow | null
-
-  const LEVEL_EMOJIS: Record<string, string> = {
-    semente: '🌱', broto: '🌿', arvore: '🌳',
-    estrela: '⭐', cristal: '💎', socio_ouro: '🏆',
+  // Gamification
+  const gRow = gamif as GamifRow | null
+  const LEVEL_LABELS: Record<string, string> = {
+    semente: 'Nível Semente 🌱', broto: 'Nível Broto 🌿', arvore: 'Nível Árvore 🌳',
+    estrela: 'Nível Estrela ⭐', cristal: 'Nível Cristal 💎', socio_ouro: 'Sócio Ouro 🏆',
   }
+  const XP_NEEDED: Record<string, number> = {
+    semente: 500, broto: 1500, arvore: 4000, estrela: 10000, cristal: 25000, socio_ouro: 50000,
+  }
+  const currentLevel = String(gRow?.current_level ?? 'semente')
 
   return {
-    userName:        (user?.name as string) ?? 'Usuário',
-    bomDiaMessage,
-    revenueYesterday,
-    goalPercent,
-    revenueToday,
-    expensesToday,
-    avgTicket,
-    activeClients:   activeClients ?? 0,
     revenueMonth,
-    goalTarget:      goalTarget || 1,
-    dreamNote,
+    expensesMonth,
+    revenueYesterday,
+    goalTarget,
+    goalPercent,
+    vsLastMonth,
     appointments,
-    tasks: taskList,
-    smartAlerts,
-    gamification: gamification ? {
-      points:  Number(gamification.total_points ?? 0),
-      level:   String(gamification.current_level ?? 'semente'),
-      streak:  Number(gamification.current_streak ?? 0),
-      emoji:   LEVEL_EMOJIS[String(gamification.current_level ?? 'semente')] ?? '🌱',
+    tasks:      taskList,
+    smartAlerts: (alerts as AlertRow[] ?? []),
+    gamification: gRow ? {
+      levelKey:   currentLevel,
+      levelLabel: LEVEL_LABELS[currentLevel] ?? 'Nível Semente 🌱',
+      xpCurrent:  Number(gRow.total_points ?? 0),
+      xpNeeded:   XP_NEEDED[currentLevel] ?? 500,
+      streak:     Number(gRow.current_streak ?? 0),
     } : null,
   }
 }
@@ -147,71 +144,52 @@ async function getDashboardData() {
 export default async function DashboardPage() {
   const d = await getDashboardData()
 
+  const MOCK_MISSIONS = [
+    { id: 'm1', title: 'Registrar 1 venda hoje',   completed: d.revenueMonth > 0 },
+    { id: 'm2', title: 'Verificar agenda do dia',   completed: d.appointments.length > 0 },
+    { id: 'm3', title: 'Concluir 1 tarefa da lista', completed: d.tasks.some((t) => t.done) },
+  ]
+
   return (
-    <div className="px-4 py-5 md:px-8 md:py-8 max-w-5xl space-y-5">
-      <BomDiaCard
-        name={d.userName}
-        message={d.bomDiaMessage}
-        revenue_yesterday={d.revenueYesterday}
-        goal_percent={d.goalPercent}
+    <div className="px-4 py-5 md:px-8 md:py-8 max-w-2xl mx-auto space-y-4">
+
+      {/* 1. Hero — faturamento do mês */}
+      <HeroCard
+        revenue={d.revenueMonth}
+        revenueYesterday={d.revenueYesterday}
+        goalTarget={d.goalTarget}
+        goalPercent={d.goalPercent}
+        vsLastMonth={d.vsLastMonth}
       />
 
-      {/* Alertas inteligentes */}
-      {d.smartAlerts.length > 0 && (
-        <div className="space-y-2">
-          {d.smartAlerts.map((alert) => (
-            <div key={alert.id} className="flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-2xl px-4 py-3">
-              <Bell className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" />
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-amber-800">{alert.title}</p>
-                <p className="text-xs text-amber-600 mt-0.5">{alert.message}</p>
-              </div>
-              {alert.action_url && (
-                <Link href={alert.action_url} className="text-xs font-semibold text-amber-700 whitespace-nowrap underline">
-                  {alert.action_label ?? 'Ver'}
-                </Link>
-              )}
-            </div>
-          ))}
-        </div>
-      )}
+      {/* 2. Acesso rápido */}
+      <QuickAccess />
 
-      <MetricCards
-        revenue={d.revenueToday}
-        expenses={d.expensesToday}
-        avg_ticket={d.avgTicket}
-        active_clients={d.activeClients}
-        new_clients={0}
-        goal_achieved={d.revenueMonth}
-        goal_target={d.goalTarget}
-        dream_note={d.dreamNote}
-      />
+      {/* 3. Alertas */}
+      {d.smartAlerts.length > 0 && <AlertsList alerts={d.smartAlerts} />}
 
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+      {/* 4. Saúde financeira */}
+      <FinancialHealth revenue={d.revenueMonth} expenses={d.expensesMonth} />
+
+      {/* 5. Agenda + Tarefas */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <AppointmentsCard appointments={d.appointments} />
         <TasksCard tasks={d.tasks} />
       </div>
 
-      {/* Card gamificação */}
+      {/* 6. Gamificação compacta */}
       {d.gamification && (
-        <Link href="/gamificacao" className="block">
-          <div className="flex items-center gap-4 bg-white rounded-2xl border border-gray-100 shadow-sm px-5 py-4 hover:shadow-md transition-shadow">
-            <span className="text-3xl">{d.gamification.emoji}</span>
-            <div className="flex-1">
-              <p className="text-xs text-gray-400 mb-0.5">Seu nível atual</p>
-              <p className="text-sm font-bold text-gray-900 capitalize">{d.gamification.level.replace('_', ' ')}</p>
-              <p className="text-xs text-gray-500">{d.gamification.points} XP acumulados</p>
-            </div>
-            {d.gamification.streak > 0 && (
-              <div className="flex items-center gap-1 bg-orange-50 rounded-xl px-3 py-2">
-                <Flame className="w-4 h-4 text-orange-400" />
-                <span className="text-sm font-bold text-orange-600">{d.gamification.streak}</span>
-              </div>
-            )}
-            <Zap className="w-4 h-4 text-gray-300" />
-          </div>
-        </Link>
+        <GamificationCompact
+          level={d.gamification.levelLabel}
+          xpCurrent={d.gamification.xpCurrent}
+          xpNeeded={d.gamification.xpNeeded}
+          streak={d.gamification.streak}
+          missions={MOCK_MISSIONS}
+        />
       )}
+
+      {/* 7. Preview do Aprenda */}
+      <LearnPreview />
     </div>
   )
 }

@@ -7,12 +7,32 @@
 :root {
   --color-primary: #5B3FD4;
   --color-accent:  #52D68A;
+  --bg-base:       #F8F9FA;
+  --bg-card:       #FFFFFF;
+  --text-primary:  #111827;
+  --text-muted:    #6B7280;
+  --border:        #E5E7EB;
+}
+
+.dark {
+  --bg-base:       #0F0F1A;
+  --bg-card:       #1A1A2E;
+  --text-primary:  #F9FAFB;
+  --text-muted:    #9CA3AF;
+  --border:        rgba(255,255,255,0.08);
 }
 
 @layer base {
   body {
-    background-color: #F8F9FA;
+    background-color: var(--bg-base);
+    color: var(--text-primary);
     font-family: 'DM Sans', sans-serif;
-    @apply text-gray-900 antialiased;
+    @apply antialiased;
+    transition: background-color 0.2s ease, color 0.2s ease;
   }
 }
+
+/* Scrollbar fina */
+::-webkit-scrollbar       { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(91,63,212,0.3); border-radius: 2px; }

@@ -13,6 +13,7 @@ import {
   Settings,
   MessageCircle,
   Zap,
+  BookOpen,
 } from 'lucide-react'
 
 const NAV_ITEMS = [
@@ -23,10 +24,17 @@ const NAV_ITEMS = [
   { href: '/tarefas',       label: 'Tarefas',      icon: CheckSquare },
   { href: '/metas',         label: 'Metas',        icon: Target },
   { href: '/gamificacao',   label: 'Conquistas',   icon: Zap },
+  { href: '/aprenda',       label: 'Aprenda',      icon: BookOpen },
   { href: '/calculadora',   label: 'Calculadora',  icon: Calculator },
 ]
 
-const MOBILE_NAV = NAV_ITEMS.slice(0, 5)
+const MOBILE_NAV = [
+  { href: '/',            label: 'Dashboard',  icon: LayoutDashboard },
+  { href: '/financeiro',  label: 'Financeiro', icon: DollarSign },
+  { href: '/agenda',      label: 'Agenda',     icon: CalendarDays },
+  { href: '/aprenda',     label: 'Aprenda',    icon: BookOpen },
+  { href: '/gamificacao', label: 'Conquistas', icon: Zap },
+]
 
 interface SidebarProps {
   userName: string
@@ -104,32 +112,18 @@ export function Sidebar({ userName, userRole }: SidebarProps) {
         </div>
       </aside>
 
-      {/* ── Header mobile ───────────────────────────────────── */}
-      <header className="md:hidden fixed top-0 left-0 right-0 z-30 bg-[#5B3FD4] text-white flex items-center justify-between px-4 h-14 shadow-md">
-        <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-lg bg-[#52D68A] flex items-center justify-center">
-            <MessageCircle className="w-3.5 h-3.5 text-[#5B3FD4]" />
-          </div>
-          <span className="font-bold text-sm tracking-tight">Meu Sócio</span>
-        </div>
-        <div className="w-7 h-7 rounded-full bg-[#52D68A] flex items-center justify-center text-[#5B3FD4] text-xs font-bold">
-          {initials}
-        </div>
-      </header>
-
       {/* ── Bottom nav mobile ───────────────────────────────── */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-30 bg-white border-t border-gray-200 flex">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-30 flex" style={{ backgroundColor: 'var(--bg-card)', borderTop: '1px solid var(--border)' }}>
         {MOBILE_NAV.map(({ href, label, icon: Icon }) => {
           const isActive = pathname === href
           return (
             <Link
               key={href}
               href={href}
-              className={`flex-1 flex flex-col items-center justify-center py-2 gap-0.5 text-[10px] font-medium transition-colors ${
-                isActive ? 'text-[#5B3FD4]' : 'text-gray-400'
-              }`}
+              className="flex-1 flex flex-col items-center justify-center py-2 gap-0.5 text-[10px] font-medium transition-colors"
+              style={{ color: isActive ? '#5B3FD4' : 'var(--text-muted)' }}
             >
-              <Icon className={`w-5 h-5 ${isActive ? 'text-[#5B3FD4]' : 'text-gray-400'}`} />
+              <Icon className="w-5 h-5" style={{ color: isActive ? '#5B3FD4' : 'var(--text-muted)' }} />
               {label}
             </Link>
           )
