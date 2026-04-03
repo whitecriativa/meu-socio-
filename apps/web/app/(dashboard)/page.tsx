@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
+import { getAuthenticatedUserId } from '@/lib/get-user-id'
 import { HeroCard }            from '@/components/dashboard/hero-card'
 import { QuickAccess }         from '@/components/dashboard/quick-access'
 import { AlertsList }          from '@/components/dashboard/alerts-list'
@@ -18,14 +19,15 @@ function adminClient() {
   )
 }
 
+
 type TxRow    = { type: string | null; amount: number | null; competence_date: string | null }
-type AptRow   = { id: string; service: string | null; datetime: string | null; status: string | null; clients: { name: string | null }[] | null }
+type AptRow   = { id: string; service: string | null; scheduled_at: string | null; status: string | null; clients: { name: string | null }[] | null }
 type TaskRow  = { id: string; title: string | null; quadrant: string | null; completed_at: string | null }
 type AlertRow = { id: string; type: string; title: string; message: string; created_at: string }
 type GamifRow = { total_points: number | null; current_level: string | null; current_streak: number | null }
 
 async function getDashboardData() {
-  const userId  = process.env.NEXT_PUBLIC_DEMO_USER_ID!
+  const userId = (await getAuthenticatedUserId()) ?? process.env.NEXT_PUBLIC_DEMO_USER_ID!
   const supabase = adminClient()
 
   const now        = new Date()
@@ -46,30 +48,23 @@ async function getDashboardData() {
     { data: txPrevMonth },
     { data: apts },
     { data: tasks },
-    { data: alerts },
     { data: gamif },
   ] = await Promise.all([
     supabase.from('users').select('name, monthly_goal').eq('id', userId).single(),
     supabase.from('transactions').select('amount').eq('user_id', userId).eq('type', 'receita').eq('competence_date', yesterday),
     supabase.from('transactions').select('type, amount').eq('user_id', userId).gte('competence_date', monthStart).lte('competence_date', today),
     supabase.from('transactions').select('amount').eq('user_id', userId).eq('type', 'receita').gte('competence_date', prevMonthStart).lt('competence_date', prevMonthEnd),
-    supabase.from('appointments').select('id, service, datetime, status, clients(name)')
+    supabase.from('appointments').select('id, service, scheduled_at, status, clients(name)')
       .eq('user_id', userId)
-      .gte('datetime', `${today}T00:00:00`)
-      .lte('datetime', `${today}T23:59:59`)
+      .gte('scheduled_at', `${today}T00:00:00`)
+      .lte('scheduled_at', `${new Date(now.getTime() + 7 * 86400000).toISOString().substring(0, 10)}T23:59:59`)
       .in('status', ['confirmado', 'pendente'])
-      .order('datetime', { ascending: true })
+      .order('scheduled_at', { ascending: true })
       .limit(6),
     supabase.from('tasks').select('id, title, quadrant, completed_at')
       .eq('user_id', userId)
       .order('created_at', { ascending: false })
       .limit(5),
-    supabase.from('smart_alerts')
-      .select('id, type, title, message, created_at')
-      .eq('user_id', userId)
-      .is('read_at', null)
-      .order('triggered_at', { ascending: false })
-      .limit(3),
     supabase.from('user_gamification')
       .select('total_points, current_level, current_streak')
       .eq('user_id', userId)
@@ -95,7 +90,7 @@ async function getDashboardData() {
     id:          a.id,
     client_name: a.clients?.[0]?.name ?? 'Cliente',
     service:     a.service ?? '—',
-    time:        a.datetime ? new Date(a.datetime).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : '—',
+    time:        a.scheduled_at ? new Date(a.scheduled_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : '—',
     status:      (a.status === 'confirmado' ? 'confirmado' : 'aguardando') as 'confirmado' | 'aguardando',
   }))
 
@@ -130,7 +125,7 @@ async function getDashboardData() {
     vsLastMonth,
     appointments,
     tasks:      taskList,
-    smartAlerts: (alerts as AlertRow[] ?? []),
+    smartAlerts: [],
     gamification: gRow ? {
       levelKey:   currentLevel,
       levelLabel: LEVEL_LABELS[currentLevel] ?? 'Nível Semente 🌱',
@@ -151,7 +146,7 @@ export default async function DashboardPage() {
   ]
 
   return (
-    <div className="px-4 py-5 md:px-8 md:py-8 max-w-2xl mx-auto space-y-4">
+    <div className="px-4 py-5 md:px-8 md:py-8 max-w-2xl space-y-4">
 
       {/* 1. Hero — faturamento do mês */}
       <HeroCard

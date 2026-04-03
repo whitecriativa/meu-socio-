@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
+import { getAuthenticatedUserId } from '@/lib/get-user-id'
 import { Sidebar } from '@/components/layout/sidebar'
 import { Header } from '@/components/layout/header'
 
@@ -20,20 +21,47 @@ const LEVEL_LABELS: Record<string, string> = {
 }
 
 async function getLayoutData() {
-  const userId  = process.env.NEXT_PUBLIC_DEMO_USER_ID!
-  const supabase = adminClient()
+  try {
+    const userId = await getAuthenticatedUserId()
+    if (!userId) return { userName: 'Usuário', businessLevel: 'Nível Semente 🌱', alertCount: 0 }
 
-  const [{ data: user }, { data: gamif }, { count: alertCount }] = await Promise.all([
-    supabase.from('users').select('name, profile_type').eq('id', userId).single(),
-    supabase.from('user_gamification').select('current_level').eq('user_id', userId).single(),
-    supabase.from('smart_alerts').select('id', { count: 'exact', head: true })
-      .eq('user_id', userId).is('read_at', null),
-  ])
+    const supabase = adminClient()
 
-  return {
-    userName:      (user?.name as string) ?? 'Usuário',
-    businessLevel: LEVEL_LABELS[(gamif?.current_level as string) ?? 'semente'] ?? 'Nível Semente 🌱',
-    alertCount:    alertCount ?? 0,
+    const { data: user } = await supabase
+      .from('users')
+      .select('name, profile_type')
+      .eq('id', userId)
+      .single()
+
+    // Tabelas opcionais — podem não existir em todas as versões do banco
+    let currentLevel = 'semente'
+    let alertCount = 0
+
+    try {
+      const { data: gamif } = await supabase
+        .from('user_gamification')
+        .select('current_level')
+        .eq('user_id', userId)
+        .single()
+      if (gamif?.current_level) currentLevel = gamif.current_level as string
+    } catch { /* tabela não existe ainda */ }
+
+    try {
+      const { count } = await supabase
+        .from('smart_alerts')
+        .select('id', { count: 'exact', head: true })
+        .eq('user_id', userId)
+        .is('read_at', null)
+      alertCount = count ?? 0
+    } catch { /* tabela não existe ainda */ }
+
+    return {
+      userName:      (user?.name as string) || 'Usuário',
+      businessLevel: LEVEL_LABELS[currentLevel] ?? 'Nível Semente 🌱',
+      alertCount,
+    }
+  } catch {
+    return { userName: 'Usuário', businessLevel: 'Nível Semente 🌱', alertCount: 0 }
   }
 }
 
