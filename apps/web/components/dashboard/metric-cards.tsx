@@ -25,7 +25,7 @@ export function MetricCards({
 }: MetricCardsProps) {
   const balance = revenue - expenses
   const goalPercent = Math.min(100, Math.round((goal_achieved / goal_target) * 100))
-  const goalColor = goalPercent >= 100 ? '#52D68A' : '#5B3FD4'
+  const goalColor = goalPercent >= 100 ? '#B6F273' : '#0F40CB'
 
   return (
     <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
@@ -35,8 +35,8 @@ export function MetricCards({
           <CardTitle>Faturamento hoje</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="w-7 h-7 rounded-lg bg-[#5B3FD4]/10 flex items-center justify-center mb-2">
-            <TrendingUp className="w-3.5 h-3.5 text-[#5B3FD4]" />
+          <div className="w-7 h-7 rounded-lg bg-[#0F40CB]/10 flex items-center justify-center mb-2">
+            <TrendingUp className="w-3.5 h-3.5 text-[#0F40CB]" />
           </div>
           <p className="text-xl font-bold text-gray-900">{fmt(revenue)}</p>
           <p className="text-xs text-gray-400 mt-0.5">Saldo: {fmt(balance)}</p>
@@ -70,8 +70,8 @@ export function MetricCards({
           <CardTitle>Ticket médio</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="w-7 h-7 rounded-lg bg-[#52D68A]/15 flex items-center justify-center mb-2">
-            <Ticket className="w-3.5 h-3.5 text-[#52D68A]" style={{ filter: 'saturate(1.5)' }} />
+          <div className="w-7 h-7 rounded-lg bg-[#B6F273]/15 flex items-center justify-center mb-2">
+            <Ticket className="w-3.5 h-3.5 text-[#B6F273]" style={{ filter: 'saturate(1.5)' }} />
           </div>
           <p className="text-xl font-bold text-gray-900">{fmt(avg_ticket)}</p>
           <p className="text-xs text-gray-400 mt-0.5">por atendimento</p>
@@ -84,8 +84,8 @@ export function MetricCards({
           <CardTitle>Clientes ativos</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="w-7 h-7 rounded-lg bg-[#5B3FD4]/10 flex items-center justify-center mb-2">
-            <Users className="w-3.5 h-3.5 text-[#5B3FD4]" />
+          <div className="w-7 h-7 rounded-lg bg-[#0F40CB]/10 flex items-center justify-center mb-2">
+            <Users className="w-3.5 h-3.5 text-[#0F40CB]" />
           </div>
           <p className="text-xl font-bold text-gray-900">{active_clients}</p>
           <p className="text-xs text-gray-400 mt-0.5">+{new_clients} novos hoje</p>

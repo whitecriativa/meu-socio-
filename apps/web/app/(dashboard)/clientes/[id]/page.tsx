@@ -1,3 +1,4 @@
+import { getAuthenticatedUserId } from '@/lib/get-user-id'
 import { createClient } from '@supabase/supabase-js'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
@@ -17,7 +18,7 @@ function adminClient() {
 type AptRow = {
   id: string
   service: string | null
-  datetime: string | null
+  scheduled_at: string | null
   status: string | null
   price: number | null
   notes: string | null
@@ -34,17 +35,17 @@ export interface ClienteDetalhado {
   appointments: {
     id: string
     service: string
-    datetime: string | null
+    scheduled_at: string | null
     status: string
     price: number
     notes: string | null
   }[]
 }
 
-const COLORS = ['#5B3FD4', '#52D68A', '#a78bfa', '#34d399', '#818cf8', '#fbbf24', '#f87171']
+const COLORS = ['#0F40CB', '#B6F273', '#a78bfa', '#34d399', '#818cf8', '#fbbf24', '#f87171']
 
 async function getCliente(id: string): Promise<ClienteDetalhado | null> {
-  const userId  = process.env.NEXT_PUBLIC_DEMO_USER_ID!
+  const userId = (await getAuthenticatedUserId()) ?? process.env.NEXT_PUBLIC_DEMO_USER_ID!
   const supabase = adminClient()
 
   const [{ data: client }, { data: apts }] = await Promise.all([
@@ -53,13 +54,13 @@ async function getCliente(id: string): Promise<ClienteDetalhado | null> {
       .select('id, name, phone, status, total_spent, last_contact')
       .eq('id', id)
       .eq('user_id', userId)
-      .single(),
+      .maybeSingle(),
     supabase
       .from('appointments')
-      .select('id, service, datetime, status, price, notes')
+      .select('id, service, scheduled_at, status, price, notes')
       .eq('client_id', id)
       .eq('user_id', userId)
-      .order('datetime', { ascending: false }),
+      .order('scheduled_at', { ascending: false }),
   ])
 
   if (!client) return null
@@ -79,7 +80,7 @@ async function getCliente(id: string): Promise<ClienteDetalhado | null> {
 
   // Cor baseada no hash do id
   const colorIndex = id.charCodeAt(0) % COLORS.length
-  const color = COLORS[colorIndex] ?? '#5B3FD4'
+  const color = COLORS[colorIndex] ?? '#0F40CB'
 
   return {
     id: client.id,
@@ -92,7 +93,7 @@ async function getCliente(id: string): Promise<ClienteDetalhado | null> {
     appointments: (apts as AptRow[] ?? []).map((a) => ({
       id: a.id,
       service: a.service ?? '—',
-      datetime: a.datetime,
+      scheduled_at: a.scheduled_at,
       status: a.status ?? 'pendente',
       price: Number(a.price ?? 0),
       notes: a.notes,

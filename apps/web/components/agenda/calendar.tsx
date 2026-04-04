@@ -21,8 +21,8 @@ const MONTHS = [
 ]
 
 const STATUS_COLOR: Record<AppointmentStatus, string> = {
-  confirmado: '#52D68A',
-  concluido:  '#52D68A',
+  confirmado: '#B6F273',
+  concluido:  '#B6F273',
   pendente:   '#fbbf24',
   cancelado:  '#f87171',
 }
@@ -90,9 +90,9 @@ export function Calendar({ year, month, selected, dotMap, onSelect, onPrev, onNe
                 onClick={() => onSelect(dateStr)}
                 className={`relative flex flex-col items-center justify-center rounded-xl py-1.5 transition-all text-sm font-medium ${
                   isSelected
-                    ? 'bg-[#5B3FD4] text-white'
+                    ? 'bg-[#0F40CB] text-white'
                     : isToday
-                    ? 'border border-[#5B3FD4] text-[#5B3FD4]'
+                    ? 'border border-[#0F40CB] text-[#0F40CB]'
                     : 'text-gray-700 hover:bg-gray-50'
                 }`}
               >

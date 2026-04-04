@@ -34,8 +34,8 @@ export function IndicatorsGrid({ data }: { data: IndicatorsData }) {
       sub: 'por atendimento',
       icon: <DollarSign className="w-4 h-4" />,
       trend: 'up',
-      accentColor: '#5B3FD4',
-      bgColor: '#5B3FD4',
+      accentColor: '#0F40CB',
+      bgColor: '#0F40CB',
     },
     {
       label: 'Retenção',
@@ -43,8 +43,8 @@ export function IndicatorsGrid({ data }: { data: IndicatorsData }) {
       sub: 'clientes que voltam',
       icon: <Users className="w-4 h-4" />,
       trend: data.retention >= 70 ? 'up' : 'down',
-      accentColor: '#52D68A',
-      bgColor: '#52D68A',
+      accentColor: '#B6F273',
+      bgColor: '#B6F273',
     },
     {
       label: 'Custo por atend.',
@@ -52,8 +52,8 @@ export function IndicatorsGrid({ data }: { data: IndicatorsData }) {
       sub: 'insumos + operacional',
       icon: <Scissors className="w-4 h-4" />,
       trend: 'neutral',
-      accentColor: '#5B3FD4',
-      bgColor: '#5B3FD4',
+      accentColor: '#0F40CB',
+      bgColor: '#0F40CB',
     },
     {
       label: 'Margem líquida',
@@ -61,8 +61,8 @@ export function IndicatorsGrid({ data }: { data: IndicatorsData }) {
       sub: 'sobre a receita total',
       icon: <TrendingUp className="w-4 h-4" />,
       trend: data.net_margin >= 30 ? 'up' : 'down',
-      accentColor: '#52D68A',
-      bgColor: '#52D68A',
+      accentColor: '#B6F273',
+      bgColor: '#B6F273',
     },
     {
       label: 'Ponto de equilíbrio',
@@ -70,8 +70,8 @@ export function IndicatorsGrid({ data }: { data: IndicatorsData }) {
       sub: 'mínimo para cobrir custos',
       icon: <Scale className="w-4 h-4" />,
       trend: 'neutral',
-      accentColor: '#5B3FD4',
-      bgColor: '#5B3FD4',
+      accentColor: '#0F40CB',
+      bgColor: '#0F40CB',
     },
     {
       label: 'Inadimplência',
@@ -79,8 +79,8 @@ export function IndicatorsGrid({ data }: { data: IndicatorsData }) {
       sub: 'sobre receita prevista',
       icon: <AlertCircle className="w-4 h-4" />,
       trend: data.default_rate <= 3 ? 'up' : 'down',
-      accentColor: data.default_rate <= 3 ? '#52D68A' : '#ef4444',
-      bgColor: data.default_rate <= 3 ? '#52D68A' : '#ef4444',
+      accentColor: data.default_rate <= 3 ? '#B6F273' : '#ef4444',
+      bgColor: data.default_rate <= 3 ? '#B6F273' : '#ef4444',
     },
   ]
 

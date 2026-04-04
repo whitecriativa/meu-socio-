@@ -49,8 +49,8 @@ export function NovaTarefaModal() {
           due_date: (fd.get('due_date') as string) || null,
         })
         handleClose()
-      } catch {
-        setError('Erro ao salvar. Tente novamente.')
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Erro ao salvar')
       }
     })
   }
@@ -60,7 +60,7 @@ export function NovaTarefaModal() {
       <button
         onClick={() => setOpen(true)}
         className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-white hover:opacity-90 active:opacity-80 transition-opacity flex-shrink-0"
-        style={{ backgroundColor: '#5B3FD4' }}
+        style={{ backgroundColor: '#0F40CB' }}
       >
         <Plus className="w-4 h-4" />
         <span className="hidden sm:inline">Nova tarefa</span>
@@ -89,7 +89,7 @@ export function NovaTarefaModal() {
                   type="text"
                   placeholder="O que precisa ser feito?"
                   required
-                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm outline-none focus:border-[#5B3FD4] focus:ring-2 focus:ring-[#5B3FD4]/10 transition"
+                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm outline-none focus:border-[#0F40CB] focus:ring-2 focus:ring-[#0F40CB]/10 transition"
                 />
               </div>
 
@@ -104,11 +104,11 @@ export function NovaTarefaModal() {
                       onClick={() => setQuadrant(q.value)}
                       className={`text-left px-3 py-2 rounded-xl border-2 transition-all ${
                         quadrant === q.value
-                          ? 'border-[#5B3FD4] bg-[#5B3FD4]/5'
+                          ? 'border-[#0F40CB] bg-[#0F40CB]/5'
                           : 'border-gray-100 hover:border-gray-200'
                       }`}
                     >
-                      <p className={`text-xs font-semibold ${quadrant === q.value ? 'text-[#5B3FD4]' : 'text-gray-700'}`}>
+                      <p className={`text-xs font-semibold ${quadrant === q.value ? 'text-[#0F40CB]' : 'text-gray-700'}`}>
                         {q.label}
                       </p>
                       <p className="text-[10px] text-gray-400 mt-0.5">{q.desc}</p>
@@ -125,7 +125,7 @@ export function NovaTarefaModal() {
                   name="due_date"
                   type="date"
                   min={TODAY}
-                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm outline-none focus:border-[#5B3FD4] focus:ring-2 focus:ring-[#5B3FD4]/10 transition"
+                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm outline-none focus:border-[#0F40CB] focus:ring-2 focus:ring-[#0F40CB]/10 transition"
                 />
               </div>
 
@@ -137,7 +137,7 @@ export function NovaTarefaModal() {
                 type="submit"
                 disabled={isPending}
                 className="w-full py-3 rounded-xl text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-60"
-                style={{ backgroundColor: '#5B3FD4' }}
+                style={{ backgroundColor: '#0F40CB' }}
               >
                 {isPending ? 'Salvando...' : 'Salvar tarefa'}
               </button>

@@ -31,7 +31,7 @@ async function getLayoutData() {
       .from('users')
       .select('name, profile_type')
       .eq('id', userId)
-      .single()
+      .maybeSingle()
 
     // Tabelas opcionais — podem não existir em todas as versões do banco
     let currentLevel = 'semente'
@@ -42,7 +42,7 @@ async function getLayoutData() {
         .from('user_gamification')
         .select('current_level')
         .eq('user_id', userId)
-        .single()
+        .maybeSingle()
       if (gamif?.current_level) currentLevel = gamif.current_level as string
     } catch { /* tabela não existe ainda */ }
 

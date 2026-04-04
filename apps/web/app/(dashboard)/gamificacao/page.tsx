@@ -1,3 +1,4 @@
+import { getAuthenticatedUserId } from '@/lib/get-user-id'
 import { createClient } from '@supabase/supabase-js'
 import { Flame, Zap, Trophy, Star, Lock } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -47,7 +48,7 @@ const MISSIONS = [
 ]
 
 async function getData() {
-  const userId  = process.env.NEXT_PUBLIC_DEMO_USER_ID!
+  const userId = (await getAuthenticatedUserId()) ?? process.env.NEXT_PUBLIC_DEMO_USER_ID!
   const supabase = adminClient()
 
   const now      = new Date()
@@ -56,19 +57,18 @@ async function getData() {
   const weekAgo  = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString().substring(0, 10)
 
   const [
-    { data: userBadges },
     { data: txs },
     { data: tasks },
     { data: user },
-    { data: pointsHistory },
   ] = await Promise.all([
-    supabase.from('user_badges').select('badge_id, earned_at').eq('user_id', userId),
     supabase.from('transactions').select('type, competence_date').eq('user_id', userId).gte('competence_date', weekAgo),
     supabase.from('tasks').select('completed_at').eq('user_id', userId).not('completed_at', 'is', null),
-    supabase.from('users').select('name, monthly_goal').eq('id', userId).single(),
-    supabase.from('points_history').select('action_type, points, description, created_at').eq('user_id', userId)
-      .order('created_at', { ascending: false }).limit(10),
+    supabase.from('users').select('name, monthly_goal').eq('id', userId).maybeSingle(),
   ])
+
+  // Tabelas opcionais (podem não existir em todas as versões do banco)
+  const { data: userBadges } = await supabase.from('user_badges').select('badge_id, earned_at').eq('user_id', userId).then(r => r, () => ({ data: null, error: null }))
+  const { data: pointsHistory } = await supabase.from('points_history').select('action_type, points, description, created_at').eq('user_id', userId).order('created_at', { ascending: false }).limit(10).then(r => r, () => ({ data: null, error: null }))
 
   type TxRow = { type: string; competence_date: string | null }
   type TaskRow = { completed_at: string | null }
@@ -169,10 +169,10 @@ export default async function GamificacaoPage() {
       {/* Card de nível — destaque */}
       <div
         className="rounded-2xl p-5 text-white relative overflow-hidden"
-        style={{ background: 'linear-gradient(135deg, #5B3FD4 0%, #7C5CE0 100%)' }}
+        style={{ background: 'linear-gradient(135deg, #0F40CB 0%, #7C5CE0 100%)' }}
       >
         <div className="absolute top-0 right-0 w-36 h-36 rounded-full bg-white/5 -translate-y-10 translate-x-10" />
-        <div className="absolute bottom-0 left-10 w-24 h-24 rounded-full bg-[#52D68A]/15 translate-y-8" />
+        <div className="absolute bottom-0 left-10 w-24 h-24 rounded-full bg-[#B6F273]/15 translate-y-8" />
         <div className="relative">
           <div className="flex items-center gap-4 mb-4">
             <span className="text-5xl">{currentLevel.emoji}</span>
@@ -195,7 +195,7 @@ export default async function GamificacaoPage() {
             <div className="w-full bg-white/20 rounded-full h-3">
               <div
                 className="h-3 rounded-full transition-all duration-700"
-                style={{ width: `${levelProgress}%`, backgroundColor: '#52D68A' }}
+                style={{ width: `${levelProgress}%`, backgroundColor: '#B6F273' }}
               />
             </div>
           </div>
@@ -221,7 +221,7 @@ export default async function GamificacaoPage() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-1.5 text-sm font-semibold text-gray-700">
-            <Zap className="w-4 h-4 text-[#5B3FD4]" /> Jornada de níveis
+            <Zap className="w-4 h-4 text-[#0F40CB]" /> Jornada de níveis
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -236,10 +236,10 @@ export default async function GamificacaoPage() {
                   <span className={`text-2xl transition-all ${isCurrent ? 'scale-125' : isFuture ? 'opacity-25 grayscale' : ''}`}>
                     {level.emoji}
                   </span>
-                  <p className={`text-[10px] font-medium text-center leading-tight ${isCurrent ? 'text-[#5B3FD4]' : isPast ? 'text-gray-500' : 'text-gray-300'}`}>
+                  <p className={`text-[10px] font-medium text-center leading-tight ${isCurrent ? 'text-[#0F40CB]' : isPast ? 'text-gray-500' : 'text-gray-300'}`}>
                     {level.label}
                   </p>
-                  {isCurrent && <span className="w-1.5 h-1.5 rounded-full bg-[#5B3FD4]" />}
+                  {isCurrent && <span className="w-1.5 h-1.5 rounded-full bg-[#0F40CB]" />}
                 </div>
               )
             })}
@@ -252,7 +252,7 @@ export default async function GamificacaoPage() {
         <CardHeader>
           <CardTitle className="flex items-center justify-between text-sm font-semibold text-gray-700">
             <span className="flex items-center gap-1.5">
-              <Star className="w-4 h-4 text-[#5B3FD4]" /> Missões de hoje
+              <Star className="w-4 h-4 text-[#0F40CB]" /> Missões de hoje
             </span>
             <span className="text-xs font-normal text-gray-400">
               +{xpToday} XP ganhos hoje
@@ -261,17 +261,17 @@ export default async function GamificacaoPage() {
         </CardHeader>
         <CardContent className="space-y-2">
           {dailyMissions.map((m) => (
-            <div key={m.id} className={`flex items-center gap-3 p-3 rounded-xl transition-colors ${m.completed ? 'bg-[#52D68A]/10' : 'bg-gray-50'}`}>
+            <div key={m.id} className={`flex items-center gap-3 p-3 rounded-xl transition-colors ${m.completed ? 'bg-[#B6F273]/10' : 'bg-gray-50'}`}>
               <span className="text-xl">{m.emoji}</span>
               <div className="flex-1">
-                <p className={`text-sm font-medium ${m.completed ? 'text-[#1a9e5c] line-through' : 'text-gray-800'}`}>
+                <p className={`text-sm font-medium ${m.completed ? 'text-[#0F40CB] line-through' : 'text-gray-800'}`}>
                   {m.label}
                 </p>
               </div>
-              <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${m.completed ? 'bg-[#52D68A]/20 text-[#1a9e5c]' : 'bg-gray-100 text-gray-400'}`}>
+              <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${m.completed ? 'bg-[#B6F273]/20 text-[#0F40CB]' : 'bg-gray-100 text-gray-400'}`}>
                 +{m.xp} XP
               </span>
-              {m.completed && <span className="text-[#1a9e5c] text-sm">✓</span>}
+              {m.completed && <span className="text-[#0F40CB] text-sm">✓</span>}
             </div>
           ))}
         </CardContent>
@@ -299,15 +299,15 @@ export default async function GamificacaoPage() {
             </div>
           ))}
           {monthlyMissions.map((m) => (
-            <div key={m.id} className={`flex items-center gap-3 p-3 rounded-xl ${m.completed ? 'bg-[#5B3FD4]/5' : 'bg-gray-50'}`}>
+            <div key={m.id} className={`flex items-center gap-3 p-3 rounded-xl ${m.completed ? 'bg-[#0F40CB]/5' : 'bg-gray-50'}`}>
               <span className="text-xl">{m.emoji}</span>
               <div className="flex-1">
-                <p className={`text-sm font-medium ${m.completed ? 'text-[#5B3FD4]' : 'text-gray-800'}`}>
+                <p className={`text-sm font-medium ${m.completed ? 'text-[#0F40CB]' : 'text-gray-800'}`}>
                   {m.label}
                 </p>
                 <p className="text-[10px] text-gray-400">Missão mensal</p>
               </div>
-              <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${m.completed ? 'bg-[#5B3FD4]/10 text-[#5B3FD4]' : 'bg-gray-100 text-gray-400'}`}>
+              <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${m.completed ? 'bg-[#0F40CB]/10 text-[#0F40CB]' : 'bg-gray-100 text-gray-400'}`}>
                 +{m.xp} XP
               </span>
             </div>
@@ -320,7 +320,7 @@ export default async function GamificacaoPage() {
         <CardHeader>
           <CardTitle className="flex items-center justify-between text-sm font-semibold text-gray-700">
             <span className="flex items-center gap-1.5">
-              <Trophy className="w-4 h-4 text-[#5B3FD4]" /> Conquistas
+              <Trophy className="w-4 h-4 text-[#0F40CB]" /> Conquistas
             </span>
             <span className="text-xs font-normal text-gray-400">
               {earnedBadgeIds.size}/{ALL_BADGES.length} desbloqueadas
@@ -333,7 +333,7 @@ export default async function GamificacaoPage() {
               const earned = earnedBadgeIds.has(badge.id)
               return (
                 <div key={badge.id} className="flex flex-col items-center gap-1.5 group" title={badge.desc}>
-                  <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-2xl relative transition-all ${earned ? 'bg-[#5B3FD4]/10 shadow-sm' : 'bg-gray-100'}`}>
+                  <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-2xl relative transition-all ${earned ? 'bg-[#0F40CB]/10 shadow-sm' : 'bg-gray-100'}`}>
                     <span className={earned ? '' : 'grayscale opacity-30'}>{badge.emoji}</span>
                     {!earned && (
                       <div className="absolute inset-0 rounded-2xl flex items-center justify-center bg-gray-100/60">
@@ -369,7 +369,7 @@ export default async function GamificacaoPage() {
                   )}
                 </div>
                 <div className="text-right">
-                  <p className="text-sm font-bold text-[#5B3FD4]">+{p.points} XP</p>
+                  <p className="text-sm font-bold text-[#0F40CB]">+{p.points} XP</p>
                   <p className="text-[10px] text-gray-400">
                     {new Date(p.created_at).toLocaleDateString('pt-BR')}
                   </p>

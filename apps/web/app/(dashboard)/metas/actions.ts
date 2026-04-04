@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@supabase/supabase-js'
+import { getAuthenticatedUserId } from '@/lib/get-user-id'
 
 function adminClient() {
   return createClient(
@@ -11,11 +12,17 @@ function adminClient() {
   )
 }
 
+async function requireUserId(): Promise<string> {
+  const userId = await getAuthenticatedUserId()
+  if (!userId) throw new Error('Não autenticado')
+  return userId
+}
+
 export async function salvarMeta(input: {
   monthly_goal: number
   dream: string
 }) {
-  const userId   = process.env.NEXT_PUBLIC_DEMO_USER_ID!
+  const userId   = await requireUserId()
   const supabase = adminClient()
 
   const { error } = await supabase

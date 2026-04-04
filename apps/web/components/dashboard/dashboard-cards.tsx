@@ -107,7 +107,7 @@ export function DashboardCards({ metrics, goal, appointments }: DashboardCardsPr
             <div className="flex items-start justify-between mb-4">
               <div>
                 <div className="flex items-center gap-1.5 mb-1">
-                  <Target className="w-3.5 h-3.5 text-[#5B3FD4]" />
+                  <Target className="w-3.5 h-3.5 text-[#0F40CB]" />
                   <span className="text-xs font-medium text-gray-500">Progresso</span>
                 </div>
                 <p className="text-3xl font-bold text-gray-900">{goalPercent}%</p>
@@ -127,7 +127,7 @@ export function DashboardCards({ metrics, goal, appointments }: DashboardCardsPr
                 className="h-2.5 rounded-full transition-all duration-500"
                 style={{
                   width: `${goalPercent}%`,
-                  backgroundColor: goalPercent >= 100 ? '#5B3FD4' : '#52D68A',
+                  backgroundColor: goalPercent >= 100 ? '#0F40CB' : '#B6F273',
                 }}
               />
             </div>
@@ -156,12 +156,12 @@ export function DashboardCards({ metrics, goal, appointments }: DashboardCardsPr
                 key={apt.id}
                 className="flex items-center gap-3 bg-white rounded-xl px-4 py-3 border border-gray-100 shadow-sm"
               >
-                <span className="text-sm font-bold text-[#5B3FD4] tabular-nums w-11 flex-shrink-0">
+                <span className="text-sm font-bold text-[#0F40CB] tabular-nums w-11 flex-shrink-0">
                   {formatTime(apt.scheduled_at)}
                 </span>
                 <div
                   className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0"
-                  style={{ backgroundColor: index % 2 === 0 ? '#5B3FD4' : '#52D68A' }}
+                  style={{ backgroundColor: index % 2 === 0 ? '#0F40CB' : '#B6F273' }}
                 >
                   {apt.clients?.name?.charAt(0) ?? '?'}
                 </div>
@@ -196,7 +196,7 @@ function MetricCard({
   accent: 'green' | 'orange'
   sub?: string
 }) {
-  const color = accent === 'green' ? '#5B3FD4' : '#52D68A'
+  const color = accent === 'green' ? '#0F40CB' : '#B6F273'
 
   return (
     <div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm">

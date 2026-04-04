@@ -87,7 +87,7 @@ export function CustosFixosSection({ initialCosts }: Props) {
           type="button"
           onClick={() => setShowForm((v) => !v)}
           className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-xl text-white transition-opacity hover:opacity-90"
-          style={{ backgroundColor: '#5B3FD4' }}
+          style={{ backgroundColor: '#0F40CB' }}
         >
           {showForm ? <X className="w-3.5 h-3.5" /> : <Plus className="w-3.5 h-3.5" />}
           {showForm ? 'Cancelar' : 'Adicionar'}
@@ -108,7 +108,7 @@ export function CustosFixosSection({ initialCosts }: Props) {
             setShowForm(false)
             startTransition(() => { adicionarCusto(fd) })
           }}
-          className="rounded-xl border border-[#5B3FD4]/20 bg-[#5B3FD4]/3 p-4 space-y-3"
+          className="rounded-xl border border-[#0F40CB]/20 bg-[#0F40CB]/3 p-4 space-y-3"
         >
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div className="space-y-1">
@@ -118,14 +118,14 @@ export function CustosFixosSection({ initialCosts }: Props) {
                 type="text"
                 required
                 placeholder="Ex: Aluguel do ateliê"
-                className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#5B3FD4] focus:ring-2 focus:ring-[#5B3FD4]/10 transition"
+                className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#0F40CB] focus:ring-2 focus:ring-[#0F40CB]/10 transition"
               />
             </div>
             <div className="space-y-1">
               <label className="text-xs font-medium text-gray-600">Categoria</label>
               <select
                 name="category"
-                className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#5B3FD4] focus:ring-2 focus:ring-[#5B3FD4]/10 transition bg-white"
+                className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#0F40CB] focus:ring-2 focus:ring-[#0F40CB]/10 transition bg-white"
               >
                 {Object.entries(CATEGORY_LABELS).map(([val, label]) => (
                   <option key={val} value={val}>{label}</option>
@@ -144,14 +144,14 @@ export function CustosFixosSection({ initialCosts }: Props) {
                 step="0.01"
                 required
                 placeholder="Ex: 800"
-                className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#5B3FD4] focus:ring-2 focus:ring-[#5B3FD4]/10 transition"
+                className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#0F40CB] focus:ring-2 focus:ring-[#0F40CB]/10 transition"
               />
             </div>
             <div className="space-y-1">
               <label className="text-xs font-medium text-gray-600">Periodicidade</label>
               <select
                 name="periodicity"
-                className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#5B3FD4] focus:ring-2 focus:ring-[#5B3FD4]/10 transition bg-white"
+                className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#0F40CB] focus:ring-2 focus:ring-[#0F40CB]/10 transition bg-white"
               >
                 <option value="mensal">Mensal</option>
                 <option value="semanal">Semanal</option>
@@ -164,7 +164,7 @@ export function CustosFixosSection({ initialCosts }: Props) {
             <button
               type="submit"
               className="px-4 py-2 rounded-xl text-xs font-semibold text-white hover:opacity-90 transition-opacity"
-              style={{ backgroundColor: '#5B3FD4' }}
+              style={{ backgroundColor: '#0F40CB' }}
             >
               Salvar custo
             </button>
@@ -186,7 +186,7 @@ export function CustosFixosSection({ initialCosts }: Props) {
               key={c.id}
               className="flex items-center gap-3 px-3 py-2.5 rounded-xl border border-gray-50 hover:border-gray-100 group transition-colors"
             >
-              <div className="w-7 h-7 rounded-lg bg-[#5B3FD4]/8 flex items-center justify-center text-[#5B3FD4] flex-shrink-0">
+              <div className="w-7 h-7 rounded-lg bg-[#0F40CB]/8 flex items-center justify-center text-[#0F40CB] flex-shrink-0">
                 {CATEGORY_ICONS[c.category] ?? CATEGORY_ICONS['outro']}
               </div>
               <div className="flex-1 min-w-0">
@@ -198,7 +198,7 @@ export function CustosFixosSection({ initialCosts }: Props) {
                 <p className="text-[10px] text-gray-400">{PERIOD_LABELS[c.periodicity] ?? '/mês'}</p>
               </div>
               {toMonthly(c.amount, c.periodicity) !== c.amount && (
-                <div className="text-right flex-shrink-0 text-[10px] text-[#5B3FD4] font-medium w-16">
+                <div className="text-right flex-shrink-0 text-[10px] text-[#0F40CB] font-medium w-16">
                   {fmt(toMonthly(c.amount, c.periodicity))}/mês
                 </div>
               )}

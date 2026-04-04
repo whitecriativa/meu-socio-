@@ -9,7 +9,7 @@ const variantStyles = {
   default: 'bg-gray-100 text-gray-600',
   success: 'bg-emerald-50 text-emerald-700',
   warning: 'bg-amber-50 text-amber-700',
-  orange: 'bg-[#5B3FD4]/10 text-[#5B3FD4]',
+  orange: 'bg-[#0F40CB]/10 text-[#0F40CB]',
 }
 
 export function Badge({ className, variant = 'default', ...props }: BadgeProps) {

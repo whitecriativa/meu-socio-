@@ -37,8 +37,8 @@ export function NovoAgendamentoModal() {
           notes:       fd.get('notes') as string,
         })
         handleClose()
-      } catch {
-        setError('Erro ao salvar. Tente novamente.')
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Erro ao salvar')
       }
     })
   }
@@ -48,7 +48,7 @@ export function NovoAgendamentoModal() {
       <button
         onClick={() => setOpen(true)}
         className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-white hover:opacity-90 active:opacity-80 transition-opacity flex-shrink-0"
-        style={{ backgroundColor: '#5B3FD4' }}
+        style={{ backgroundColor: '#0F40CB' }}
       >
         <Plus className="w-4 h-4" />
         <span className="hidden sm:inline">Novo agendamento</span>
@@ -78,7 +78,7 @@ export function NovoAgendamentoModal() {
                   type="text"
                   placeholder="Ex: João Silva"
                   required
-                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm outline-none focus:border-[#5B3FD4] focus:ring-2 focus:ring-[#5B3FD4]/10 transition"
+                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm outline-none focus:border-[#0F40CB] focus:ring-2 focus:ring-[#0F40CB]/10 transition"
                 />
               </div>
 
@@ -90,7 +90,7 @@ export function NovoAgendamentoModal() {
                   type="text"
                   placeholder="Ex: Consultoria, Projeto site, Aula..."
                   required
-                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm outline-none focus:border-[#5B3FD4] focus:ring-2 focus:ring-[#5B3FD4]/10 transition"
+                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm outline-none focus:border-[#0F40CB] focus:ring-2 focus:ring-[#0F40CB]/10 transition"
                 />
               </div>
 
@@ -103,7 +103,7 @@ export function NovoAgendamentoModal() {
                     type="date"
                     defaultValue={TODAY}
                     required
-                    className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm outline-none focus:border-[#5B3FD4] focus:ring-2 focus:ring-[#5B3FD4]/10 transition"
+                    className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm outline-none focus:border-[#0F40CB] focus:ring-2 focus:ring-[#0F40CB]/10 transition"
                   />
                 </div>
                 <div>
@@ -113,7 +113,7 @@ export function NovoAgendamentoModal() {
                     type="time"
                     defaultValue="09:00"
                     required
-                    className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm outline-none focus:border-[#5B3FD4] focus:ring-2 focus:ring-[#5B3FD4]/10 transition"
+                    className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm outline-none focus:border-[#0F40CB] focus:ring-2 focus:ring-[#0F40CB]/10 transition"
                   />
                 </div>
               </div>
@@ -130,7 +130,7 @@ export function NovoAgendamentoModal() {
                     step="0.01"
                     min="0"
                     placeholder="0,00"
-                    className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm outline-none focus:border-[#5B3FD4] focus:ring-2 focus:ring-[#5B3FD4]/10 transition"
+                    className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm outline-none focus:border-[#0F40CB] focus:ring-2 focus:ring-[#0F40CB]/10 transition"
                   />
                 </div>
                 <div>
@@ -138,7 +138,7 @@ export function NovoAgendamentoModal() {
                   <select
                     name="status"
                     defaultValue="confirmado"
-                    className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm outline-none focus:border-[#5B3FD4] focus:ring-2 focus:ring-[#5B3FD4]/10 transition bg-white"
+                    className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm outline-none focus:border-[#0F40CB] focus:ring-2 focus:ring-[#0F40CB]/10 transition bg-white"
                   >
                     <option value="confirmado">Confirmado</option>
                     <option value="pendente">Pendente</option>
@@ -155,7 +155,7 @@ export function NovoAgendamentoModal() {
                   name="notes"
                   type="text"
                   placeholder="Ex: Cliente preferencial, endereço..."
-                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm outline-none focus:border-[#5B3FD4] focus:ring-2 focus:ring-[#5B3FD4]/10 transition"
+                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm outline-none focus:border-[#0F40CB] focus:ring-2 focus:ring-[#0F40CB]/10 transition"
                 />
               </div>
 
@@ -167,7 +167,7 @@ export function NovoAgendamentoModal() {
                 type="submit"
                 disabled={isPending}
                 className="w-full py-3 rounded-xl text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-60"
-                style={{ backgroundColor: '#5B3FD4' }}
+                style={{ backgroundColor: '#0F40CB' }}
               >
                 {isPending ? 'Salvando...' : 'Salvar agendamento'}
               </button>

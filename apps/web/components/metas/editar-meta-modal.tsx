@@ -37,8 +37,8 @@ export function EditarMetaModal({ currentGoal, currentDream }: EditarMetaModalPr
       try {
         await salvarMeta({ monthly_goal: amount, dream })
         setOpen(false)
-      } catch {
-        setError('Erro ao salvar. Tente novamente.')
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Erro ao salvar')
       }
     })
   }
@@ -47,7 +47,7 @@ export function EditarMetaModal({ currentGoal, currentDream }: EditarMetaModalPr
     <>
       <button
         onClick={() => setOpen(true)}
-        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-[#5B3FD4] bg-[#5B3FD4]/8 hover:bg-[#5B3FD4]/15 transition-colors"
+        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-[#0F40CB] bg-[#0F40CB]/8 hover:bg-[#0F40CB]/15 transition-colors"
       >
         <Pencil className="w-3 h-3" />
         Editar meta
@@ -78,7 +78,7 @@ export function EditarMetaModal({ currentGoal, currentDream }: EditarMetaModalPr
                   onChange={(e) => setGoal(e.currentTarget.value)}
                   placeholder="Ex: 5000"
                   required
-                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm outline-none focus:border-[#5B3FD4] focus:ring-2 focus:ring-[#5B3FD4]/10 transition"
+                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm outline-none focus:border-[#0F40CB] focus:ring-2 focus:ring-[#0F40CB]/10 transition"
                 />
                 <p className="text-[10px] text-gray-400 mt-1">
                   Quanto você quer faturar por mês?
@@ -94,7 +94,7 @@ export function EditarMetaModal({ currentGoal, currentDream }: EditarMetaModalPr
                   value={dream}
                   onChange={(e) => setDream(e.currentTarget.value)}
                   placeholder="Ex: Viagem para Europa, trocar de carro..."
-                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm outline-none focus:border-[#5B3FD4] focus:ring-2 focus:ring-[#5B3FD4]/10 transition"
+                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm outline-none focus:border-[#0F40CB] focus:ring-2 focus:ring-[#0F40CB]/10 transition"
                 />
                 <p className="text-[10px] text-gray-400 mt-1">
                   O Sócio vai usar isso nas mensagens motivacionais.
@@ -109,7 +109,7 @@ export function EditarMetaModal({ currentGoal, currentDream }: EditarMetaModalPr
                 type="submit"
                 disabled={isPending}
                 className="w-full py-3 rounded-xl text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-60"
-                style={{ backgroundColor: '#5B3FD4' }}
+                style={{ backgroundColor: '#0F40CB' }}
               >
                 {isPending ? 'Salvando...' : 'Salvar meta'}
               </button>

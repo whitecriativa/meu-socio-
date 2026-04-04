@@ -19,7 +19,7 @@ const ALERT_CONFIG: Record<string, { color: string; bg: string; icon: React.Elem
   inactivity:      { color: '#6B7280', bg: '#F9FAFB', icon: Clock },
   goal_risk:       { color: '#F59E0B', bg: '#FFFBEB', icon: Target },
   streak_risk:     { color: '#8B5CF6', bg: '#F5F3FF', icon: Zap },
-  goal_achieved:   { color: '#52D68A', bg: '#F0FDF4', icon: Star },
+  goal_achieved:   { color: '#B6F273', bg: '#F0FDF4', icon: Star },
 }
 
 const DEFAULT_CONFIG = { color: '#6B7280', bg: '#F9FAFB', icon: AlertTriangle }

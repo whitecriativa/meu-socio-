@@ -52,20 +52,20 @@ function effectiveStatus(inst: Installment): 'pago' | 'atrasado' | 'pendente' {
 }
 
 const STATUS_BADGE = {
-  pago:     'bg-[#52D68A]/15 text-[#1a9e5c]',
+  pago:     'bg-[#B6F273]/15 text-[#0F40CB]',
   pendente: 'bg-amber-50 text-amber-600',
   atrasado: 'bg-red-50 text-red-500',
 }
 
 const STATUS_ICON = {
-  pago:     <CheckCircle2 className="w-3.5 h-3.5 text-[#1a9e5c]" />,
+  pago:     <CheckCircle2 className="w-3.5 h-3.5 text-[#0F40CB]" />,
   pendente: <Clock className="w-3.5 h-3.5 text-amber-500" />,
   atrasado: <AlertCircle className="w-3.5 h-3.5 text-red-500" />,
 }
 
 const STATUS_LABEL = { pago: 'Paga', pendente: 'Pendente', atrasado: 'Atrasada' }
 
-const AVATAR_COLORS = ['#5B3FD4', '#52D68A', '#a78bfa', '#34d399', '#818cf8']
+const AVATAR_COLORS = ['#0F40CB', '#B6F273', '#a78bfa', '#34d399', '#818cf8']
 
 function ContratoCard({
   contrato,
@@ -97,7 +97,7 @@ function ContratoCard({
 
   return (
     <div className={`rounded-xl border transition-colors ${
-      isConcluido  ? 'border-[#52D68A]/30 bg-[#52D68A]/3' :
+      isConcluido  ? 'border-[#B6F273]/30 bg-[#B6F273]/3' :
       isCancelado  ? 'border-gray-100 bg-gray-50 opacity-60' :
                      'border-gray-100 bg-white hover:border-gray-200'
     }`}>
@@ -115,7 +115,7 @@ function ContratoCard({
             <div className="flex items-center justify-between gap-2 mb-0.5">
               <p className="text-sm font-semibold text-gray-900 truncate">{contrato.client_name}</p>
               {isConcluido && (
-                <span className="text-[10px] font-semibold text-[#1a9e5c] bg-[#52D68A]/15 px-2 py-0.5 rounded-full flex-shrink-0">
+                <span className="text-[10px] font-semibold text-[#0F40CB] bg-[#B6F273]/15 px-2 py-0.5 rounded-full flex-shrink-0">
                   Concluído
                 </span>
               )}
@@ -138,7 +138,7 @@ function ContratoCard({
                   className="h-1.5 rounded-full transition-all duration-500"
                   style={{
                     width: `${Math.min(100, progress)}%`,
-                    backgroundColor: isConcluido ? '#52D68A' : '#5B3FD4',
+                    backgroundColor: isConcluido ? '#B6F273' : '#0F40CB',
                   }}
                 />
               </div>
@@ -153,7 +153,7 @@ function ContratoCard({
               type="button"
               onClick={() => onPay(nextPending.id)}
               className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg text-white hover:opacity-90 transition-opacity"
-              style={{ backgroundColor: effectiveStatus(nextPending) === 'atrasado' ? '#ef4444' : '#5B3FD4' }}
+              style={{ backgroundColor: effectiveStatus(nextPending) === 'atrasado' ? '#ef4444' : '#0F40CB' }}
             >
               <CheckCircle2 className="w-3 h-3" />
               Pagar parcela {nextPending.installment_number}
@@ -233,7 +233,7 @@ function NovoContratoForm({ onClose }: { onClose: () => void }) {
         await criarContrato(fd)
         onClose()
       }}
-      className="rounded-xl border border-[#5B3FD4]/20 bg-[#5B3FD4]/3 p-4 space-y-3"
+      className="rounded-xl border border-[#0F40CB]/20 bg-[#0F40CB]/3 p-4 space-y-3"
     >
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         <div className="space-y-1">
@@ -243,7 +243,7 @@ function NovoContratoForm({ onClose }: { onClose: () => void }) {
             type="text"
             required
             placeholder="Ex: João Silva"
-            className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#5B3FD4] focus:ring-2 focus:ring-[#5B3FD4]/10 transition"
+            className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#0F40CB] focus:ring-2 focus:ring-[#0F40CB]/10 transition"
           />
         </div>
         <div className="space-y-1">
@@ -253,7 +253,7 @@ function NovoContratoForm({ onClose }: { onClose: () => void }) {
             type="text"
             required
             placeholder="Ex: Identidade visual completa"
-            className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#5B3FD4] focus:ring-2 focus:ring-[#5B3FD4]/10 transition"
+            className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#0F40CB] focus:ring-2 focus:ring-[#0F40CB]/10 transition"
           />
         </div>
       </div>
@@ -270,7 +270,7 @@ function NovoContratoForm({ onClose }: { onClose: () => void }) {
             value={totalAmount}
             onChange={(e) => setTotalAmount(e.target.value)}
             placeholder="Ex: 5000"
-            className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#5B3FD4] focus:ring-2 focus:ring-[#5B3FD4]/10 transition"
+            className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#0F40CB] focus:ring-2 focus:ring-[#0F40CB]/10 transition"
           />
         </div>
         <div className="space-y-1">
@@ -283,7 +283,7 @@ function NovoContratoForm({ onClose }: { onClose: () => void }) {
             required
             value={installmentsCount}
             onChange={(e) => setInstallmentsCount(e.target.value)}
-            className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#5B3FD4] focus:ring-2 focus:ring-[#5B3FD4]/10 transition"
+            className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#0F40CB] focus:ring-2 focus:ring-[#0F40CB]/10 transition"
           />
         </div>
         <div className="space-y-1">
@@ -292,14 +292,14 @@ function NovoContratoForm({ onClose }: { onClose: () => void }) {
             name="first_due_date"
             type="date"
             required
-            className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#5B3FD4] focus:ring-2 focus:ring-[#5B3FD4]/10 transition"
+            className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#0F40CB] focus:ring-2 focus:ring-[#0F40CB]/10 transition"
           />
         </div>
       </div>
 
       {perPart > 0 && (
         <div className="rounded-xl bg-white border border-gray-100 px-3 py-2 text-xs text-gray-500">
-          Cada parcela: <span className="font-bold text-[#5B3FD4]">{fmt(perPart)}</span>
+          Cada parcela: <span className="font-bold text-[#0F40CB]">{fmt(perPart)}</span>
           {' '}× {count} = <span className="font-semibold text-gray-700">{fmt(perPart * count)}</span>
         </div>
       )}
@@ -315,7 +315,7 @@ function NovoContratoForm({ onClose }: { onClose: () => void }) {
         <button
           type="submit"
           className="px-4 py-2 rounded-xl text-xs font-semibold text-white hover:opacity-90 transition-opacity"
-          style={{ backgroundColor: '#5B3FD4' }}
+          style={{ backgroundColor: '#0F40CB' }}
         >
           Criar contrato + {installmentsCount || '?'} parcelas
         </button>
@@ -359,14 +359,14 @@ export function ContratosList({ contratos: initialContratos }: Props) {
       <div className="rounded-2xl bg-white border border-gray-100 shadow-sm p-5">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h2 className="text-sm font-semibold text-gray-800">Contratos Parcelados</h2>
+            <h2 className="text-sm font-semibold text-gray-800">Pagamentos Recorrentes</h2>
             <p className="text-xs text-gray-400 mt-0.5">Gerencie contratos com pagamento em parcelas</p>
           </div>
           <button
             type="button"
             onClick={() => setShowForm(true)}
             className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-xl text-white hover:opacity-90 transition-opacity"
-            style={{ backgroundColor: '#5B3FD4' }}
+            style={{ backgroundColor: '#0F40CB' }}
           >
             <Plus className="w-3.5 h-3.5" />
             Novo contrato
@@ -384,7 +384,7 @@ export function ContratosList({ contratos: initialContratos }: Props) {
     <div className="rounded-2xl bg-white border border-gray-100 shadow-sm p-5 space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-sm font-semibold text-gray-800">Contratos Parcelados</h2>
+          <h2 className="text-sm font-semibold text-gray-800">Pagamentos Recorrentes</h2>
           <p className="text-xs text-gray-400 mt-0.5">
             {ativos.length} ativo{ativos.length !== 1 ? 's' : ''}
             {' '}·{' '}
@@ -395,7 +395,7 @@ export function ContratosList({ contratos: initialContratos }: Props) {
           type="button"
           onClick={() => setShowForm((v) => !v)}
           className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-xl text-white hover:opacity-90 transition-opacity"
-          style={{ backgroundColor: '#5B3FD4' }}
+          style={{ backgroundColor: '#0F40CB' }}
         >
           {showForm ? <X className="w-3.5 h-3.5" /> : <Plus className="w-3.5 h-3.5" />}
           {showForm ? 'Cancelar' : 'Novo contrato'}

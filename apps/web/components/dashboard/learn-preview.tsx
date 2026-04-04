@@ -22,7 +22,7 @@ export function LearnPreview() {
         <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--text-muted)' }}>
           Aprenda
         </p>
-        <Link href="/aprenda" className="flex items-center gap-0.5 text-[11px] font-medium text-[#5B3FD4]">
+        <Link href="/aprenda" className="flex items-center gap-0.5 text-[11px] font-medium text-[#0F40CB]">
           Ver tudo <ChevronRight className="w-3 h-3" />
         </Link>
       </div>
@@ -35,8 +35,8 @@ export function LearnPreview() {
             href="/aprenda"
             className="flex items-center gap-3 group"
           >
-            <div className="w-10 h-10 rounded-xl bg-[#5B3FD4]/10 flex items-center justify-center flex-shrink-0 group-hover:bg-[#5B3FD4]/20 transition-colors">
-              <PlayCircle className="w-5 h-5 text-[#5B3FD4]" />
+            <div className="w-10 h-10 rounded-xl bg-[#0F40CB]/10 flex items-center justify-center flex-shrink-0 group-hover:bg-[#0F40CB]/20 transition-colors">
+              <PlayCircle className="w-5 h-5 text-[#0F40CB]" />
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium leading-tight truncate" style={{ color: 'var(--text-primary)' }}>
@@ -52,8 +52,8 @@ export function LearnPreview() {
         {/* Divisor */}
         <div style={{ borderTop: '1px solid var(--border)' }} className="pt-2.5">
           <Link href="/aprenda" className="flex items-center gap-3 group">
-            <div className="w-10 h-10 rounded-xl bg-[#52D68A]/10 flex items-center justify-center flex-shrink-0 group-hover:bg-[#52D68A]/20 transition-colors">
-              <BookOpen className="w-5 h-5 text-[#52D68A]" />
+            <div className="w-10 h-10 rounded-xl bg-[#B6F273]/10 flex items-center justify-center flex-shrink-0 group-hover:bg-[#B6F273]/20 transition-colors">
+              <BookOpen className="w-5 h-5 text-[#B6F273]" />
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium leading-tight" style={{ color: 'var(--text-primary)' }}>

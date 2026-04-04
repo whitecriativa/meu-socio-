@@ -76,7 +76,27 @@
       "Bash(~/.local/bin/vercel logs:*)",
       "Bash(timeout 60 node_modules/.bin/tsc --noEmit)",
       "Bash(node node_modules/.bin/tsc --noEmit)",
-      "Bash(node_modules/typescript/bin/tsc --noEmit)"
+      "Bash(node_modules/typescript/bin/tsc --noEmit)",
+      "Bash(vercel whoami:*)",
+      "Bash(curl -s 'https://qjgjqrhsrfxfcmxhuirf.supabase.co/rest/v1/users?phone=eq.5511999999999&select=id,name' -H 'apikey: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFqZ2pxcmhzcmZ4ZmNteGh1aXJmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzNzE4NzAsImV4cCI6MjA4OTk0Nzg3MH0.7XW8nHUNrECAAc8Ynn6DbKIwvNVnGbQk6G7KvhvH6E0' -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFqZ2pxcmhzcmZ4ZmNteGh1aXJmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzNzE4NzAsImV4cCI6MjA4OTk0Nzg3MH0.7XW8nHUNrECAAc8Ynn6DbKIwvNVnGbQk6G7KvhvH6E0')",
+      "Bash(kill %1)",
+      "Bash(wait)",
+      "Bash(node -e ':*)",
+      "Bash(node_modules/.bin/tsc --noEmit)",
+      "Bash(node_modules/.bin/next build:*)",
+      "Bash(node_modules/.bin/tsc -p apps/web/tsconfig.json --noEmit --skipLibCheck)",
+      "Bash(curl -s 'https://api.vercel.com/v1/deployments/dpl_6F8Lx6PCdUL8QqydAexbAp67TV6j/events?limit=50&direction=backward' -H 'Authorization: Bearer vca_4sbRdyAG1A1qDbU2BS5sT4w1XUwwHxKDzQwsBcCf1VsFJOXCrZ3WyqX1')",
+      "Bash(curl -s 'https://api.vercel.com/v2/deployments/dpl_8EnBQknQawEtLWg34ZdmBzksGvxE/events?direction=backward&limit=100&types=stderr,stdout,error,lambda-response' -H 'Authorization: Bearer vca_4sbRdyAG1A1qDbU2BS5sT4w1XUwwHxKDzQwsBcCf1VsFJOXCrZ3WyqX1')",
+      "Bash(curl -s 'https://api.vercel.com/v2/deployments/dpl_8EnBQknQawEtLWg34ZdmBzksGvxE/events?limit=50' -H 'Authorization: Bearer vca_4sbRdyAG1A1qDbU2BS5sT4w1XUwwHxKDzQwsBcCf1VsFJOXCrZ3WyqX1')",
+      "Bash(sed -i '' 's/\\\\.eq\\('\\\\''id'\\\\'', userId\\)\\\\.single\\(\\)/.eq\\('\\\\''id'\\\\'', userId\\).maybeSingle\\(\\)/g' '/Users/luizhenriquematias/Desktop/Curso C Coude/apps/web/app/\\(dashboard\\)/calculadora/page.tsx')",
+      "Bash(sed -i '' 's/\\\\.eq\\('\\\\''id'\\\\'', userId\\)\\\\.single\\(\\)/.eq\\('\\\\''id'\\\\'', userId\\).maybeSingle\\(\\)/g' '/Users/luizhenriquematias/Desktop/Curso C Coude/apps/web/app/\\(dashboard\\)/configuracoes/page.tsx')",
+      "Bash(curl -s -X PUT https://evolution-api-production-e9a3.up.railway.app/instance/updateProfileName/meu-socio -H 'apikey: 762c9cac5efdde8e3b0aee288580ac2a3b11495fa892c757b5bc18dd2b0ec610' -H 'Content-Type: application/json' -d '{\"name\": \"Meu Sócio\"}')",
+      "Bash(curl -s -X PATCH https://evolution-api-production-e9a3.up.railway.app/instance/updateProfileName/meu-socio -H 'apikey: 762c9cac5efdde8e3b0aee288580ac2a3b11495fa892c757b5bc18dd2b0ec610' -H 'Content-Type: application/json' -d '{\"name\": \"Meu Sócio\"}')",
+      "Bash(curl -s https://evolution-api-production-e9a3.up.railway.app/ -H 'apikey: 762c9cac5efdde8e3b0aee288580ac2a3b11495fa892c757b5bc18dd2b0ec610')",
+      "Bash(curl -s -X POST https://evolution-api-production-e9a3.up.railway.app/chat/updateProfileName/meu-socio -H 'apikey: 762c9cac5efdde8e3b0aee288580ac2a3b11495fa892c757b5bc18dd2b0ec610' -H 'Content-Type: application/json' -d '{\"name\": \"Meu Sócio\"}')",
+      "Bash(curl -s -X PUT https://evolution-api-production-e9a3.up.railway.app/chat/updateProfilePicture/meu-socio -H 'apikey: 762c9cac5efdde8e3b0aee288580ac2a3b11495fa892c757b5bc18dd2b0ec610' -H 'Content-Type: application/json' -d '{\"picture\": \"data:image/png;base64,__CMDSUB_OUTPUT__\"}')",
+      "Bash(curl -s -X POST https://evolution-api-production-e9a3.up.railway.app/chat/updateProfilePicture/meu-socio -H 'apikey: 762c9cac5efdde8e3b0aee288580ac2a3b11495fa892c757b5bc18dd2b0ec610' -H 'Content-Type: application/json' -d '{\"picture\": \"data:image/png;base64,__CMDSUB_OUTPUT__\"}')",
+      "Bash(curl -s -X POST https://qjgjqrhsrfxfcmxhuirf.supabase.co/storage/v1/object/avatars/bot/logo.png -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFqZ2pxcmhzcmZ4ZmNteGh1aXJmIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NDM3MTg3MCwiZXhwIjoyMDg5OTQ3ODcwfQ.hjH_yRcQdDAFE-Qk1xNB1tqmz4Dw6udrRNjy4DsUrU8' -H 'Content-Type: image/png' -H 'x-upsert: true' --data-binary '@/Users/luizhenriquematias/Desktop/Curso C Coude/LOGO1.png')"
     ]
   }
 }

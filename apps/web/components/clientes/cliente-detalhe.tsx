@@ -26,14 +26,14 @@ function daysSince(iso: string | null): number {
 }
 
 const STATUS_STYLES = {
-  vip:        { badge: 'bg-[#5B3FD4]/10 text-[#5B3FD4]',  label: 'VIP'      },
-  ativo:      { badge: 'bg-[#52D68A]/15 text-[#1a9e5c]',   label: 'Ativo'    },
+  vip:        { badge: 'bg-[#0F40CB]/10 text-[#0F40CB]',  label: 'VIP'      },
+  ativo:      { badge: 'bg-[#B6F273]/15 text-[#0F40CB]',   label: 'Ativo'    },
   inativo:    { badge: 'bg-gray-100 text-gray-400',         label: 'Inativo'  },
 }
 
 const APT_STATUS_STYLES: Record<string, { icon: React.ReactNode; label: string; color: string }> = {
-  confirmado: { icon: <CheckCircle className="w-3.5 h-3.5" />, label: 'Confirmado', color: 'text-[#1a9e5c]'  },
-  concluido:  { icon: <CheckCircle className="w-3.5 h-3.5" />, label: 'Concluído',  color: 'text-[#5B3FD4]'  },
+  confirmado: { icon: <CheckCircle className="w-3.5 h-3.5" />, label: 'Confirmado', color: 'text-[#0F40CB]'  },
+  concluido:  { icon: <CheckCircle className="w-3.5 h-3.5" />, label: 'Concluído',  color: 'text-[#0F40CB]'  },
   pendente:   { icon: <Clock       className="w-3.5 h-3.5" />, label: 'Pendente',   color: 'text-amber-500'  },
   cancelado:  { icon: <AlertCircle className="w-3.5 h-3.5" />, label: 'Cancelado',  color: 'text-red-400'    },
 }
@@ -53,8 +53,8 @@ function EditarModal({ cliente, onClose }: { cliente: ClienteDetalhado; onClose:
           phone: fd.get('phone') as string,
         })
         onClose()
-      } catch {
-        setError('Erro ao salvar. Tente novamente.')
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Erro ao salvar')
       }
     })
   }
@@ -80,7 +80,7 @@ function EditarModal({ cliente, onClose }: { cliente: ClienteDetalhado; onClose:
               type="text"
               defaultValue={cliente.name}
               required
-              className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm outline-none focus:border-[#5B3FD4] focus:ring-2 focus:ring-[#5B3FD4]/10 transition"
+              className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm outline-none focus:border-[#0F40CB] focus:ring-2 focus:ring-[#0F40CB]/10 transition"
             />
           </div>
           <div>
@@ -92,7 +92,7 @@ function EditarModal({ cliente, onClose }: { cliente: ClienteDetalhado; onClose:
               type="tel"
               defaultValue={cliente.phone ?? ''}
               placeholder="Ex: 11999999999"
-              className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm outline-none focus:border-[#5B3FD4] focus:ring-2 focus:ring-[#5B3FD4]/10 transition"
+              className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm outline-none focus:border-[#0F40CB] focus:ring-2 focus:ring-[#0F40CB]/10 transition"
             />
           </div>
           {error && (
@@ -102,7 +102,7 @@ function EditarModal({ cliente, onClose }: { cliente: ClienteDetalhado; onClose:
             type="submit"
             disabled={isPending}
             className="w-full py-3 rounded-xl text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-60"
-            style={{ backgroundColor: '#5B3FD4' }}
+            style={{ backgroundColor: '#0F40CB' }}
           >
             {isPending ? 'Salvando...' : 'Salvar alterações'}
           </button>
@@ -153,7 +153,7 @@ export function ClienteDetalhe({ cliente }: { cliente: ClienteDetalhado }) {
               href={`https://wa.me/55${cliente.phone.replace(/\D/g, '')}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-1 text-sm text-gray-500 hover:text-[#5B3FD4] transition-colors mt-0.5"
+              className="flex items-center gap-1 text-sm text-gray-500 hover:text-[#0F40CB] transition-colors mt-0.5"
             >
               <Phone className="w-3.5 h-3.5" />
               {cliente.phone}
@@ -187,8 +187,8 @@ export function ClienteDetalhe({ cliente }: { cliente: ClienteDetalhado }) {
         </div>
       )}
       {reativado && (
-        <div className="mb-4 bg-[#52D68A]/10 border border-[#52D68A]/20 rounded-xl p-3">
-          <p className="text-sm font-semibold text-[#1a9e5c]">Cliente reativado com sucesso!</p>
+        <div className="mb-4 bg-[#B6F273]/10 border border-[#B6F273]/20 rounded-xl p-3">
+          <p className="text-sm font-semibold text-[#0F40CB]">Cliente reativado com sucesso!</p>
         </div>
       )}
 
@@ -197,7 +197,7 @@ export function ClienteDetalhe({ cliente }: { cliente: ClienteDetalhado }) {
         <Card>
           <CardContent className="p-3 text-center">
             <div className="flex items-center justify-center gap-1 mb-1">
-              <TrendingUp className="w-4 h-4 text-[#5B3FD4]" />
+              <TrendingUp className="w-4 h-4 text-[#0F40CB]" />
             </div>
             <p className="text-base font-bold text-gray-900">{fmt(cliente.total_spent)}</p>
             <p className="text-xs text-gray-400">Total gasto</p>
@@ -206,7 +206,7 @@ export function ClienteDetalhe({ cliente }: { cliente: ClienteDetalhado }) {
         <Card>
           <CardContent className="p-3 text-center">
             <div className="flex items-center justify-center gap-1 mb-1">
-              <Calendar className="w-4 h-4 text-[#5B3FD4]" />
+              <Calendar className="w-4 h-4 text-[#0F40CB]" />
             </div>
             <p className="text-base font-bold text-gray-900">{totalApts}</p>
             <p className="text-xs text-gray-400">Atendimentos</p>
@@ -215,7 +215,7 @@ export function ClienteDetalhe({ cliente }: { cliente: ClienteDetalhado }) {
         <Card>
           <CardContent className="p-3 text-center">
             <div className="flex items-center justify-center gap-1 mb-1">
-              <Clock className="w-4 h-4 text-[#5B3FD4]" />
+              <Clock className="w-4 h-4 text-[#0F40CB]" />
             </div>
             <p className="text-base font-bold text-gray-900">{dias > 0 ? `${dias}d` : 'Hoje'}</p>
             <p className="text-xs text-gray-400">Último contato</p>
@@ -224,9 +224,9 @@ export function ClienteDetalhe({ cliente }: { cliente: ClienteDetalhado }) {
       </div>
 
       {avgTicket > 0 && (
-        <div className="mb-4 bg-[#5B3FD4]/5 rounded-xl px-4 py-3 flex items-center justify-between">
+        <div className="mb-4 bg-[#0F40CB]/5 rounded-xl px-4 py-3 flex items-center justify-between">
           <span className="text-sm text-gray-600">Ticket médio por atendimento</span>
-          <span className="text-sm font-bold text-[#5B3FD4]">{fmt(avgTicket)}</span>
+          <span className="text-sm font-bold text-[#0F40CB]">{fmt(avgTicket)}</span>
         </div>
       )}
 
@@ -234,7 +234,7 @@ export function ClienteDetalhe({ cliente }: { cliente: ClienteDetalhado }) {
       <Card>
         <CardHeader>
           <CardTitle className="text-sm font-semibold text-gray-700 flex items-center gap-1.5">
-            <Calendar className="w-4 h-4 text-[#5B3FD4]" />
+            <Calendar className="w-4 h-4 text-[#0F40CB]" />
             Histórico de atendimentos
           </CardTitle>
         </CardHeader>
@@ -254,7 +254,7 @@ export function ClienteDetalhe({ cliente }: { cliente: ClienteDetalhado }) {
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-semibold text-gray-800">{apt.service}</p>
-                      <p className="text-xs text-gray-400">{formatDatetime(apt.datetime)}</p>
+                      <p className="text-xs text-gray-400">{formatDatetime(apt.scheduled_at)}</p>
                       {apt.notes && (
                         <p className="text-xs text-gray-400 mt-0.5 italic">{apt.notes}</p>
                       )}

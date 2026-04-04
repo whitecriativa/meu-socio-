@@ -1,6 +1,7 @@
 'use client'
 
-import { CheckSquare, Circle } from 'lucide-react'
+import Link from 'next/link'
+import { CheckSquare, Circle, ArrowRight } from 'lucide-react'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 
@@ -32,7 +33,9 @@ export function TasksCard({ tasks }: TasksCardProps) {
             <CheckSquare className="w-3.5 h-3.5" />
             Prioridades do dia
           </span>
-          <span className="text-xs text-gray-400">{done}/{tasks.length} concluídas</span>
+          <Link href="/tarefas" className="text-xs font-semibold text-[#0F40CB] flex items-center gap-1 hover:underline">
+            Ver tarefas <ArrowRight className="w-3 h-3" />
+          </Link>
         </CardTitle>
       </CardHeader>
       <CardContent className="pt-1">
@@ -40,7 +43,7 @@ export function TasksCard({ tasks }: TasksCardProps) {
           {tasks.map((task) => (
             <div key={task.id} className="flex items-start gap-3">
               {task.done ? (
-                <CheckSquare className="w-4 h-4 text-[#52D68A] mt-0.5 flex-shrink-0" />
+                <CheckSquare className="w-4 h-4 text-[#B6F273] mt-0.5 flex-shrink-0" />
               ) : (
                 <Circle className="w-4 h-4 text-gray-300 mt-0.5 flex-shrink-0" />
               )}
@@ -66,7 +69,7 @@ export function TasksCard({ tasks }: TasksCardProps) {
               className="h-1.5 rounded-full transition-all duration-500"
               style={{
                 width: `${Math.round((done / tasks.length) * 100)}%`,
-                backgroundColor: '#5B3FD4',
+                backgroundColor: '#0F40CB',
               }}
             />
           </div>

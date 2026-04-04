@@ -2,6 +2,7 @@
 
 import { createClient } from '@supabase/supabase-js'
 import { revalidatePath } from 'next/cache'
+import { getAuthenticatedUserId } from '@/lib/get-user-id'
 
 function adminClient() {
   return createClient(
@@ -11,8 +12,14 @@ function adminClient() {
   )
 }
 
+async function requireUserId(): Promise<string> {
+  const userId = await getAuthenticatedUserId()
+  if (!userId) throw new Error('Não autenticado')
+  return userId
+}
+
 export async function criarContrato(formData: FormData) {
-  const userId   = process.env.NEXT_PUBLIC_DEMO_USER_ID!
+  const userId   = await requireUserId()
   const supabase = adminClient()
 
   const clientName        = String(formData.get('client_name') ?? '').trim()
@@ -40,7 +47,6 @@ export async function criarContrato(formData: FormData) {
 
   if (!contract) return
 
-  // Gera todas as parcelas com vencimento mensal a partir da primeira data
   const parts = firstDueDate.split('-').map(Number)
   const baseYear  = parts[0] ?? new Date().getFullYear()
   const baseMonth = parts[1] ?? 1
@@ -59,15 +65,13 @@ export async function criarContrato(formData: FormData) {
   })
 
   await supabase.from('installments').insert(installments)
-
   revalidatePath('/financeiro')
 }
 
 export async function pagarParcela(installmentId: string) {
-  const userId   = process.env.NEXT_PUBLIC_DEMO_USER_ID!
+  const userId   = await requireUserId()
   const supabase = adminClient()
 
-  // Busca parcela + dados do contrato para gerar descrição
   const { data: inst } = await supabase
     .from('installments')
     .select('id, installment_number, amount, contract_id, contracts(description, client_name, installments_count)')
@@ -81,13 +85,11 @@ export async function pagarParcela(installmentId: string) {
   const contract = (inst as unknown as { contracts: ContractRef }).contracts
   const today    = new Date().toISOString().substring(0, 10)
 
-  // Marca parcela como paga
   await supabase
     .from('installments')
     .update({ status: 'pago', paid_at: new Date().toISOString() })
     .eq('id', installmentId)
 
-  // Cria lançamento de receita automaticamente
   await supabase.from('transactions').insert({
     user_id:         userId,
     type:            'receita',
@@ -98,7 +100,6 @@ export async function pagarParcela(installmentId: string) {
     payment_method:  'outros',
   })
 
-  // Se todas as parcelas foram pagas, fecha o contrato
   const { data: pendentes } = await supabase
     .from('installments')
     .select('id')
@@ -116,7 +117,7 @@ export async function pagarParcela(installmentId: string) {
 }
 
 export async function cancelarContrato(contractId: string) {
-  const userId   = process.env.NEXT_PUBLIC_DEMO_USER_ID!
+  const userId   = await requireUserId()
   const supabase = adminClient()
 
   await supabase

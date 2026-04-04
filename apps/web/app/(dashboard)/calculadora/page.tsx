@@ -1,3 +1,4 @@
+import { getAuthenticatedUserId } from '@/lib/get-user-id'
 import { createClient } from '@supabase/supabase-js'
 import { CalculadoraClient } from '@/components/calculadora/calculadora-client'
 
@@ -18,7 +19,7 @@ function toMonthly(amount: number, periodicity: string): number {
 }
 
 async function getBaseData() {
-  const userId   = process.env.NEXT_PUBLIC_DEMO_USER_ID!
+  const userId = (await getAuthenticatedUserId()) ?? process.env.NEXT_PUBLIC_DEMO_USER_ID!
   const supabase = adminClient()
 
   const now        = new Date()
@@ -26,15 +27,15 @@ async function getBaseData() {
   const today      = now.toISOString().substring(0, 10)
 
   const [{ data: user }, { data: txs }, { data: apts }, { data: costs }] = await Promise.all([
-    supabase.from('users').select('name, profile_type').eq('id', userId).single(),
+    supabase.from('users').select('name, profile_type').eq('id', userId).maybeSingle(),
     supabase.from('transactions').select('type, amount, category')
       .eq('user_id', userId)
       .gte('competence_date', monthStart)
       .lte('competence_date', today),
     supabase.from('appointments').select('price, status')
       .eq('user_id', userId)
-      .gte('datetime', `${monthStart}T00:00:00`)
-      .lte('datetime', `${today}T23:59:59`)
+      .gte('scheduled_at', `${monthStart}T00:00:00`)
+      .lte('scheduled_at', `${today}T23:59:59`)
       .neq('status', 'cancelado'),
     supabase.from('costs_fixed').select('amount, periodicity')
       .eq('user_id', userId),

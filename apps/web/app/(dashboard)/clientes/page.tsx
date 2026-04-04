@@ -1,3 +1,4 @@
+import { getAuthenticatedUserId } from '@/lib/get-user-id'
 import { createClient } from '@supabase/supabase-js'
 import { ClientesList, COLORS } from '@/components/clientes/clientes-client'
 import type { ClientItem } from '@/components/clientes/clientes-client'
@@ -24,7 +25,7 @@ type ClientRow = {
 type AptRow = {
   client_id: string | null
   service: string | null
-  datetime: string | null
+  scheduled_at: string | null
 }
 
 // Inativos = sem contato há mais de 30 dias
@@ -59,7 +60,7 @@ function formatDate(iso: string | null): string {
 }
 
 async function getClients(): Promise<ClientItem[]> {
-  const userId  = process.env.NEXT_PUBLIC_DEMO_USER_ID!
+  const userId = (await getAuthenticatedUserId()) ?? process.env.NEXT_PUBLIC_DEMO_USER_ID!
   const supabase = adminClient()
 
   const [{ data: clientRows }, { data: aptRows }] = await Promise.all([
@@ -70,9 +71,9 @@ async function getClients(): Promise<ClientItem[]> {
       .order('last_contact', { ascending: false, nullsFirst: false }),
     supabase
       .from('appointments')
-      .select('client_id, service, datetime')
+      .select('client_id, service, scheduled_at')
       .eq('user_id', userId)
-      .order('datetime', { ascending: false }),
+      .order('scheduled_at', { ascending: false }),
   ])
 
   const clients = (clientRows as ClientRow[] ?? [])
@@ -96,11 +97,11 @@ async function getClients(): Promise<ClientItem[]> {
       id:           c.id,
       name:         c.name ?? 'Sem nome',
       last_service: lastApt?.service ?? '—',
-      last_visit:   formatDate(lastApt?.datetime ?? c.last_contact),
+      last_visit:   formatDate(lastApt?.scheduled_at ?? c.last_contact),
       total_spent:  totalSpent,
       visits:       clientApts.length,
       status:       toStatus(c.status, c.last_contact, totalSpent),
-      color:        COLORS[i % COLORS.length] ?? '#5B3FD4',
+      color:        COLORS[i % COLORS.length] ?? '#0F40CB',
     }
   })
 }

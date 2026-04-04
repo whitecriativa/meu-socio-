@@ -1,3 +1,4 @@
+import { getAuthenticatedUserId } from '@/lib/get-user-id'
 import { createClient } from '@supabase/supabase-js'
 
 function adminClient() {
@@ -26,7 +27,7 @@ function toQuadrant(v: string | null | undefined): Quadrant {
 }
 
 export default async function TarefasPage() {
-  const userId = process.env.NEXT_PUBLIC_DEMO_USER_ID!
+  const userId = (await getAuthenticatedUserId()) ?? process.env.NEXT_PUBLIC_DEMO_USER_ID!
   const supabase = adminClient()
 
   const { data } = await supabase

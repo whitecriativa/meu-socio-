@@ -10,8 +10,11 @@ const config: Config = {
     extend: {
       colors: {
         brand: {
-          primary: '#5B3FD4',
-          accent:  '#52D68A',
+          primary:  '#0F40CB',
+          accent:   '#B6F273',
+          cloud:    '#B8DFFB',
+          ivory:    '#F6F6ED',
+          charcoal: '#161921',
         },
       },
       fontFamily: {

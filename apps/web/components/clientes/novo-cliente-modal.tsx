@@ -29,8 +29,8 @@ export function NovoClienteModal() {
           notes: fd.get('notes') as string,
         })
         handleClose()
-      } catch {
-        setError('Erro ao salvar. Tente novamente.')
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Erro ao salvar')
       }
     })
   }
@@ -40,7 +40,7 @@ export function NovoClienteModal() {
       <button
         onClick={() => setOpen(true)}
         className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-white hover:opacity-90 active:opacity-80 transition-opacity flex-shrink-0"
-        style={{ backgroundColor: '#5B3FD4' }}
+        style={{ backgroundColor: '#0F40CB' }}
       >
         <UserPlus className="w-4 h-4" />
         <span className="hidden sm:inline">Novo cliente</span>
@@ -69,7 +69,7 @@ export function NovoClienteModal() {
                   type="text"
                   placeholder="Nome completo"
                   required
-                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm outline-none focus:border-[#5B3FD4] focus:ring-2 focus:ring-[#5B3FD4]/10 transition"
+                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm outline-none focus:border-[#0F40CB] focus:ring-2 focus:ring-[#0F40CB]/10 transition"
                 />
               </div>
 
@@ -81,7 +81,7 @@ export function NovoClienteModal() {
                   name="phone"
                   type="tel"
                   placeholder="Ex: 11999999999"
-                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm outline-none focus:border-[#5B3FD4] focus:ring-2 focus:ring-[#5B3FD4]/10 transition"
+                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm outline-none focus:border-[#0F40CB] focus:ring-2 focus:ring-[#0F40CB]/10 transition"
                 />
               </div>
 
@@ -93,7 +93,7 @@ export function NovoClienteModal() {
                   name="notes"
                   type="text"
                   placeholder="Ex: Indicado por Ana, prefere manhã..."
-                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm outline-none focus:border-[#5B3FD4] focus:ring-2 focus:ring-[#5B3FD4]/10 transition"
+                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm outline-none focus:border-[#0F40CB] focus:ring-2 focus:ring-[#0F40CB]/10 transition"
                 />
               </div>
 
@@ -105,7 +105,7 @@ export function NovoClienteModal() {
                 type="submit"
                 disabled={isPending}
                 className="w-full py-3 rounded-xl text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-60"
-                style={{ backgroundColor: '#5B3FD4' }}
+                style={{ backgroundColor: '#0F40CB' }}
               >
                 {isPending ? 'Salvando...' : 'Salvar cliente'}
               </button>

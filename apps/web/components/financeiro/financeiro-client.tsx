@@ -9,9 +9,10 @@ import { ExpensesPie } from './expenses-pie'
 import { NovoLancamentoModal } from './novo-lancamento-modal'
 import { LancamentosList } from './lancamentos-list'
 import { ContratosList } from './contratos-list'
+import { CustosFixos, type CustoFixo } from './custos-fixos'
 import type { FinanceiroData } from './types'
 
-export function FinanceiroClient({ pj, pf }: { pj: FinanceiroData; pf: FinanceiroData }) {
+export function FinanceiroClient({ pj, pf, custosFixos }: { pj: FinanceiroData; pf: FinanceiroData; custosFixos: CustoFixo[] }) {
   const [tab, setTab] = useState<'pj' | 'pf'>('pj')
   const data = tab === 'pj' ? pj : pf
 
@@ -43,7 +44,7 @@ export function FinanceiroClient({ pj, pf }: { pj: FinanceiroData; pf: Financeir
             onClick={() => setTab(t)}
             className={`px-5 py-1.5 rounded-lg text-sm font-semibold transition-all ${
               tab === t
-                ? 'bg-white text-[#5B3FD4] shadow-sm'
+                ? 'bg-white text-[#0F40CB] shadow-sm'
                 : 'text-gray-500 hover:text-gray-700'
             }`}
           >
@@ -78,8 +79,11 @@ export function FinanceiroClient({ pj, pf }: { pj: FinanceiroData; pf: Financeir
         </div>
       </section>
 
-      {/* Contratos parcelados */}
+      {/* Pagamentos recorrentes */}
       <ContratosList contratos={data.contratos} />
+
+      {/* Custos Fixos */}
+      <CustosFixos initial={custosFixos} />
 
       {/* Lista de lançamentos */}
       <LancamentosList items={data.lancamentos} />

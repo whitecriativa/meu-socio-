@@ -37,14 +37,14 @@ export function DreCard({ month, items }: DreCardProps) {
               <div
                 className={`flex items-center justify-between py-2.5 ${
                   item.isResult
-                    ? 'bg-[#5B3FD4]/5 rounded-xl px-3 -mx-3 my-1'
+                    ? 'bg-[#0F40CB]/5 rounded-xl px-3 -mx-3 my-1'
                     : ''
                 }`}
               >
                 <div className="flex items-center gap-2">
                   {item.isResult ? (
                     item.value >= 0
-                      ? <TrendingUp className="w-3.5 h-3.5 text-[#52D68A]" />
+                      ? <TrendingUp className="w-3.5 h-3.5 text-[#B6F273]" />
                       : <TrendingDown className="w-3.5 h-3.5 text-red-400" />
                   ) : item.isDeduction ? (
                     <Minus className="w-3 h-3 text-gray-400" />
@@ -65,7 +65,7 @@ export function DreCard({ month, items }: DreCardProps) {
                   className={`text-sm tabular-nums ${
                     item.isResult
                       ? item.value >= 0
-                        ? 'font-bold text-[#52D68A]'
+                        ? 'font-bold text-[#B6F273]'
                         : 'font-bold text-red-500'
                       : item.isDeduction
                       ? 'text-red-400'

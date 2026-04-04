@@ -1,10 +1,11 @@
 'use client'
 
-import { useState } from 'react'
-import { Search, Users, TrendingUp, ChevronRight } from 'lucide-react'
+import { useState, useTransition } from 'react'
+import { Search, Users, TrendingUp, ChevronRight, Trash2 } from 'lucide-react'
 import Link from 'next/link'
 import { Card, CardContent } from '@/components/ui/card'
 import { NovoClienteModal } from './novo-cliente-modal'
+import { excluirCliente } from '@/app/(dashboard)/clientes/actions'
 
 export interface ClientItem {
   id: string
@@ -18,19 +19,28 @@ export interface ClientItem {
 }
 
 const STATUS_STYLES = {
-  vip:     { badge: 'bg-[#5B3FD4]/10 text-[#5B3FD4]', label: 'VIP'     },
-  ativo:   { badge: 'bg-[#52D68A]/15 text-[#1a9e5c]',  label: 'Ativo'   },
+  vip:     { badge: 'bg-[#0F40CB]/10 text-[#0F40CB]', label: 'VIP'     },
+  ativo:   { badge: 'bg-[#B6F273]/15 text-[#0F40CB]',  label: 'Ativo'   },
   inativo: { badge: 'bg-gray-100 text-gray-400',        label: 'Inativo' },
 }
 
-const COLORS = ['#5B3FD4', '#52D68A', '#a78bfa', '#34d399', '#818cf8', '#fbbf24', '#f87171']
+const COLORS = ['#0F40CB', '#B6F273', '#a78bfa', '#34d399', '#818cf8', '#fbbf24', '#f87171']
 
 function fmt(v: number) {
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v)
 }
 
-export function ClientesList({ clients }: { clients: ClientItem[] }) {
+export function ClientesList({ clients: initialClients }: { clients: ClientItem[] }) {
+  const [clients, setClients] = useState(initialClients)
   const [query, setQuery] = useState('')
+  const [, startTransition] = useTransition()
+
+  function handleDelete(e: React.MouseEvent, id: string) {
+    e.preventDefault()
+    e.stopPropagation()
+    setClients((prev) => prev.filter((c) => c.id !== id))
+    startTransition(() => { excluirCliente(id) })
+  }
 
   const filtered = clients.filter(
     (c) =>
@@ -62,7 +72,7 @@ export function ClientesList({ clients }: { clients: ClientItem[] }) {
           placeholder="Buscar por nome ou serviço..."
           value={query}
           onChange={(e) => setQuery(e.currentTarget.value)}
-          className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-gray-200 bg-white text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-[#5B3FD4] focus:ring-2 focus:ring-[#5B3FD4]/10 transition"
+          className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-gray-200 bg-white text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-[#0F40CB] focus:ring-2 focus:ring-[#0F40CB]/10 transition"
         />
       </div>
 
@@ -86,12 +96,12 @@ export function ClientesList({ clients }: { clients: ClientItem[] }) {
             <div className="divide-y divide-gray-50">
               {filtered.map((client, i) => {
                 const s     = STATUS_STYLES[client.status]
-                const color = client.color || COLORS[i % COLORS.length] || '#5B3FD4'
+                const color = client.color || COLORS[i % COLORS.length] || '#0F40CB'
                 return (
                   <Link
                     key={client.id}
                     href={`/clientes/${client.id}`}
-                    className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50/50 transition-colors"
+                    className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50/50 transition-colors group"
                   >
                     {/* Avatar */}
                     <div
@@ -124,7 +134,13 @@ export function ClientesList({ clients }: { clients: ClientItem[] }) {
                       <p className="text-xs font-medium text-gray-600">{client.last_visit}</p>
                     </div>
 
-                    <ChevronRight className="w-4 h-4 text-gray-300 flex-shrink-0" />
+                    <ChevronRight className="w-4 h-4 text-gray-300 flex-shrink-0 group-hover:hidden" />
+                    <button
+                      onClick={(e) => handleDelete(e, client.id)}
+                      className="hidden group-hover:flex p-1 rounded-lg hover:bg-red-50 text-gray-300 hover:text-red-400 transition-all flex-shrink-0"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
                   </Link>
                 )
               })}

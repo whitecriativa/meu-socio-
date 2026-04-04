@@ -5,21 +5,24 @@
 @tailwind utilities;
 
 :root {
-  --color-primary: #5B3FD4;
-  --color-accent:  #52D68A;
-  --bg-base:       #F8F9FA;
-  --bg-card:       #FFFFFF;
-  --text-primary:  #111827;
-  --text-muted:    #6B7280;
-  --border:        #E5E7EB;
+  --color-primary:  #0F40CB;
+  --color-accent:   #B6F273;
+  --color-cloud:    #B8DFFB;
+  --bg-base:        #F6F6ED;
+  --bg-card:        #FFFFFF;
+  --text-primary:   #161921;
+  --text-secondary: #4A5568;
+  --text-muted:     #718096;
+  --border:         #E2E8F0;
 }
 
 .dark {
-  --bg-base:       #0F0F1A;
-  --bg-card:       #1A1A2E;
-  --text-primary:  #F9FAFB;
-  --text-muted:    #9CA3AF;
-  --border:        rgba(255,255,255,0.08);
+  --bg-base:        #161921;
+  --bg-card:        #1E2330;
+  --text-primary:   #F6F6ED;
+  --text-secondary: #A0AEC0;
+  --text-muted:     #718096;
+  --border:         rgba(255,255,255,0.08);
 }
 
 @layer base {
@@ -35,4 +38,4 @@
 /* Scrollbar fina */
 ::-webkit-scrollbar       { width: 4px; height: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: rgba(91,63,212,0.3); border-radius: 2px; }
+::-webkit-scrollbar-thumb { background: rgba(15,64,203,0.3); border-radius: 2px; }

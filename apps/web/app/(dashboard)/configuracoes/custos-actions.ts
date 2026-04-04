@@ -2,6 +2,7 @@
 
 import { createClient } from '@supabase/supabase-js'
 import { revalidatePath } from 'next/cache'
+import { getAuthenticatedUserId } from '@/lib/get-user-id'
 
 function adminClient() {
   return createClient(
@@ -11,8 +12,14 @@ function adminClient() {
   )
 }
 
+async function requireUserId(): Promise<string> {
+  const userId = await getAuthenticatedUserId()
+  if (!userId) throw new Error('Não autenticado')
+  return userId
+}
+
 export async function adicionarCusto(formData: FormData) {
-  const userId = process.env.NEXT_PUBLIC_DEMO_USER_ID!
+  const userId   = await requireUserId()
   const supabase = adminClient()
 
   const name        = String(formData.get('name') ?? '').trim()
@@ -35,7 +42,7 @@ export async function adicionarCusto(formData: FormData) {
 }
 
 export async function removerCusto(id: string) {
-  const userId = process.env.NEXT_PUBLIC_DEMO_USER_ID!
+  const userId   = await requireUserId()
   const supabase = adminClient()
 
   await supabase

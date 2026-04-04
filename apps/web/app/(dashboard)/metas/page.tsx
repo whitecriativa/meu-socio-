@@ -1,3 +1,4 @@
+import { getAuthenticatedUserId } from '@/lib/get-user-id'
 import { Star, Flame, Target, Trophy, Heart, Zap } from 'lucide-react'
 import { EditarMetaModal } from '@/components/metas/editar-meta-modal'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -46,7 +47,7 @@ function fmt(v: number) {
 }
 
 async function getData() {
-  const userId = process.env.NEXT_PUBLIC_DEMO_USER_ID!
+  const userId = (await getAuthenticatedUserId()) ?? process.env.NEXT_PUBLIC_DEMO_USER_ID!
   const supabase = adminClient()
 
   const now = new Date()
@@ -60,7 +61,7 @@ async function getData() {
   const daysLeft = daysInMonth - daysPassed
 
   const [{ data: user }, { data: txs }, { data: completedTasks }] = await Promise.all([
-    supabase.from('users').select('name, monthly_goal, dream').eq('id', userId).single(),
+    supabase.from('users').select('name, monthly_goal, dream').eq('id', userId).maybeSingle(),
     supabase.from('transactions').select('type, amount').eq('user_id', userId)
       .gte('competence_date', monthStart).lte('competence_date', today),
     supabase.from('tasks').select('quadrant, completed_at').eq('user_id', userId)
@@ -147,9 +148,9 @@ export default async function MetasPage() {
       </div>
 
       {/* Card do sonho */}
-      <Card className="bg-[#5B3FD4] border-0 text-white relative overflow-hidden">
+      <Card className="bg-[#0F40CB] border-0 text-white relative overflow-hidden">
         <div className="absolute top-0 right-0 w-32 h-32 rounded-full bg-white/5 -translate-y-8 translate-x-8" />
-        <div className="absolute bottom-0 left-10 w-20 h-20 rounded-full bg-[#52D68A]/20 translate-y-6" />
+        <div className="absolute bottom-0 left-10 w-20 h-20 rounded-full bg-[#B6F273]/20 translate-y-6" />
         <CardContent className="p-5 relative">
           <div className="flex items-start justify-between mb-2">
             <div>
@@ -176,7 +177,7 @@ export default async function MetasPage() {
               <div className="w-full bg-white/20 rounded-full h-2">
                 <div
                   className="h-2 rounded-full transition-all duration-500"
-                  style={{ width: `${goalPercent}%`, backgroundColor: '#52D68A' }}
+                  style={{ width: `${goalPercent}%`, backgroundColor: '#B6F273' }}
                 />
               </div>
               <p className="text-white/50 text-xs mt-1.5">Meta mensal: {fmt(target)}</p>
@@ -191,12 +192,12 @@ export default async function MetasPage() {
           <CardHeader>
             <CardTitle className="flex items-center justify-between text-sm font-semibold text-gray-700">
               <span className="flex items-center gap-1.5">
-                <Target className="w-4 h-4 text-[#5B3FD4]" />
+                <Target className="w-4 h-4 text-[#0F40CB]" />
                 Meta de {monthLabel}
               </span>
               <span
                 className={`text-xs font-semibold px-2.5 py-1 rounded-full ${
-                  goalPercent >= 100 ? 'bg-[#52D68A]/15 text-[#1a9e5c]' : 'bg-[#5B3FD4]/10 text-[#5B3FD4]'
+                  goalPercent >= 100 ? 'bg-[#B6F273]/15 text-[#0F40CB]' : 'bg-[#0F40CB]/10 text-[#0F40CB]'
                 }`}
               >
                 {goalPercent}%
@@ -207,7 +208,7 @@ export default async function MetasPage() {
             <div className="mb-4">
               <Progress
                 value={goalPercent}
-                indicatorColor={goalPercent >= 100 ? '#52D68A' : '#5B3FD4'}
+                indicatorColor={goalPercent >= 100 ? '#B6F273' : '#0F40CB'}
                 className="h-4 rounded-full"
               />
               <div className="flex justify-between mt-1.5 text-xs text-gray-400">
@@ -224,8 +225,8 @@ export default async function MetasPage() {
                 <p className="text-lg font-bold text-gray-900">{fmt(Math.max(0, target - achieved))}</p>
                 <p className="text-xs text-gray-400">faltam</p>
               </div>
-              <div className={`rounded-xl p-3 text-center ${projectionGap >= 0 ? 'bg-[#52D68A]/10' : 'bg-amber-50'}`}>
-                <p className={`text-lg font-bold ${projectionGap >= 0 ? 'text-[#1a9e5c]' : 'text-amber-600'}`}>
+              <div className={`rounded-xl p-3 text-center ${projectionGap >= 0 ? 'bg-[#B6F273]/10' : 'bg-amber-50'}`}>
+                <p className={`text-lg font-bold ${projectionGap >= 0 ? 'text-[#0F40CB]' : 'text-amber-600'}`}>
                   {fmt(projection)}
                 </p>
                 <p className="text-xs text-gray-400">projeção</p>
@@ -252,7 +253,7 @@ export default async function MetasPage() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-1.5 text-sm font-semibold text-gray-700">
-            <Zap className="w-4 h-4 text-[#5B3FD4]" />
+            <Zap className="w-4 h-4 text-[#0F40CB]" />
             Seu nível
           </CardTitle>
         </CardHeader>
@@ -262,9 +263,9 @@ export default async function MetasPage() {
             <div className="flex-1">
               <div className="flex items-center justify-between mb-1">
                 <p className="text-base font-bold text-gray-900">{currentLevel.label}</p>
-                <span className="text-xs text-[#5B3FD4] font-semibold">{totalPoints} pts</span>
+                <span className="text-xs text-[#0F40CB] font-semibold">{totalPoints} pts</span>
               </div>
-              <Progress value={levelProgress} indicatorColor="#5B3FD4" className="h-2" />
+              <Progress value={levelProgress} indicatorColor="#0F40CB" className="h-2" />
               {nextLevel && (
                 <p className="text-xs text-gray-400 mt-1">
                   Faltam{' '}
@@ -304,7 +305,7 @@ export default async function MetasPage() {
                   >
                     {level.emoji}
                   </span>
-                  {isCurrent && <span className="w-1.5 h-1.5 rounded-full bg-[#5B3FD4]" />}
+                  {isCurrent && <span className="w-1.5 h-1.5 rounded-full bg-[#0F40CB]" />}
                 </div>
               )
             })}
@@ -316,7 +317,7 @@ export default async function MetasPage() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-1.5 text-sm font-semibold text-gray-700">
-            <Trophy className="w-4 h-4 text-[#5B3FD4]" />
+            <Trophy className="w-4 h-4 text-[#0F40CB]" />
             Conquistas
             <span className="ml-auto text-xs font-normal text-gray-400">
               {badges.filter((b) => b.earned).length}/{badges.length}
@@ -329,7 +330,7 @@ export default async function MetasPage() {
               <div key={badge.id} className="flex flex-col items-center gap-1">
                 <div
                   className={`w-11 h-11 rounded-2xl flex items-center justify-center text-xl transition-all ${
-                    badge.earned ? 'bg-[#5B3FD4]/10 shadow-sm' : 'bg-gray-100 grayscale opacity-40'
+                    badge.earned ? 'bg-[#0F40CB]/10 shadow-sm' : 'bg-gray-100 grayscale opacity-40'
                   }`}
                 >
                   {badge.emoji}

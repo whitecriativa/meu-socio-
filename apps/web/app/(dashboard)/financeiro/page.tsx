@@ -1,3 +1,4 @@
+import { getAuthenticatedUserId } from '@/lib/get-user-id'
 import { createClient } from '@supabase/supabase-js'
 import { FinanceiroClient } from '@/components/financeiro/financeiro-client'
 import type { FinanceiroData } from '@/components/financeiro/types'
@@ -5,7 +6,7 @@ import type { ContratoDado, Installment } from '@/components/financeiro/contrato
 
 export const dynamic = 'force-dynamic'
 
-const PIE_COLORS = ['#5B3FD4', '#52D68A', '#a78bfa', '#6ee7b7', '#c4b5fd', '#fbbf24', '#f87171']
+const PIE_COLORS = ['#0F40CB', '#B6F273', '#a78bfa', '#6ee7b7', '#c4b5fd', '#fbbf24', '#f87171']
 
 function adminClient() {
   return createClient(
@@ -27,7 +28,7 @@ type TxRow = {
 }
 
 async function getData() {
-  const userId = process.env.NEXT_PUBLIC_DEMO_USER_ID!
+  const userId = (await getAuthenticatedUserId()) ?? process.env.NEXT_PUBLIC_DEMO_USER_ID!
   const supabase = adminClient()
 
   const now = new Date()
@@ -56,7 +57,7 @@ async function getData() {
   const prevMonthStart    = monthsMeta[4]!.start
   const prevMonthEnd      = monthsMeta[4]!.end
 
-  const [{ data }, { data: rawContracts }] = await Promise.all([
+  const [{ data }, { data: rawContracts }, { data: rawCosts }] = await Promise.all([
     supabase
       .from('transactions')
       .select('id, type, amount, category, description, payment_method, competence_date, client_id')
@@ -69,6 +70,11 @@ async function getData() {
       .select('id, client_name, description, total_amount, installments_count, start_date, status, installments(id, installment_number, amount, due_date, status, paid_at)')
       .eq('user_id', userId)
       .order('created_at', { ascending: false }),
+    supabase
+      .from('costs_fixed')
+      .select('id, name, amount, periodicity, category')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: true }),
   ])
 
   const allTxs = (data as TxRow[] ?? [])
@@ -129,7 +135,7 @@ async function getData() {
   const expensesPie = Object.entries(expByCategory).map(([name, value], i) => ({
     name,
     value,
-    color: PIE_COLORS[i % PIE_COLORS.length] ?? '#5B3FD4',
+    color: PIE_COLORS[i % PIE_COLORS.length] ?? '#0F40CB',
   }))
 
   // DRE
@@ -216,7 +222,7 @@ async function getData() {
     expensesByCategory:
       expensesPie.length > 0
         ? expensesPie
-        : [{ name: 'Sem despesas', value: 1, color: PIE_COLORS[0] ?? '#5B3FD4' }],
+        : [{ name: 'Sem despesas', value: 1, color: PIE_COLORS[0] ?? '#0F40CB' }],
     lancamentos: lancamentosDoMes,
     contratos,
   }
@@ -237,20 +243,29 @@ async function getData() {
       default_rate: 0,
     },
     revenueHistory,
-    expensesByCategory: [{ name: 'Em breve', value: 1, color: PIE_COLORS[0] ?? '#5B3FD4' }],
+    expensesByCategory: [{ name: 'Em breve', value: 1, color: PIE_COLORS[0] ?? '#0F40CB' }],
     lancamentos: [],
     contratos: [],
   }
 
-  return { pjData, pfData }
+  type CostRow = { id: string; name: string; amount: number | null; periodicity: string | null; category: string | null }
+  const custosFixos = (rawCosts as CostRow[] ?? []).map((c) => ({
+    id:          c.id,
+    name:        c.name,
+    amount:      Number(c.amount ?? 0),
+    periodicity: c.periodicity ?? 'mensal',
+    category:    c.category ?? 'outro',
+  }))
+
+  return { pjData, pfData, custosFixos }
 }
 
 export default async function FinanceiroPage() {
-  const { pjData, pfData } = await getData()
+  const { pjData, pfData, custosFixos } = await getData()
 
   return (
     <div className="px-4 py-5 md:px-8 md:py-8 max-w-5xl">
-      <FinanceiroClient pj={pjData} pf={pfData} />
+      <FinanceiroClient pj={pjData} pf={pfData} custosFixos={custosFixos} />
     </div>
   )
 }

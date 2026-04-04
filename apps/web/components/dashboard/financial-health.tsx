@@ -12,9 +12,9 @@ export function FinancialHealth({ revenue, expenses }: FinancialHealthProps) {
   const margin = revenue > 0 ? Math.round((profit / revenue) * 100) : 0
 
   const cols = [
-    { label: 'Receitas',  value: fmt(revenue),  color: '#52D68A', sub: 'este mês' },
+    { label: 'Receitas',  value: fmt(revenue),  color: '#B6F273', sub: 'este mês' },
     { label: 'Despesas',  value: fmt(expenses),  color: '#F87171', sub: 'este mês' },
-    { label: 'Sobrou',    value: fmt(Math.max(0, profit)), color: profit >= 0 ? '#5B3FD4' : '#F87171', sub: `${margin}% margem` },
+    { label: 'Sobrou',    value: fmt(Math.max(0, profit)), color: profit >= 0 ? '#0F40CB' : '#F87171', sub: `${margin}% margem` },
   ]
 
   return (

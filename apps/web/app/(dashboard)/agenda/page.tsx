@@ -1,3 +1,4 @@
+import { getAuthenticatedUserId } from '@/lib/get-user-id'
 import { createClient } from '@supabase/supabase-js'
 import { AgendaClient } from '@/components/agenda/agenda-client'
 import type { Appointment, AppointmentStatus } from '@/components/agenda/types'
@@ -15,7 +16,7 @@ function adminClient() {
 type AptRow = {
   id: string
   service: string | null
-  datetime: string | null
+  scheduled_at: string | null
   status: string | null
   price: number | null
   notes: string | null
@@ -30,7 +31,7 @@ function toStatus(s: string | null): AppointmentStatus {
 }
 
 async function getAppointments(): Promise<Appointment[]> {
-  const userId = process.env.NEXT_PUBLIC_DEMO_USER_ID!
+  const userId = (await getAuthenticatedUserId()) ?? process.env.NEXT_PUBLIC_DEMO_USER_ID!
   const supabase = adminClient()
 
   const now = new Date()
@@ -48,16 +49,16 @@ async function getAppointments(): Promise<Appointment[]> {
 
   const { data } = await supabase
     .from('appointments')
-    .select('id, service, datetime, status, price, notes, clients(name)')
+    .select('id, service, scheduled_at, status, price, notes, clients(name)')
     .eq('user_id', userId)
-    .gte('datetime', `${prevMonth}-01T00:00:00`)
-    .lte('datetime', `${nextMonth}-31T23:59:59`)
-    .order('datetime', { ascending: true })
+    .gte('scheduled_at', `${prevMonth}-01T00:00:00`)
+    .lte('scheduled_at', `${nextMonth}-31T23:59:59`)
+    .order('scheduled_at', { ascending: true })
 
   if (!data) return []
 
   return (data as AptRow[]).map((row) => {
-    const dt   = row.datetime ? new Date(row.datetime) : new Date()
+    const dt   = row.scheduled_at ? new Date(row.scheduled_at) : new Date()
     const date = dt.toISOString().slice(0, 10)
     const time = dt.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
 

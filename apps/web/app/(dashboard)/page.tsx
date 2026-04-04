@@ -50,7 +50,7 @@ async function getDashboardData() {
     { data: tasks },
     { data: gamif },
   ] = await Promise.all([
-    supabase.from('users').select('name, monthly_goal').eq('id', userId).single(),
+    supabase.from('users').select('name, monthly_goal').eq('id', userId).maybeSingle(),
     supabase.from('transactions').select('amount').eq('user_id', userId).eq('type', 'receita').eq('competence_date', yesterday),
     supabase.from('transactions').select('type, amount').eq('user_id', userId).gte('competence_date', monthStart).lte('competence_date', today),
     supabase.from('transactions').select('amount').eq('user_id', userId).eq('type', 'receita').gte('competence_date', prevMonthStart).lt('competence_date', prevMonthEnd),
@@ -58,7 +58,7 @@ async function getDashboardData() {
       .eq('user_id', userId)
       .gte('scheduled_at', `${today}T00:00:00`)
       .lte('scheduled_at', `${new Date(now.getTime() + 7 * 86400000).toISOString().substring(0, 10)}T23:59:59`)
-      .in('status', ['confirmado', 'pendente'])
+      .in('status', ['confirmado', 'aguardando_confirmacao'])
       .order('scheduled_at', { ascending: true })
       .limit(6),
     supabase.from('tasks').select('id, title, quadrant, completed_at')
@@ -68,7 +68,7 @@ async function getDashboardData() {
     supabase.from('user_gamification')
       .select('total_points, current_level, current_streak')
       .eq('user_id', userId)
-      .single(),
+      .maybeSingle(),
   ])
 
   const monthTxs = (txMonth as TxRow[] ?? [])
@@ -157,7 +157,23 @@ export default async function DashboardPage() {
         vsLastMonth={d.vsLastMonth}
       />
 
-      {/* 2. Acesso rápido */}
+      {/* 2. Botão WhatsApp */}
+      <a
+        href={`https://wa.me/${process.env.NEXT_PUBLIC_BOT_PHONE ?? ''}`}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="flex items-center gap-3 w-full rounded-2xl px-5 py-4 text-white font-semibold text-sm shadow-sm transition-opacity hover:opacity-90"
+        style={{ background: 'linear-gradient(135deg, #25D366 0%, #128C7E 100%)' }}
+      >
+        <svg viewBox="0 0 32 32" className="w-7 h-7 flex-shrink-0" fill="currentColor" aria-hidden="true"><path d="M16 2C8.28 2 2 8.28 2 16c0 2.44.65 4.74 1.79 6.73L2 30l7.45-1.76A13.93 13.93 0 0 0 16 30c7.72 0 14-6.28 14-14S23.72 2 16 2zm0 25.5a11.44 11.44 0 0 1-5.82-1.59l-.42-.25-4.42 1.04 1.07-4.3-.28-.44A11.47 11.47 0 0 1 4.5 16C4.5 9.6 9.6 4.5 16 4.5S27.5 9.6 27.5 16 22.4 27.5 16 27.5zm6.29-8.57c-.34-.17-2.03-1-2.35-1.11-.32-.12-.55-.17-.78.17-.23.34-.9 1.11-1.1 1.34-.2.23-.4.26-.75.09-.34-.17-1.45-.54-2.76-1.71-1.02-.91-1.7-2.04-1.9-2.38-.2-.34-.02-.52.15-.69.15-.15.34-.4.51-.6.17-.2.23-.34.34-.57.12-.23.06-.43-.03-.6-.09-.17-.78-1.88-1.07-2.58-.28-.68-.57-.59-.78-.6H10.9c-.2 0-.52.08-.79.37-.28.3-1.05 1.02-1.05 2.5s1.07 2.9 1.22 3.1c.17.2 2.1 3.21 5.09 4.5.71.31 1.27.5 1.7.64.72.23 1.37.2 1.89.12.58-.09 1.78-.73 2.03-1.43.25-.7.25-1.3.17-1.43-.08-.12-.3-.2-.64-.37z"/></svg>
+        <div className="text-left">
+          <p className="font-bold text-base leading-none">Falar com o Sócio</p>
+          <p className="text-white/80 text-xs mt-0.5">Registre vendas, despesas e agendamentos por WhatsApp</p>
+        </div>
+        <span className="ml-auto text-white/60 text-xs">→</span>
+      </a>
+
+      {/* 3. Acesso rápido */}
       <QuickAccess />
 
       {/* 3. Alertas */}

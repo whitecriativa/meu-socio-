@@ -1,9 +1,9 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { Clock, Scissors, DollarSign, Calendar, CheckCircle, XCircle, CheckCheck } from 'lucide-react'
+import { Clock, Scissors, DollarSign, Calendar, CheckCircle, XCircle, CheckCheck, Trash2 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { atualizarStatusAgendamento } from '@/app/(dashboard)/agenda/actions'
+import { atualizarStatusAgendamento, excluirAgendamento } from '@/app/(dashboard)/agenda/actions'
 import type { Appointment, AppointmentStatus } from './types'
 
 interface AppointmentsListProps {
@@ -12,22 +12,22 @@ interface AppointmentsListProps {
 }
 
 const STATUS_STYLES: Record<AppointmentStatus, { badge: string; bar: string; label: string }> = {
-  confirmado: { badge: 'bg-[#52D68A]/15 text-[#1a9e5c]',  bar: '#52D68A', label: 'Confirmado' },
+  confirmado: { badge: 'bg-[#B6F273]/15 text-[#0F40CB]',  bar: '#B6F273', label: 'Confirmado' },
   concluido:  { badge: 'bg-gray-100 text-gray-500',         bar: '#9ca3af', label: 'Concluído'  },
   pendente:   { badge: 'bg-amber-50 text-amber-600',        bar: '#fbbf24', label: 'Pendente'   },
   cancelado:  { badge: 'bg-red-50 text-red-500',            bar: '#f87171', label: 'Cancelado'  },
 }
 
-const AVATAR_COLORS = ['#5B3FD4', '#52D68A', '#a78bfa', '#34d399', '#818cf8']
+const AVATAR_COLORS = ['#0F40CB', '#B6F273', '#a78bfa', '#34d399', '#818cf8']
 
 // Actions disponíveis para cada status
 const NEXT_ACTIONS: Record<AppointmentStatus, { label: string; next: AppointmentStatus; icon: React.ReactNode; color: string }[]> = {
   pendente:   [
-    { label: 'Confirmar',  next: 'confirmado', icon: <CheckCircle className="w-3 h-3" />,  color: 'text-[#1a9e5c] hover:bg-[#52D68A]/10' },
+    { label: 'Confirmar',  next: 'confirmado', icon: <CheckCircle className="w-3 h-3" />,  color: 'text-[#0F40CB] hover:bg-[#B6F273]/10' },
     { label: 'Cancelar',   next: 'cancelado',  icon: <XCircle className="w-3 h-3" />,      color: 'text-red-500 hover:bg-red-50' },
   ],
   confirmado: [
-    { label: 'Concluído',  next: 'concluido',  icon: <CheckCheck className="w-3 h-3" />,   color: 'text-[#5B3FD4] hover:bg-[#5B3FD4]/10' },
+    { label: 'Concluído',  next: 'concluido',  icon: <CheckCheck className="w-3 h-3" />,   color: 'text-[#0F40CB] hover:bg-[#0F40CB]/10' },
     { label: 'Cancelar',   next: 'cancelado',  icon: <XCircle className="w-3 h-3" />,      color: 'text-red-500 hover:bg-red-50' },
   ],
   concluido:  [],
@@ -90,7 +90,7 @@ function AptCard({ apt, index }: { apt: Appointment; index: number }) {
           {apt.service}
         </p>
         <div className="flex items-center gap-3 mt-1.5">
-          <span className="text-xs text-[#5B3FD4] font-semibold flex items-center gap-0.5">
+          <span className="text-xs text-[#0F40CB] font-semibold flex items-center gap-0.5">
             <Clock className="w-3 h-3" />
             {apt.time}
           </span>
@@ -123,10 +123,17 @@ function AptCard({ apt, index }: { apt: Appointment; index: number }) {
   )
 }
 
-export function AppointmentsList({ date, appointments }: AppointmentsListProps) {
+export function AppointmentsList({ date, appointments: initialAppointments }: AppointmentsListProps) {
+  const [appointments, setAppointments] = useState(initialAppointments)
+  const [, startTransitionList] = useTransition()
   const today = new Date().toISOString().slice(0, 10)
   const isToday = date === today
   const label = isToday ? 'Hoje' : formatDate(date)
+
+  function handleDeleteApt(id: string) {
+    setAppointments((prev) => prev.filter((a) => a.id !== id))
+    startTransitionList(() => { excluirAgendamento(id) })
+  }
 
   const totalRevenue = appointments
     .filter((a) => a.status !== 'cancelado')
@@ -137,7 +144,7 @@ export function AppointmentsList({ date, appointments }: AppointmentsListProps) 
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
           <span className="flex items-center gap-1.5 text-sm font-semibold text-gray-800 capitalize">
-            <Calendar className="w-3.5 h-3.5 text-[#5B3FD4]" />
+            <Calendar className="w-3.5 h-3.5 text-[#0F40CB]" />
             {label}
           </span>
           {appointments.length > 0 && (
@@ -162,7 +169,16 @@ export function AppointmentsList({ date, appointments }: AppointmentsListProps) 
             {appointments
               .sort((a, b) => a.time.localeCompare(b.time))
               .map((apt, i) => (
-                <AptCard key={apt.id} apt={apt} index={i} />
+                <div key={apt.id} className="group/apt relative">
+                  <AptCard apt={apt} index={i} />
+                  <button
+                    onClick={() => handleDeleteApt(apt.id)}
+                    className="absolute top-2 right-2 opacity-0 group-hover/apt:opacity-100 p-1 rounded-lg hover:bg-red-50 text-gray-300 hover:text-red-400 transition-all"
+                    title="Excluir agendamento"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
               ))}
           </div>
         )}

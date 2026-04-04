@@ -29,7 +29,7 @@ function getMarginStatus(margin: number): MarginStatus {
 }
 
 const MARGIN_STYLES: Record<MarginStatus, { color: string; bg: string; icon: React.ReactNode; label: string }> = {
-  great:  { color: 'text-[#1a9e5c]', bg: 'bg-[#52D68A]/10', icon: <CheckCircle className="w-4 h-4" />, label: 'Margem saudável' },
+  great:  { color: 'text-[#0F40CB]', bg: 'bg-[#B6F273]/10', icon: <CheckCircle className="w-4 h-4" />, label: 'Margem saudável' },
   ok:     { color: 'text-amber-600',  bg: 'bg-amber-50',      icon: <Info className="w-4 h-4" />,         label: 'Margem razoável' },
   danger: { color: 'text-red-500',    bg: 'bg-red-50',        icon: <AlertTriangle className="w-4 h-4" />, label: 'Margem baixa'    },
 }
@@ -91,7 +91,7 @@ export function CalculadoraClient({ profileType, fixedCosts, servicesThisMonth, 
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-1.5 text-sm font-semibold text-gray-700">
-                <Calculator className="w-4 h-4 text-[#5B3FD4]" />
+                <Calculator className="w-4 h-4 text-[#0F40CB]" />
                 Dados do seu negócio
               </CardTitle>
             </CardHeader>
@@ -107,7 +107,7 @@ export function CalculadoraClient({ profileType, fixedCosts, servicesThisMonth, 
                   value={preco}
                   onChange={(e) => setPreco(e.target.value)}
                   placeholder="Ex: 150"
-                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm outline-none focus:border-[#5B3FD4] focus:ring-2 focus:ring-[#5B3FD4]/10 transition"
+                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm outline-none focus:border-[#0F40CB] focus:ring-2 focus:ring-[#0F40CB]/10 transition"
                 />
                 <p className="text-[10px] text-gray-400 mt-0.5">Valor cobrado por serviço/produto/hora</p>
               </div>
@@ -116,7 +116,7 @@ export function CalculadoraClient({ profileType, fixedCosts, servicesThisMonth, 
                 <label className="block text-xs font-medium text-gray-600 mb-1">
                   Custos fixos mensais (R$)
                   {fixedCosts > 0 && (
-                    <span className="text-[#5B3FD4] ml-1 font-normal">
+                    <span className="text-[#0F40CB] ml-1 font-normal">
                       {hasCadasteredCosts ? '(dos seus custos cadastrados)' : '(despesas do mês atual)'}
                     </span>
                   )}
@@ -127,7 +127,7 @@ export function CalculadoraClient({ profileType, fixedCosts, servicesThisMonth, 
                   value={custoFixo}
                   onChange={(e) => setCustoFixo(e.target.value)}
                   placeholder="Ex: 1200"
-                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm outline-none focus:border-[#5B3FD4] focus:ring-2 focus:ring-[#5B3FD4]/10 transition"
+                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm outline-none focus:border-[#0F40CB] focus:ring-2 focus:ring-[#0F40CB]/10 transition"
                 />
                 <p className="text-[10px] text-gray-400 mt-0.5">Aluguel, internet, ferramentas, assinaturas...</p>
               </div>
@@ -136,7 +136,7 @@ export function CalculadoraClient({ profileType, fixedCosts, servicesThisMonth, 
                 <label className="block text-xs font-medium text-gray-600 mb-1">
                   Serviços/vendas por mês
                   {servicesThisMonth > 0 && (
-                    <span className="text-[#5B3FD4] ml-1 font-normal">(do mês atual)</span>
+                    <span className="text-[#0F40CB] ml-1 font-normal">(do mês atual)</span>
                   )}
                 </label>
                 <input
@@ -145,7 +145,7 @@ export function CalculadoraClient({ profileType, fixedCosts, servicesThisMonth, 
                   value={servicos}
                   onChange={(e) => setServicos(e.target.value)}
                   placeholder="Ex: 40"
-                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm outline-none focus:border-[#5B3FD4] focus:ring-2 focus:ring-[#5B3FD4]/10 transition"
+                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm outline-none focus:border-[#0F40CB] focus:ring-2 focus:ring-[#0F40CB]/10 transition"
                 />
               </div>
 
@@ -159,7 +159,7 @@ export function CalculadoraClient({ profileType, fixedCosts, servicesThisMonth, 
                   value={insumos}
                   onChange={(e) => setInsumos(e.target.value)}
                   placeholder="Ex: 20 (material, embalagem...)"
-                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm outline-none focus:border-[#5B3FD4] focus:ring-2 focus:ring-[#5B3FD4]/10 transition"
+                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm outline-none focus:border-[#0F40CB] focus:ring-2 focus:ring-[#0F40CB]/10 transition"
                 />
               </div>
 
@@ -173,7 +173,7 @@ export function CalculadoraClient({ profileType, fixedCosts, servicesThisMonth, 
                   value={prolabore}
                   onChange={(e) => setProlabore(e.target.value)}
                   placeholder="Ex: 3000"
-                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm outline-none focus:border-[#5B3FD4] focus:ring-2 focus:ring-[#5B3FD4]/10 transition"
+                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm outline-none focus:border-[#0F40CB] focus:ring-2 focus:ring-[#0F40CB]/10 transition"
                 />
               </div>
 
@@ -188,7 +188,7 @@ export function CalculadoraClient({ profileType, fixedCosts, servicesThisMonth, 
                   step="0.5"
                   value={imposto}
                   onChange={(e) => setImposto(e.target.value)}
-                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm outline-none focus:border-[#5B3FD4] focus:ring-2 focus:ring-[#5B3FD4]/10 transition"
+                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm outline-none focus:border-[#0F40CB] focus:ring-2 focus:ring-[#0F40CB]/10 transition"
                 />
               </div>
             </CardContent>
@@ -202,7 +202,7 @@ export function CalculadoraClient({ profileType, fixedCosts, servicesThisMonth, 
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-1.5 text-sm font-semibold text-gray-700">
-                  <TrendingUp className="w-4 h-4 text-[#5B3FD4]" />
+                  <TrendingUp className="w-4 h-4 text-[#0F40CB]" />
                   Análise do seu preço atual
                 </CardTitle>
               </CardHeader>
@@ -238,7 +238,7 @@ export function CalculadoraClient({ profileType, fixedCosts, servicesThisMonth, 
                   </div>
                   <div className="flex justify-between text-xs">
                     <span className="text-gray-600 font-medium">Lucro por serviço</span>
-                    <span className={`font-bold ${lucro >= 0 ? 'text-[#1a9e5c]' : 'text-red-500'}`}>
+                    <span className={`font-bold ${lucro >= 0 ? 'text-[#0F40CB]' : 'text-red-500'}`}>
                       {fmt(lucro)}
                     </span>
                   </div>
@@ -255,7 +255,7 @@ export function CalculadoraClient({ profileType, fixedCosts, servicesThisMonth, 
                       className="h-3 rounded-full transition-all duration-500"
                       style={{
                         width: `${Math.max(0, Math.min(100, margem))}%`,
-                        backgroundColor: margem >= 40 ? '#52D68A' : margem >= 20 ? '#fbbf24' : '#f87171',
+                        backgroundColor: margem >= 40 ? '#B6F273' : margem >= 20 ? '#fbbf24' : '#f87171',
                       }}
                     />
                   </div>
@@ -276,17 +276,17 @@ export function CalculadoraClient({ profileType, fixedCosts, servicesThisMonth, 
                 <p className="text-[10px] text-red-400 mt-0.5">Abaixo disso você tem prejuízo</p>
               </div>
 
-              <div className="bg-[#5B3FD4]/5 rounded-xl p-3">
-                <p className="text-xs text-[#5B3FD4] font-medium mb-0.5">Preço ideal (40% de margem)</p>
-                <p className="text-xl font-bold text-[#5B3FD4]">{fmt(precoIdeal > 0 ? precoIdeal : 0)}</p>
-                <p className="text-[10px] text-[#5B3FD4]/60 mt-0.5">Margem saudável e sustentável</p>
+              <div className="bg-[#0F40CB]/5 rounded-xl p-3">
+                <p className="text-xs text-[#0F40CB] font-medium mb-0.5">Preço ideal (40% de margem)</p>
+                <p className="text-xl font-bold text-[#0F40CB]">{fmt(precoIdeal > 0 ? precoIdeal : 0)}</p>
+                <p className="text-[10px] text-[#0F40CB]/60 mt-0.5">Margem saudável e sustentável</p>
               </div>
 
               {precoComProlabore && precoComProlabore > 0 && (
-                <div className="bg-[#52D68A]/10 rounded-xl p-3">
-                  <p className="text-xs text-[#1a9e5c] font-medium mb-0.5">Com pró-labore de {fmt(prolaboreNum)}/mês</p>
-                  <p className="text-xl font-bold text-[#1a9e5c]">{fmt(precoComProlabore)}</p>
-                  <p className="text-[10px] text-[#1a9e5c]/60 mt-0.5">Cobre custos + seu salário + 40% margem</p>
+                <div className="bg-[#B6F273]/10 rounded-xl p-3">
+                  <p className="text-xs text-[#0F40CB] font-medium mb-0.5">Com pró-labore de {fmt(prolaboreNum)}/mês</p>
+                  <p className="text-xl font-bold text-[#0F40CB]">{fmt(precoComProlabore)}</p>
+                  <p className="text-[10px] text-[#0F40CB]/60 mt-0.5">Cobre custos + seu salário + 40% margem</p>
                 </div>
               )}
 
@@ -294,7 +294,7 @@ export function CalculadoraClient({ profileType, fixedCosts, servicesThisMonth, 
               {precoNum > 0 && precoIdeal > 0 && (
                 <div className={`rounded-xl px-3 py-2 text-xs ${
                   precoNum >= precoIdeal
-                    ? 'bg-[#52D68A]/10 text-[#1a9e5c]'
+                    ? 'bg-[#B6F273]/10 text-[#0F40CB]'
                     : precoNum >= precoMinimo
                     ? 'bg-amber-50 text-amber-700'
                     : 'bg-red-50 text-red-600'

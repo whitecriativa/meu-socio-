@@ -1,8 +1,10 @@
+import { getAuthenticatedUserId } from '@/lib/get-user-id'
 import { createClient } from '@supabase/supabase-js'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { CustosFixosSection } from '@/components/configuracoes/custos-fixos-section'
 import type { CustoFixo } from '@/components/configuracoes/custos-fixos-section'
+import { AvatarUpload } from '@/components/configuracoes/avatar-upload'
 
 export const dynamic = 'force-dynamic'
 
@@ -22,10 +24,11 @@ function toInputTime(value: string | null | undefined): string {
 async function updateSettings(formData: FormData) {
   'use server'
 
-  const userId  = process.env.NEXT_PUBLIC_DEMO_USER_ID!
+  const userId = (await getAuthenticatedUserId()) ?? process.env.NEXT_PUBLIC_DEMO_USER_ID!
   const supabase = adminClient()
 
   const name           = String(formData.get('name') ?? '').trim()
+  const phone          = String(formData.get('phone') ?? '').trim().replace(/\D/g, '')
   const profileType    = String(formData.get('profile_type') ?? '').trim()
   const workModality   = String(formData.get('work_modality') ?? '')
   const dream          = String(formData.get('dream') ?? '').trim()
@@ -34,19 +37,23 @@ async function updateSettings(formData: FormData) {
   const workEnd        = String(formData.get('work_hours_end') ?? '19:00')
   const radarMinutes   = parseInt(String(formData.get('radar_alert_minutes') ?? '30'))
 
-  await supabase
-    .from('users')
-    .update({
-      name:                name || undefined,
-      profile_type:        profileType || null,
-      work_modality:       workModality || null,
-      dream:               dream || null,
-      monthly_goal:        monthlyGoal > 0 ? monthlyGoal : null,
-      work_hours_start:    workStart,
-      work_hours_end:      workEnd,
-      radar_alert_minutes: radarMinutes > 0 ? radarMinutes : 30,
-    })
-    .eq('id', userId)
+  const updateData: Record<string, unknown> = {
+    name:                name || undefined,
+    profile_type:        profileType || null,
+    work_modality:       workModality || null,
+    dream:               dream || null,
+    monthly_goal:        monthlyGoal > 0 ? monthlyGoal : null,
+    work_hours_start:    workStart,
+    work_hours_end:      workEnd,
+    radar_alert_minutes: radarMinutes > 0 ? radarMinutes : 30,
+  }
+
+  // Só atualiza phone se foi preenchido e é diferente do placeholder uid_
+  if (phone && phone.length >= 10) {
+    updateData.phone = phone
+  }
+
+  await supabase.from('users').update(updateData).eq('id', userId)
 
   revalidatePath('/')
   revalidatePath('/configuracoes')
@@ -60,13 +67,13 @@ export default async function ConfiguracoesPage({
   searchParams?: Promise<{ saved?: string }>
 }) {
   const params   = await (searchParams ?? Promise.resolve({} as { saved?: string }))
-  const userId   = process.env.NEXT_PUBLIC_DEMO_USER_ID!
+  const userId = (await getAuthenticatedUserId()) ?? process.env.NEXT_PUBLIC_DEMO_USER_ID!
   const supabase = adminClient()
 
   const [{ data: user }, { data: rawCosts }] = await Promise.all([
     supabase
       .from('users')
-      .select('name, phone, profile_type, work_modality, dream, monthly_goal, work_hours_start, work_hours_end, radar_alert_minutes, plan')
+      .select('name, phone, profile_type, work_modality, dream, monthly_goal, work_hours_start, work_hours_end, radar_alert_minutes, plan, avatar_url')
       .eq('id', userId)
       .single(),
     supabase
@@ -106,6 +113,12 @@ export default async function ConfiguracoesPage({
         <section className="rounded-2xl bg-white border border-gray-100 shadow-sm p-5 space-y-4">
           <h2 className="text-sm font-semibold text-gray-800">Perfil</h2>
 
+          <AvatarUpload
+            userId={userId}
+            currentUrl={user?.avatar_url ?? null}
+            name={user?.name ?? 'Usuário'}
+          />
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-gray-600">Nome</label>
@@ -115,18 +128,20 @@ export default async function ConfiguracoesPage({
                 defaultValue={user?.name ?? ''}
                 placeholder="Seu nome"
                 required
-                className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm outline-none focus:border-[#5B3FD4] focus:ring-2 focus:ring-[#5B3FD4]/10 transition"
+                className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm outline-none focus:border-[#0F40CB] focus:ring-2 focus:ring-[#0F40CB]/10 transition"
               />
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-medium text-gray-600">Telefone / WhatsApp</label>
+              <label className="text-xs font-medium text-gray-600">Seu número WhatsApp</label>
               <input
-                value={user?.phone ?? ''}
-                readOnly
-                className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm text-gray-400 cursor-not-allowed"
+                name="phone"
+                type="tel"
+                defaultValue={user?.phone?.startsWith('uid_') ? '' : (user?.phone ?? '')}
+                placeholder="Ex: 11999998888 (só números)"
+                className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm outline-none focus:border-[#0F40CB] focus:ring-2 focus:ring-[#0F40CB]/10 transition"
               />
-              <p className="text-[10px] text-gray-400">Vinculado ao WhatsApp — não editável</p>
+              <p className="text-[10px] text-gray-400">DDD + número, sem espaços ou traços</p>
             </div>
           </div>
 
@@ -139,7 +154,7 @@ export default async function ConfiguracoesPage({
                 list="profissao-sugestoes"
                 defaultValue={user?.profile_type ?? ''}
                 placeholder="Ex: Designer, Psicóloga, Eletricista..."
-                className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm outline-none focus:border-[#5B3FD4] focus:ring-2 focus:ring-[#5B3FD4]/10 transition"
+                className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm outline-none focus:border-[#0F40CB] focus:ring-2 focus:ring-[#0F40CB]/10 transition"
               />
               <datalist id="profissao-sugestoes">
                 <option value="Autônomo(a)" />
@@ -165,7 +180,7 @@ export default async function ConfiguracoesPage({
               <select
                 name="work_modality"
                 defaultValue={user?.work_modality ?? 'presencial'}
-                className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm outline-none focus:border-[#5B3FD4] focus:ring-2 focus:ring-[#5B3FD4]/10 transition bg-white"
+                className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm outline-none focus:border-[#0F40CB] focus:ring-2 focus:ring-[#0F40CB]/10 transition bg-white"
               >
                 <option value="presencial">Presencial</option>
                 <option value="remoto">Remoto / Online</option>
@@ -191,7 +206,7 @@ export default async function ConfiguracoesPage({
                 step="0.01"
                 defaultValue={user?.monthly_goal ?? ''}
                 placeholder="Ex: 5000"
-                className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm outline-none focus:border-[#5B3FD4] focus:ring-2 focus:ring-[#5B3FD4]/10 transition"
+                className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm outline-none focus:border-[#0F40CB] focus:ring-2 focus:ring-[#0F40CB]/10 transition"
               />
             </div>
 
@@ -204,7 +219,7 @@ export default async function ConfiguracoesPage({
                 type="text"
                 defaultValue={user?.dream ?? ''}
                 placeholder="Ex: Viagem para a Europa, trocar de carro..."
-                className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm outline-none focus:border-[#5B3FD4] focus:ring-2 focus:ring-[#5B3FD4]/10 transition"
+                className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm outline-none focus:border-[#0F40CB] focus:ring-2 focus:ring-[#0F40CB]/10 transition"
               />
             </div>
           </div>
@@ -221,7 +236,7 @@ export default async function ConfiguracoesPage({
                 type="time"
                 name="work_hours_start"
                 defaultValue={toInputTime(user?.work_hours_start)}
-                className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm outline-none focus:border-[#5B3FD4] focus:ring-2 focus:ring-[#5B3FD4]/10 transition"
+                className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm outline-none focus:border-[#0F40CB] focus:ring-2 focus:ring-[#0F40CB]/10 transition"
               />
             </div>
 
@@ -231,7 +246,7 @@ export default async function ConfiguracoesPage({
                 type="time"
                 name="work_hours_end"
                 defaultValue={toInputTime(user?.work_hours_end)}
-                className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm outline-none focus:border-[#5B3FD4] focus:ring-2 focus:ring-[#5B3FD4]/10 transition"
+                className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm outline-none focus:border-[#0F40CB] focus:ring-2 focus:ring-[#0F40CB]/10 transition"
               />
             </div>
 
@@ -243,7 +258,7 @@ export default async function ConfiguracoesPage({
                 min="5"
                 max="120"
                 defaultValue={user?.radar_alert_minutes ?? 30}
-                className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm outline-none focus:border-[#5B3FD4] focus:ring-2 focus:ring-[#5B3FD4]/10 transition"
+                className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm outline-none focus:border-[#0F40CB] focus:ring-2 focus:ring-[#0F40CB]/10 transition"
               />
               <p className="text-[10px] text-gray-400">Aviso de mensagem sem resposta</p>
             </div>
@@ -254,7 +269,7 @@ export default async function ConfiguracoesPage({
           <button
             type="submit"
             className="px-6 py-2.5 rounded-xl text-sm font-semibold text-white hover:opacity-90 transition-opacity"
-            style={{ backgroundColor: '#5B3FD4' }}
+            style={{ backgroundColor: '#0F40CB' }}
           >
             Salvar configurações
           </button>
@@ -263,6 +278,32 @@ export default async function ConfiguracoesPage({
 
       {/* ── Custos Fixos — tem suas próprias Server Actions ── */}
       <CustosFixosSection initialCosts={custos} />
+
+      {/* ── Como falar com o Sócio ─────────── */}
+      <section className="rounded-2xl bg-[#0F40CB] p-5 space-y-3">
+        <h2 className="text-sm font-semibold text-white flex items-center gap-2">
+          <svg viewBox="0 0 32 32" className="w-4 h-4 flex-shrink-0" fill="currentColor" aria-hidden="true"><path d="M16 2C8.28 2 2 8.28 2 16c0 2.44.65 4.74 1.79 6.73L2 30l7.45-1.76A13.93 13.93 0 0 0 16 30c7.72 0 14-6.28 14-14S23.72 2 16 2zm0 25.5a11.44 11.44 0 0 1-5.82-1.59l-.42-.25-4.42 1.04 1.07-4.3-.28-.44A11.47 11.47 0 0 1 4.5 16C4.5 9.6 9.6 4.5 16 4.5S27.5 9.6 27.5 16 22.4 27.5 16 27.5zm6.29-8.57c-.34-.17-2.03-1-2.35-1.11-.32-.12-.55-.17-.78.17-.23.34-.9 1.11-1.1 1.34-.2.23-.4.26-.75.09-.34-.17-1.45-.54-2.76-1.71-1.02-.91-1.7-2.04-1.9-2.38-.2-.34-.02-.52.15-.69.15-.15.34-.4.51-.6.17-.2.23-.34.34-.57.12-.23.06-.43-.03-.6-.09-.17-.78-1.88-1.07-2.58-.28-.68-.57-.59-.78-.6H10.9c-.2 0-.52.08-.79.37-.28.3-1.05 1.02-1.05 2.5s1.07 2.9 1.22 3.1c.17.2 2.1 3.21 5.09 4.5.71.31 1.27.5 1.7.64.72.23 1.37.2 1.89.12.58-.09 1.78-.73 2.03-1.43.25-.7.25-1.3.17-1.43-.08-.12-.3-.2-.64-.37z"/></svg>
+          Como falar com o Sócio
+        </h2>
+        <p className="text-sm text-white/80">
+          Adicione o número abaixo na sua agenda como <strong className="text-white">&quot;Meu Sócio&quot;</strong> e mande mensagem diretamente no WhatsApp.
+        </p>
+        <a
+          href={`https://wa.me/${process.env.NEXT_PUBLIC_BOT_PHONE ?? ''}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-3 bg-white/10 hover:bg-white/20 transition-colors rounded-xl px-4 py-3"
+        >
+          <svg viewBox="0 0 32 32" className="w-6 h-6 flex-shrink-0 text-white" fill="currentColor" aria-hidden="true"><path d="M16 2C8.28 2 2 8.28 2 16c0 2.44.65 4.74 1.79 6.73L2 30l7.45-1.76A13.93 13.93 0 0 0 16 30c7.72 0 14-6.28 14-14S23.72 2 16 2zm0 25.5a11.44 11.44 0 0 1-5.82-1.59l-.42-.25-4.42 1.04 1.07-4.3-.28-.44A11.47 11.47 0 0 1 4.5 16C4.5 9.6 9.6 4.5 16 4.5S27.5 9.6 27.5 16 22.4 27.5 16 27.5zm6.29-8.57c-.34-.17-2.03-1-2.35-1.11-.32-.12-.55-.17-.78.17-.23.34-.9 1.11-1.1 1.34-.2.23-.4.26-.75.09-.34-.17-1.45-.54-2.76-1.71-1.02-.91-1.7-2.04-1.9-2.38-.2-.34-.02-.52.15-.69.15-.15.34-.4.51-.6.17-.2.23-.34.34-.57.12-.23.06-.43-.03-.6-.09-.17-.78-1.88-1.07-2.58-.28-.68-.57-.59-.78-.6H10.9c-.2 0-.52.08-.79.37-.28.3-1.05 1.02-1.05 2.5s1.07 2.9 1.22 3.1c.17.2 2.1 3.21 5.09 4.5.71.31 1.27.5 1.7.64.72.23 1.37.2 1.89.12.58-.09 1.78-.73 2.03-1.43.25-.7.25-1.3.17-1.43-.08-.12-.3-.2-.64-.37z"/></svg>
+          <div>
+            <p className="text-sm font-bold text-white">Abrir conversa com Meu Sócio</p>
+            <p className="text-xs text-white/60">Clique para abrir no WhatsApp</p>
+          </div>
+        </a>
+        <p className="text-xs text-white/60">
+          Exemplos: &quot;registrar receita 150 pix&quot;, &quot;agendar João amanhã 10h&quot;, &quot;quanto faturei este mês?&quot;
+        </p>
+      </section>
 
       {/* ── Plano e integrações (somente leitura) ─────────── */}
       <section className="rounded-2xl bg-white border border-gray-100 shadow-sm p-5 space-y-3">
@@ -285,7 +326,7 @@ export default async function ConfiguracoesPage({
           </div>
           <div className="rounded-xl border border-gray-100 bg-gray-50 px-4 py-3">
             <p className="text-xs text-gray-400 mb-0.5">Bom Dia Sócio (n8n cron 7h)</p>
-            <p className="text-sm font-semibold text-[#1a9e5c]">Ativo no Railway</p>
+            <p className="text-sm font-semibold text-[#0F40CB]">Ativo no Railway</p>
           </div>
         </div>
       </section>

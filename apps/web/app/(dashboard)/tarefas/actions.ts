@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@supabase/supabase-js'
+import { getAuthenticatedUserId } from '@/lib/get-user-id'
 
 function adminClient() {
   return createClient(
@@ -11,12 +12,27 @@ function adminClient() {
   )
 }
 
+async function requireUserId(): Promise<string> {
+  const userId = await getAuthenticatedUserId()
+  if (!userId) throw new Error('Não autenticado')
+  return userId
+}
+
+export async function excluirTarefa(id: string) {
+  const userId = await requireUserId()
+  const supabase = adminClient()
+  await supabase.from('tasks').delete().eq('id', id).eq('user_id', userId)
+  revalidatePath('/tarefas')
+}
+
 export async function toggleTask(id: string, done: boolean) {
+  const userId = await requireUserId()
   const supabase = adminClient()
   await supabase
     .from('tasks')
     .update({ completed_at: done ? new Date().toISOString() : null })
     .eq('id', id)
+    .eq('user_id', userId)
   revalidatePath('/tarefas')
 }
 
@@ -26,13 +42,12 @@ export async function criarTarefa(input: {
   quadrant: 'urgent_important' | 'important_not_urgent' | 'urgent_not_important' | 'neither'
   due_date: string | null
 }) {
-  const userId   = process.env.NEXT_PUBLIC_DEMO_USER_ID!
+  const userId  = await requireUserId()
   const supabase = adminClient()
 
   const { error } = await supabase.from('tasks').insert({
     user_id:  userId,
     title:    input.title,
-    priority: input.priority,
     quadrant: input.quadrant,
     due_date: input.due_date || null,
   })

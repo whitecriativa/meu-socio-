@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@supabase/supabase-js'
+import { getAuthenticatedUserId } from '@/lib/get-user-id'
 
 function adminClient() {
   return createClient(
@@ -11,12 +12,25 @@ function adminClient() {
   )
 }
 
+async function requireUserId(): Promise<string> {
+  const userId = await getAuthenticatedUserId()
+  if (!userId) throw new Error('Não autenticado')
+  return userId
+}
+
+export async function excluirCliente(id: string) {
+  const userId = await requireUserId()
+  const supabase = adminClient()
+  await supabase.from('clients').delete().eq('id', id).eq('user_id', userId)
+  revalidatePath('/clientes')
+}
+
 export async function criarCliente(input: {
   name: string
   phone: string
   notes: string
 }) {
-  const userId   = process.env.NEXT_PUBLIC_DEMO_USER_ID!
+  const userId   = await requireUserId()
   const supabase = adminClient()
 
   const { error } = await supabase.from('clients').insert({
@@ -25,7 +39,7 @@ export async function criarCliente(input: {
     phone:        input.phone || null,
     last_contact: new Date().toISOString(),
     total_spent:  0,
-    status:       'ativo',
+    status:       'active',
   })
 
   if (error) throw new Error(error.message)
@@ -33,12 +47,12 @@ export async function criarCliente(input: {
 }
 
 export async function reativarCliente(clientId: string) {
-  const userId   = process.env.NEXT_PUBLIC_DEMO_USER_ID!
+  const userId   = await requireUserId()
   const supabase = adminClient()
 
   const { error } = await supabase
     .from('clients')
-    .update({ status: 'ativo', last_contact: new Date().toISOString() })
+    .update({ status: 'active', last_contact: new Date().toISOString() })
     .eq('id', clientId)
     .eq('user_id', userId)
 
@@ -48,7 +62,7 @@ export async function reativarCliente(clientId: string) {
 }
 
 export async function editarCliente(clientId: string, input: { name: string; phone: string }) {
-  const userId   = process.env.NEXT_PUBLIC_DEMO_USER_ID!
+  const userId   = await requireUserId()
   const supabase = adminClient()
 
   const { error } = await supabase

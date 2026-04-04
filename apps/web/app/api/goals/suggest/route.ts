@@ -1,3 +1,4 @@
+import { getAuthenticatedUserId } from '@/lib/get-user-id'
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 
@@ -14,7 +15,7 @@ function adminClient() {
 // Usa OpenAI GPT-4o se OPENAI_API_KEY estiver configurada, caso contrário retorna sugestões padrão.
 export async function POST() {
   const supabase = adminClient()
-  const userId   = process.env.NEXT_PUBLIC_DEMO_USER_ID!
+  const userId = (await getAuthenticatedUserId()) ?? process.env.NEXT_PUBLIC_DEMO_USER_ID!
 
   const now        = new Date()
   const monthStart = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`

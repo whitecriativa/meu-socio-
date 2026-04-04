@@ -19,11 +19,11 @@ export function HeroCard({ revenue, revenueYesterday, goalTarget, goalPercent, v
   return (
     <div
       className="rounded-2xl p-5 md:p-6 text-white relative overflow-hidden"
-      style={{ background: 'linear-gradient(135deg, #5B3FD4 0%, #4A2FB8 100%)' }}
+      style={{ background: 'linear-gradient(135deg, #0F40CB 0%, #0A2E9E 100%)' }}
     >
       {/* Decoração */}
       <div className="absolute top-0 right-0 w-52 h-52 rounded-full bg-white/5 -translate-y-20 translate-x-20 pointer-events-none" />
-      <div className="absolute bottom-0 left-8 w-32 h-32 rounded-full bg-[#52D68A]/10 translate-y-12 pointer-events-none" />
+      <div className="absolute bottom-0 left-8 w-32 h-32 rounded-full bg-[#B6F273]/10 translate-y-12 pointer-events-none" />
 
       <div className="relative">
         {/* Label */}
@@ -42,7 +42,7 @@ export function HeroCard({ revenue, revenueYesterday, goalTarget, goalPercent, v
           {vsLastMonth !== 0 && (
             <>
               <span className="text-white/30">·</span>
-              <span className={isPositive ? 'text-[#52D68A]' : 'text-red-300'}>
+              <span className={isPositive ? 'text-[#B6F273]' : 'text-red-300'}>
                 {isPositive ? '+' : ''}{vsLastMonth}% vs mês passado
               </span>
             </>
@@ -55,7 +55,7 @@ export function HeroCard({ revenue, revenueYesterday, goalTarget, goalPercent, v
             <div className="w-full bg-white/15 rounded-full h-2.5">
               <div
                 className="h-2.5 rounded-full transition-all duration-700"
-                style={{ width: `${Math.min(100, goalPercent)}%`, backgroundColor: '#52D68A' }}
+                style={{ width: `${Math.min(100, goalPercent)}%`, backgroundColor: '#B6F273' }}
               />
             </div>
             <div className="flex items-center justify-between mt-2">
@@ -64,7 +64,7 @@ export function HeroCard({ revenue, revenueYesterday, goalTarget, goalPercent, v
                 {remaining > 0 && <span className="text-white/50"> · faltam {fmt(remaining)}</span>}
               </p>
               {goalPercent >= 100 && (
-                <span className="text-xs font-bold text-[#52D68A]">Meta batida! 🎉</span>
+                <span className="text-xs font-bold text-[#B6F273]">Meta batida! 🎉</span>
               )}
             </div>
           </div>

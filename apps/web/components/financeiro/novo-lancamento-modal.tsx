@@ -66,8 +66,8 @@ export function NovoLancamentoModal() {
           competence_date: fd.get('competence_date') as string,
         })
         handleClose()
-      } catch {
-        setError('Erro ao salvar. Tente novamente.')
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Erro ao salvar. Tente novamente.')
       }
     })
   }
@@ -78,7 +78,7 @@ export function NovoLancamentoModal() {
       <button
         onClick={() => setOpen(true)}
         className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-white transition-opacity hover:opacity-90 active:opacity-80 flex-shrink-0"
-        style={{ backgroundColor: '#5B3FD4' }}
+        style={{ backgroundColor: '#0F40CB' }}
       >
         <Plus className="w-4 h-4" />
         <span className="hidden sm:inline">Novo lançamento</span>
@@ -112,7 +112,7 @@ export function NovoLancamentoModal() {
                     className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold border-2 transition-all ${
                       type === t
                         ? t === 'receita'
-                          ? 'border-[#52D68A] bg-[#52D68A]/10 text-[#1a9e5c]'
+                          ? 'border-[#B6F273] bg-[#B6F273]/10 text-[#0F40CB]'
                           : 'border-red-400 bg-red-50 text-red-600'
                         : 'border-gray-100 text-gray-400 hover:border-gray-200'
                     }`}
@@ -135,7 +135,7 @@ export function NovoLancamentoModal() {
                   min="0.01"
                   placeholder="0,00"
                   required
-                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm text-gray-900 outline-none focus:border-[#5B3FD4] focus:ring-2 focus:ring-[#5B3FD4]/10 transition"
+                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm text-gray-900 outline-none focus:border-[#0F40CB] focus:ring-2 focus:ring-[#0F40CB]/10 transition"
                 />
               </div>
 
@@ -148,7 +148,7 @@ export function NovoLancamentoModal() {
                   list="categoria-sugestoes"
                   required
                   placeholder="Ex: Serviço prestado, Aluguel..."
-                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm text-gray-900 outline-none focus:border-[#5B3FD4] focus:ring-2 focus:ring-[#5B3FD4]/10 transition"
+                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm text-gray-900 outline-none focus:border-[#0F40CB] focus:ring-2 focus:ring-[#0F40CB]/10 transition"
                 />
                 <datalist id="categoria-sugestoes">
                   {sugestoes.map((s) => (
@@ -166,7 +166,7 @@ export function NovoLancamentoModal() {
                   name="description"
                   type="text"
                   placeholder="Ex: Cliente João, Projeto site..."
-                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm text-gray-900 outline-none focus:border-[#5B3FD4] focus:ring-2 focus:ring-[#5B3FD4]/10 transition"
+                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm text-gray-900 outline-none focus:border-[#0F40CB] focus:ring-2 focus:ring-[#0F40CB]/10 transition"
                 />
               </div>
 
@@ -177,7 +177,7 @@ export function NovoLancamentoModal() {
                   <select
                     name="payment_method"
                     required
-                    className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm text-gray-900 outline-none focus:border-[#5B3FD4] focus:ring-2 focus:ring-[#5B3FD4]/10 transition bg-white"
+                    className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm text-gray-900 outline-none focus:border-[#0F40CB] focus:ring-2 focus:ring-[#0F40CB]/10 transition bg-white"
                   >
                     <option value="">Selecione...</option>
                     {PAGAMENTOS.map((p) => (
@@ -192,7 +192,7 @@ export function NovoLancamentoModal() {
                     type="date"
                     defaultValue={TODAY}
                     required
-                    className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm text-gray-900 outline-none focus:border-[#5B3FD4] focus:ring-2 focus:ring-[#5B3FD4]/10 transition"
+                    className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm text-gray-900 outline-none focus:border-[#0F40CB] focus:ring-2 focus:ring-[#0F40CB]/10 transition"
                   />
                 </div>
               </div>
@@ -207,7 +207,7 @@ export function NovoLancamentoModal() {
                 type="submit"
                 disabled={isPending}
                 className="w-full py-3 rounded-xl text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-60"
-                style={{ backgroundColor: type === 'receita' ? '#52D68A' : '#ef4444' }}
+                style={{ backgroundColor: type === 'receita' ? '#B6F273' : '#ef4444' }}
               >
                 {isPending
                   ? 'Salvando...'

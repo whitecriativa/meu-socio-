@@ -59,7 +59,7 @@ export function LancamentosList({ items }: { items: LancamentoItem[] }) {
             <span className="text-xs font-normal text-gray-400 ml-1">({list.length})</span>
           </button>
           <div className="flex items-center gap-3 text-xs font-medium">
-            <span className="text-[#1a9e5c]">+{fmt(receitas)}</span>
+            <span className="text-[#0F40CB]">+{fmt(receitas)}</span>
             <span className="text-red-500">−{fmt(despesas)}</span>
           </div>
         </CardTitle>
@@ -79,10 +79,10 @@ export function LancamentosList({ items }: { items: LancamentoItem[] }) {
                   <div key={item.id} className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50/50 group transition-colors">
                     {/* Ícone */}
                     <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${
-                      item.type === 'receita' ? 'bg-[#52D68A]/15' : 'bg-red-50'
+                      item.type === 'receita' ? 'bg-[#B6F273]/15' : 'bg-red-50'
                     }`}>
                       {item.type === 'receita'
-                        ? <TrendingUp className="w-4 h-4 text-[#1a9e5c]" />
+                        ? <TrendingUp className="w-4 h-4 text-[#0F40CB]" />
                         : <TrendingDown className="w-4 h-4 text-red-500" />
                       }
                     </div>
@@ -109,7 +109,7 @@ export function LancamentosList({ items }: { items: LancamentoItem[] }) {
 
                     {/* Valor */}
                     <p className={`text-sm font-bold flex-shrink-0 ${
-                      item.type === 'receita' ? 'text-[#1a9e5c]' : 'text-red-500'
+                      item.type === 'receita' ? 'text-[#0F40CB]' : 'text-red-500'
                     }`}>
                       {item.type === 'receita' ? '+' : '−'}{fmt(item.amount)}
                     </p>

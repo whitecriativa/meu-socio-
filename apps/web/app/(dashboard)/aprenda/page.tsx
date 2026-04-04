@@ -46,7 +46,7 @@ export default function AprendaPage() {
   )
 
   return (
-    <div className="px-4 py-5 md:px-8 md:py-8 max-w-2xl mx-auto space-y-5">
+    <div className="px-4 py-5 md:px-8 md:py-8 max-w-2xl space-y-5">
 
       {/* Cabeçalho */}
       <div>
@@ -64,7 +64,7 @@ export default function AprendaPage() {
           placeholder="Buscar vídeos e artigos..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-full pl-10 pr-4 py-2.5 rounded-xl text-sm outline-none focus:ring-2 focus:ring-[#5B3FD4]/30"
+          className="w-full pl-10 pr-4 py-2.5 rounded-xl text-sm outline-none focus:ring-2 focus:ring-[#0F40CB]/30"
           style={{
             backgroundColor: 'var(--bg-card)',
             border: '1px solid var(--border)',
@@ -79,7 +79,7 @@ export default function AprendaPage() {
           onClick={() => setTrail(null)}
           className="flex-shrink-0 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-colors"
           style={{
-            backgroundColor: !activeTrail ? '#5B3FD4' : 'var(--bg-card)',
+            backgroundColor: !activeTrail ? '#0F40CB' : 'var(--bg-card)',
             color: !activeTrail ? '#fff' : 'var(--text-muted)',
             border: '1px solid var(--border)',
           }}
@@ -92,7 +92,7 @@ export default function AprendaPage() {
             onClick={() => setTrail(activeTrail === t.id ? null : t.id)}
             className="flex-shrink-0 flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-colors"
             style={{
-              backgroundColor: activeTrail === t.id ? '#5B3FD4' : 'var(--bg-card)',
+              backgroundColor: activeTrail === t.id ? '#0F40CB' : 'var(--bg-card)',
               color: activeTrail === t.id ? '#fff' : 'var(--text-muted)',
               border: '1px solid var(--border)',
             }}
@@ -125,14 +125,14 @@ export default function AprendaPage() {
                 {/* Thumbnail */}
                 <div
                   className="h-28 flex items-center justify-center relative"
-                  style={{ background: 'linear-gradient(135deg, #5B3FD4 0%, #4A2FB8 100%)' }}
+                  style={{ background: 'linear-gradient(135deg, #0F40CB 0%, #4A2FB8 100%)' }}
                 >
                   <span className="text-4xl">{v.thumbnail}</span>
                   <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/20">
                     <PlayCircle className="w-12 h-12 text-white drop-shadow" />
                   </div>
                   {v.new && (
-                    <span className="absolute top-2 right-2 bg-[#52D68A] text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
+                    <span className="absolute top-2 right-2 bg-[#B6F273] text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
                       NOVO
                     </span>
                   )}
@@ -173,8 +173,8 @@ export default function AprendaPage() {
                 className="flex items-center gap-3 p-3 rounded-2xl cursor-pointer group"
                 style={{ backgroundColor: 'var(--bg-card)', border: '1px solid var(--border)' }}
               >
-                <div className="w-10 h-10 rounded-xl bg-[#52D68A]/10 flex items-center justify-center flex-shrink-0">
-                  <BookOpen className="w-5 h-5 text-[#52D68A]" />
+                <div className="w-10 h-10 rounded-xl bg-[#B6F273]/10 flex items-center justify-center flex-shrink-0">
+                  <BookOpen className="w-5 h-5 text-[#B6F273]" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium leading-tight" style={{ color: 'var(--text-primary)' }}>
@@ -200,7 +200,7 @@ export default function AprendaPage() {
           </p>
           <button
             onClick={() => { setSearch(''); setTrail(null) }}
-            className="mt-3 text-xs font-semibold text-[#5B3FD4] underline"
+            className="mt-3 text-xs font-semibold text-[#0F40CB] underline"
           >
             Limpar filtros
           </button>

@@ -4,9 +4,9 @@ import { useRouter } from 'next/navigation'
 import { TrendingUp, TrendingDown, CalendarPlus, Users } from 'lucide-react'
 
 const ACTIONS = [
-  { label: 'Nova venda',    icon: TrendingUp,   color: '#52D68A', bg: '#52D68A15', href: '/financeiro?tipo=receita' },
+  { label: 'Nova venda',    icon: TrendingUp,   color: '#B6F273', bg: '#B6F27315', href: '/financeiro?tipo=receita' },
   { label: 'Nova despesa',  icon: TrendingDown, color: '#F87171', bg: '#F8717115', href: '/financeiro?tipo=despesa' },
-  { label: 'Agendar',       icon: CalendarPlus, color: '#5B3FD4', bg: '#5B3FD415', href: '/agenda' },
+  { label: 'Agendar',       icon: CalendarPlus, color: '#0F40CB', bg: '#0F40CB15', href: '/agenda' },
   { label: 'Ver clientes',  icon: Users,        color: '#F59E0B', bg: '#F59E0B15', href: '/clientes' },
 ]
 

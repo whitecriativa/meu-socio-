@@ -44,7 +44,7 @@ export function RevenueChart({ data }: RevenueChartProps) {
           <span>Faturamento — últimos 6 meses</span>
           <div className="flex items-center gap-3 text-xs font-normal text-gray-400">
             <span className="flex items-center gap-1">
-              <span className="w-2.5 h-2.5 rounded-sm inline-block" style={{ backgroundColor: '#5B3FD4' }} />
+              <span className="w-2.5 h-2.5 rounded-sm inline-block" style={{ backgroundColor: '#0F40CB' }} />
               Receita
             </span>
             <span className="flex items-center gap-1">
@@ -76,7 +76,7 @@ export function RevenueChart({ data }: RevenueChartProps) {
               {data.map((entry) => (
                 <Cell
                   key={entry.month}
-                  fill={entry.month === currentMonth ? '#5B3FD4' : '#5B3FD420'}
+                  fill={entry.month === currentMonth ? '#0F40CB' : '#0F40CB20'}
                 />
               ))}
             </Bar>
