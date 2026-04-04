@@ -51,7 +51,7 @@
       "typeVersion": 2,
       "position": [680, 300],
       "parameters": {
-        "jsCode": "const body = $input.first().json.body;\nconst data = body.data;\nconst key = data.key;\nconst remoteJid = key.remoteJid;\nconst phone = remoteJid.replace(/@.*$/, '');\nlet text = '';\nif (data.messageType === 'conversation') {\n  text = data.message?.conversation || '';\n} else if (data.messageType === 'extendedTextMessage') {\n  text = data.message?.extendedTextMessage?.text || '';\n}\nreturn [{ json: { phone, remoteJid, pushName: data.pushName || 'Amigo', text: text.trim(), instanceName: body.instance } }];"
+        "jsCode": "const body = $input.first().json.body;\nconst data = body.data;\nconst key = data.key;\nconst remoteJid = key.remoteJid;\nlet phone = remoteJid.replace(/@.*$/, '');\nif (!phone.startsWith('55')) phone = '55' + phone;\nlet text = '';\nif (data.messageType === 'conversation') {\n  text = data.message?.conversation || '';\n} else if (data.messageType === 'extendedTextMessage') {\n  text = data.message?.extendedTextMessage?.text || '';\n}\nreturn [{ json: { phone, remoteJid, pushName: data.pushName || 'Amigo', text: text.trim(), instanceName: body.instance } }];"
       }
     },
     {
@@ -75,7 +75,7 @@
       "position": [1120, 300],
       "parameters": {
         "method": "GET",
-        "url": "=https://qjgjqrhsrfxfcmxhuirf.supabase.co/rest/v1/users?phone=eq.{{ $json.phone }}&select=id,name,profile_type,monthly_goal,onboarding_step",
+        "url": "=https://qjgjqrhsrfxfcmxhuirf.supabase.co/rest/v1/users?phone=eq.{{ $json.phone }}&select=id,name,email,profile_type,monthly_goal,onboarding_step&limit=1",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
@@ -174,14 +174,14 @@
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
-            { "name": "Authorization", "value": "Bearer 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" },
+            { "name": "Authorization", "value": "Bearer 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" },
             { "name": "Content-Type", "value": "application/json" }
           ]
         },
         "sendBody": true,
         "contentType": "raw",
         "rawContentType": "application/json",
-        "body": "={{ JSON.stringify({ model: 'gpt-4o-mini', messages: [ { role: 'system', content: 'Você é o Sócio, parceiro de negócios para autônomos brasileiros. Hoje é ' + new Date().toLocaleDateString('pt-BR') + '.\\n\\nPersonalidade: acolhedor, direto, usa emojis com moderação, nunca formal demais. Trate o usuário pelo nome sempre que possível.\\n\\nRegras:\\n- Receita/venda/serviço/recebi → JSON: {\"intent\":\"registrar_receita\",\"amount\":NUMERO,\"description\":\"DESCRICAO\"}\\n- Despesa/gasto/paguei/comprei → JSON: {\"intent\":\"registrar_despesa\",\"amount\":NUMERO,\"description\":\"DESCRICAO\"}\\n- Agendar/marcar/consulta/horário → JSON: {\"intent\":\"registrar_agendamento\",\"service\":\"SERVICO\",\"client_name\":\"NOME\",\"scheduled_at\":\"YYYY-MM-DDTHH:MM:00\",\"price\":0}\\n- Meta/objetivo/quero faturar/minha meta → JSON: {\"intent\":\"definir_meta\",\"amount\":NUMERO}\\n- Qualquer outra mensagem → responda de forma útil, amigável e com emojis. Máximo 3 linhas.\\n\\nUsuário: ' + $('Buscar usuário').first().json.name + '\\nÚltimas transações: ' + JSON.stringify($('Buscar últimas transações').first().json) }, { role: 'user', content: $('Extrair dados').first().json.text } ] }) }}"
+        "body": "={{ JSON.stringify({ model: 'gpt-4o-mini', messages: [ { role: 'system', content: 'Você é o Sócio, parceiro de negócios para autônomos brasileiros. Hoje é ' + new Date().toLocaleDateString('pt-BR') + '.\\n\\nPersonalidade: acolhedor, direto, usa emojis com moderação, nunca formal demais. Trate o usuário pelo nome sempre que possível.\\n\\nRegras:\\n- Receita/venda/serviço/recebi → JSON: {\"intent\":\"registrar_receita\",\"amount\":NUMERO,\"description\":\"DESCRICAO\"}\\n- Despesa/gasto/paguei/comprei → JSON: {\"intent\":\"registrar_despesa\",\"amount\":NUMERO,\"description\":\"DESCRICAO\"}\\n- Agendar/marcar/consulta/horário → JSON: {\"intent\":\"registrar_agendamento\",\"service\":\"SERVICO\",\"client_name\":\"NOME\",\"scheduled_at\":\"YYYY-MM-DDTHH:MM:00\",\"price\":0}\\n- Meta/objetivo/quero faturar/minha meta → JSON: {\"intent\":\"definir_meta\",\"amount\":NUMERO}\\n- Tarefa/fazer/lembrar/não esquecer/pendente → JSON: {\"intent\":\"registrar_tarefa\",\"title\":\"TITULO\",\"priority\":\"alta|media|baixa\"}\\n- Qualquer outra mensagem → responda de forma útil, amigável e com emojis. Máximo 3 linhas.\\n\\nUsuário: ' + $('Buscar usuário').first().json.name + ($('Buscar usuário').first().json.email ? ' | Email cadastrado: ' + $('Buscar usuário').first().json.email : '') + '\\nÚltimas transações: ' + JSON.stringify($('Buscar últimas transações').first().json) }, { role: 'user', content: $('Extrair dados').first().json.text } ] }) }}"
       }
     },
     {
@@ -191,7 +191,7 @@
       "typeVersion": 2,
       "position": [2000, 300],
       "parameters": {
-        "jsCode": "const content = $input.first().json.choices[0].message.content.trim();\nconst userId = $('Buscar usuário').first().json.id;\nconst phone = $('Extrair dados').first().json.remoteJid;\ntry {\n  const jsonMatch = content.match(/\\{[^{}]+\\}/);\n  if (jsonMatch) {\n    const parsed = JSON.parse(jsonMatch[0]);\n    if (parsed.intent === 'registrar_receita' || parsed.intent === 'registrar_despesa') {\n      return [{ json: { intent: parsed.intent, amount: parsed.amount, description: parsed.description, userId, phone } }];\n    }\n    if (parsed.intent === 'registrar_agendamento') {\n      return [{ json: { intent: parsed.intent, service: parsed.service, client_name: parsed.client_name, scheduled_at: parsed.scheduled_at, price: parsed.price || 0, userId, phone } }];\n    }\n    if (parsed.intent === 'definir_meta') {\n      return [{ json: { intent: parsed.intent, amount: parsed.amount, userId, phone } }];\n    }\n  }\n} catch(e) {}\nreturn [{ json: { intent: 'resposta', responseText: content, userId, phone } }];"
+        "jsCode": "const content = $input.first().json.choices[0].message.content.trim();\nconst userId = $('Buscar usuário').first().json.id;\nconst phone = $('Extrair dados').first().json.remoteJid;\ntry {\n  const jsonMatch = content.match(/\\{[^{}]+\\}/);\n  if (jsonMatch) {\n    const parsed = JSON.parse(jsonMatch[0]);\n    if (parsed.intent === 'registrar_receita' || parsed.intent === 'registrar_despesa') {\n      return [{ json: { intent: parsed.intent, amount: parsed.amount, description: parsed.description, userId, phone } }];\n    }\n    if (parsed.intent === 'registrar_agendamento') {\n      return [{ json: { intent: parsed.intent, service: parsed.service, client_name: parsed.client_name, scheduled_at: parsed.scheduled_at, price: parsed.price || 0, userId, phone } }];\n    }\n    if (parsed.intent === 'definir_meta') {\n      return [{ json: { intent: parsed.intent, amount: parsed.amount, userId, phone } }];\n    }\n    if (parsed.intent === 'registrar_tarefa') {\n      return [{ json: { intent: parsed.intent, title: parsed.title, priority: parsed.priority || 'media', userId, phone } }];\n    }\n  }\n} catch(e) {}\nreturn [{ json: { intent: 'resposta', responseText: content, userId, phone } }];"
       }
     },
     {
@@ -207,12 +207,10 @@
           "rules": [
             { "value2": "registrar_receita", "output": 0 },
             { "value2": "registrar_despesa", "output": 1 },
-            { "value2": "resposta", "output": 2 },
-            { "value2": "registrar_agendamento", "output": 3 },
-            { "value2": "definir_meta", "output": 4 }
+            { "value2": "registrar_agendamento", "output": 2 }
           ]
         },
-        "fallbackOutput": 2
+        "fallbackOutput": 3
       }
     },
     {
@@ -354,6 +352,72 @@
       }
     },
     {
+      "id": "if-meta",
+      "name": "É meta?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [2440, 580],
+      "parameters": {
+        "conditions": {
+          "string": [{ "value1": "={{ $json.intent }}", "operation": "equal", "value2": "definir_meta" }]
+        }
+      }
+    },
+    {
+      "id": "if-tarefa",
+      "name": "É tarefa?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [2440, 720],
+      "parameters": {
+        "conditions": {
+          "string": [{ "value1": "={{ $json.intent }}", "operation": "equal", "value2": "registrar_tarefa" }]
+        }
+      }
+    },
+    {
+      "id": "salvar-tarefa",
+      "name": "Salvar tarefa",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [2440, 660],
+      "parameters": {
+        "method": "POST",
+        "url": "https://qjgjqrhsrfxfcmxhuirf.supabase.co/rest/v1/tasks",
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [
+          { "name": "apikey", "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFqZ2pxcmhzcmZ4ZmNteGh1aXJmIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NDM3MTg3MCwiZXhwIjoyMDg5OTQ3ODcwfQ.hjH_yRcQdDAFE-Qk1xNB1tqmz4Dw6udrRNjy4DsUrU8" },
+          { "name": "Authorization", "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFqZ2pxcmhzcmZ4ZmNteGh1aXJmIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NDM3MTg3MCwiZXhwIjoyMDg5OTQ3ODcwfQ.hjH_yRcQdDAFE-Qk1xNB1tqmz4Dw6udrRNjy4DsUrU8" },
+          { "name": "Content-Type", "value": "application/json" },
+          { "name": "Prefer", "value": "return=minimal" }
+        ]},
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "={{ JSON.stringify({ user_id: $json.userId, title: $json.title, priority: $json.priority || 'media', due_date: new Date().toISOString().substring(0,10) }) }}"
+      }
+    },
+    {
+      "id": "confirmar-tarefa",
+      "name": "Confirmar tarefa",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [2660, 660],
+      "parameters": {
+        "method": "POST",
+        "url": "https://evolution-api-production-e9a3.up.railway.app/message/sendText/meu-socio",
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [
+          { "name": "apikey", "value": "762c9cac5efdde8e3b0aee288580ac2a3b11495fa892c757b5bc18dd2b0ec610" },
+          { "name": "Content-Type", "value": "application/json" }
+        ]},
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "={{ JSON.stringify({ number: $('Interpretar GPT').first().json.phone, text: '✅ Anotei!\\n\\n📝 *' + $('Interpretar GPT').first().json.title + '*\\nPrioridade: ' + ($('Interpretar GPT').first().json.priority || 'média') + '\\n\\nVer todas as tarefas: https://socio-painel.vercel.app/tarefas' }) }}"
+      }
+    },
+    {
       "id": "buscar-cliente",
       "name": "Buscar cliente",
       "type": "n8n-nodes-base.httpRequest",
@@ -373,13 +437,47 @@
       }
     },
     {
+      "id": "cliente-existe",
+      "name": "Cliente existe?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [2440, 440],
+      "parameters": {
+        "conditions": {
+          "string": [{ "value1": "={{ $json.id }}", "operation": "isNotEmpty" }]
+        }
+      }
+    },
+    {
+      "id": "criar-cliente",
+      "name": "Criar cliente",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [2640, 540],
+      "parameters": {
+        "method": "POST",
+        "url": "https://qjgjqrhsrfxfcmxhuirf.supabase.co/rest/v1/clients",
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [
+          { "name": "apikey", "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFqZ2pxcmhzcmZ4ZmNteGh1aXJmIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NDM3MTg3MCwiZXhwIjoyMDg5OTQ3ODcwfQ.hjH_yRcQdDAFE-Qk1xNB1tqmz4Dw6udrRNjy4DsUrU8" },
+          { "name": "Authorization", "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFqZ2pxcmhzcmZ4ZmNteGh1aXJmIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NDM3MTg3MCwiZXhwIjoyMDg5OTQ3ODcwfQ.hjH_yRcQdDAFE-Qk1xNB1tqmz4Dw6udrRNjy4DsUrU8" },
+          { "name": "Content-Type", "value": "application/json" },
+          { "name": "Prefer", "value": "return=representation" }
+        ]},
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "={{ JSON.stringify({ user_id: $('Interpretar GPT').first().json.userId, name: $('Interpretar GPT').first().json.client_name, status: 'active', last_contact: new Date().toISOString().substring(0,10) }) }}"
+      }
+    },
+    {
       "id": "resolver-cliente",
       "name": "Resolver cliente",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [2640, 440],
       "parameters": {
-        "jsCode": "const agendamento = $('Interpretar GPT').first().json;\nconst clientSearch = $input.first().json;\nlet clientId = clientSearch.id || null;\nif (!clientId) {\n  const resp = await fetch('https://qjgjqrhsrfxfcmxhuirf.supabase.co/rest/v1/clients', {\n    method: 'POST',\n    headers: {\n      'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFqZ2pxcmhzcmZ4ZmNteGh1aXJmIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NDM3MTg3MCwiZXhwIjoyMDg5OTQ3ODcwfQ.hjH_yRcQdDAFE-Qk1xNB1tqmz4Dw6udrRNjy4DsUrU8',\n      'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFqZ2pxcmhzcmZ4ZmNteGh1aXJmIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NDM3MTg3MCwiZXhwIjoyMDg5OTQ3ODcwfQ.hjH_yRcQdDAFE-Qk1xNB1tqmz4Dw6udrRNjy4DsUrU8',\n      'Content-Type': 'application/json',\n      'Prefer': 'return=representation'\n    },\n    body: JSON.stringify({ user_id: agendamento.userId, name: agendamento.client_name, status: 'ativo' })\n  });\n  const rows = await resp.json();\n  clientId = rows[0]?.id || null;\n}\nreturn [{ json: { ...agendamento, clientId } }];"
+        "jsCode": "const agendamento = $('Interpretar GPT').first().json;\nconst clientSearch = $input.first().json;\nconst clientId = clientSearch.id || null;\nreturn [{ json: { ...agendamento, clientId } }];"
       }
     },
     {
@@ -559,7 +657,7 @@
           { "name": "Content-Type", "value": "application/json" }, { "name": "Prefer", "value": "return=minimal" }
         ]},
         "sendBody": true, "contentType": "raw", "rawContentType": "application/json",
-        "body": "={{ JSON.stringify({ onboarding_step: 'completo' }) }}"
+        "body": "={{ JSON.stringify({ onboarding_step: 'aguardando_email' }) }}"
       }
     },
     {
@@ -577,7 +675,7 @@
           { "name": "Content-Type", "value": "application/json" }
         ]},
         "sendBody": true, "contentType": "raw", "rawContentType": "application/json",
-        "body": "={{ JSON.stringify({ number: $('Analisar resposta email').first().json.remoteJid, text: '🚀 *Tudo certo!* Sua conta foi criada aqui no WhatsApp.\\n\\nOlá, ' + $('Analisar resposta email').first().json.tempUserName + '! Sou o *Meu Sócio* e estou aqui para te ajudar a organizar seu negócio 💼\\n\\nRegistre vendas, despesas e agendamentos aqui mesmo. Como posso te ajudar hoje?' }) }}"
+        "body": "={{ JSON.stringify({ number: $('Analisar resposta email').first().json.remoteJid, text: 'Para aproveitar tudo que o *Meu Sócio* oferece, crie sua conta gratuita em:\\n\\n👉 *https://socio-painel.vercel.app*\\n\\nLeva menos de 1 minuto! Depois volte aqui e me manda seu *email de cadastro* para eu te reconhecer 😊' }) }}"
       }
     },
     {
@@ -640,13 +738,18 @@
     "Buscar últimas transações": { "main": [[{ "node": "GPT processar mensagem", "type": "main", "index": 0 }]] },
     "GPT processar mensagem": { "main": [[{ "node": "Interpretar GPT", "type": "main", "index": 0 }]] },
     "Interpretar GPT": { "main": [[{ "node": "Qual intenção?", "type": "main", "index": 0 }]] },
-    "Qual intenção?": { "main": [[{ "node": "Salvar receita no Supabase", "type": "main", "index": 0 }], [{ "node": "Salvar despesa no Supabase", "type": "main", "index": 0 }], [{ "node": "Enviar resposta", "type": "main", "index": 0 }], [{ "node": "Buscar cliente", "type": "main", "index": 0 }], [{ "node": "Salvar meta", "type": "main", "index": 0 }]] },
+    "Qual intenção?": { "main": [[{ "node": "Salvar receita no Supabase", "type": "main", "index": 0 }], [{ "node": "Salvar despesa no Supabase", "type": "main", "index": 0 }], [{ "node": "Buscar cliente", "type": "main", "index": 0 }], [{ "node": "É meta?", "type": "main", "index": 0 }]] },
+    "É meta?": { "main": [[{ "node": "Salvar meta", "type": "main", "index": 0 }], [{ "node": "É tarefa?", "type": "main", "index": 0 }]] },
+    "É tarefa?": { "main": [[{ "node": "Salvar tarefa", "type": "main", "index": 0 }], [{ "node": "Enviar resposta", "type": "main", "index": 0 }]] },
     "Salvar receita no Supabase": { "main": [[{ "node": "Confirmar receita", "type": "main", "index": 0 }]] },
     "Salvar despesa no Supabase": { "main": [[{ "node": "Confirmar despesa", "type": "main", "index": 0 }]] },
-    "Buscar cliente": { "main": [[{ "node": "Resolver cliente", "type": "main", "index": 0 }]] },
+    "Buscar cliente": { "main": [[{ "node": "Cliente existe?", "type": "main", "index": 0 }]] },
+    "Cliente existe?": { "main": [[{ "node": "Resolver cliente", "type": "main", "index": 0 }], [{ "node": "Criar cliente", "type": "main", "index": 0 }]] },
+    "Criar cliente": { "main": [[{ "node": "Resolver cliente", "type": "main", "index": 0 }]] },
     "Resolver cliente": { "main": [[{ "node": "Salvar agendamento", "type": "main", "index": 0 }]] },
     "Salvar agendamento": { "main": [[{ "node": "Confirmar agendamento", "type": "main", "index": 0 }]] },
-    "Salvar meta": { "main": [[{ "node": "Confirmar meta", "type": "main", "index": 0 }]] }
+    "Salvar meta": { "main": [[{ "node": "Confirmar meta", "type": "main", "index": 0 }]] },
+    "Salvar tarefa": { "main": [[{ "node": "Confirmar tarefa", "type": "main", "index": 0 }]] }
   },
   "settings": { "executionOrder": "v1" },
   "tags": [{ "name": "whatsapp" }, { "name": "socio" }]

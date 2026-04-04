@@ -86,7 +86,7 @@
       "typeVersion": 2,
       "position": [1340, 300],
       "parameters": {
-        "jsCode": "const user = $('Loop por usuario').item.json;\nconst txArray = $('Buscar transacoes de ontem').all().map(i => i.json).filter(t => t && t.type);\nconst receita = txArray.filter(t => t.type === 'receita').reduce((s, t) => s + parseFloat(t.amount || 0), 0);\nconst despesa = txArray.filter(t => t.type === 'despesa').reduce((s, t) => s + parseFloat(t.amount || 0), 0);\nconst liquido = receita - despesa;\nconst apts = $input.all().map(i => i.json).filter(a => a && a.datetime);\nconst agendamentos = apts.length === 0 ? 'Nenhum agendamento para hoje.' : apts.map(a => { const h = new Date(a.scheduled_at).toLocaleTimeString('pt-BR', {hour:'2-digit',minute:'2-digit'}); return `${h}: ${a.service}`; }).join('\\n');\nconst hoje = new Date().toLocaleDateString('pt-BR', {weekday:'long', day:'numeric', month:'long'});\nreturn [{ json: { userId: user.id, userName: user.name, userPhone: user.phone, meta: user.monthly_goal || 0, sonho: user.dream || '', receita: receita.toFixed(2), despesa: despesa.toFixed(2), liquido: liquido.toFixed(2), agendamentos, totalAgendamentos: apts.length, hoje } }];"
+        "jsCode": "const user = $('Loop por usuario').item.json;\nconst txArray = $('Buscar transacoes de ontem').all().map(i => i.json).filter(t => t && t.type);\nconst receita = txArray.filter(t => t.type === 'receita').reduce((s, t) => s + parseFloat(t.amount || 0), 0);\nconst despesa = txArray.filter(t => t.type === 'despesa').reduce((s, t) => s + parseFloat(t.amount || 0), 0);\nconst liquido = receita - despesa;\nconst apts = $input.all().map(i => i.json).filter(a => a && a.scheduled_at);\nconst agendamentos = apts.length === 0 ? 'Nenhum agendamento para hoje.' : apts.map(a => { const h = new Date(a.scheduled_at).toLocaleTimeString('pt-BR', {hour:'2-digit',minute:'2-digit'}); return `${h}: ${a.service}`; }).join('\\n');\nconst hoje = new Date().toLocaleDateString('pt-BR', {weekday:'long', day:'numeric', month:'long'});\nreturn [{ json: { userId: user.id, userName: user.name, userPhone: user.phone, meta: user.monthly_goal || 0, sonho: user.dream || '', receita: receita.toFixed(2), despesa: despesa.toFixed(2), liquido: liquido.toFixed(2), agendamentos, totalAgendamentos: apts.length, hoje } }];"
       }
     },
     {
@@ -101,7 +101,7 @@
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
-            { "name": "Authorization", "value": "Bearer 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" },
+            { "name": "Authorization", "value": "Bearer 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" },
             { "name": "Content-Type", "value": "application/json" }
           ]
         },

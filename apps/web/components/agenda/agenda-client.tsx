@@ -70,7 +70,7 @@ export function AgendaClient({ appointments, initialDate }: AgendaClientProps) {
           />
         </div>
         <div className="lg:col-span-3">
-          <AppointmentsList date={selected} appointments={dayAppointments} />
+          <AppointmentsList key={selected} date={selected} appointments={dayAppointments} />
         </div>
       </div>
     </div>
