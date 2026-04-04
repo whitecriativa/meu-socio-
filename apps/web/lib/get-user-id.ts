@@ -141,30 +141,46 @@ async function ensureUserExists(authUserId: string, cookieStore: Awaited<ReturnT
 
   const { data: existing } = await admin
     .from('users')
-    .select('id, name')
+    .select('id, name, email')
     .eq('id', authUserId)
     .single()
 
   if (existing?.id) {
+    const updates: Record<string, string> = {}
     // Atualiza nome se ainda estiver como "Usuário"
     if (existing.name === 'Usuário' || !existing.name) {
       const name = await getNameFromAuth(authUserId, cookieStore)
-      if (name && name !== 'Usuário') {
-        await admin.from('users').update({ name }).eq('id', authUserId)
-      }
+      if (name && name !== 'Usuário') updates.name = name
+    }
+    // Salva email se ainda não estiver salvo
+    if (!existing.email) {
+      try {
+        const { data: authData } = await admin.auth.admin.getUserById(authUserId)
+        if (authData?.user?.email) updates.email = authData.user.email
+      } catch { /* ignora */ }
+    }
+    if (Object.keys(updates).length > 0) {
+      await admin.from('users').update(updates).eq('id', authUserId)
     }
     return authUserId
   }
 
   const name = await getNameFromAuth(authUserId, cookieStore)
   const meta = extractMetaFromCookies(cookieStore.getAll())
-  // Usa o UUID completo como phone placeholder para garantir unicidade
   const userPhone = meta.phone || `uid_${authUserId.replace(/-/g, '')}`
+
+  // Busca email do auth
+  let userEmail: string | undefined
+  try {
+    const { data: authData } = await admin.auth.admin.getUserById(authUserId)
+    userEmail = authData?.user?.email
+  } catch { /* ignora */ }
 
   const { error } = await admin.from('users').insert({
     id:           authUserId,
     name,
     phone:        userPhone,
+    email:        userEmail,
     profile_type: 'outro',
   })
 

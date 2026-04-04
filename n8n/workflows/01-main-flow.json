@@ -118,7 +118,7 @@
         "sendBody": true,
         "contentType": "raw",
         "rawContentType": "application/json",
-        "body": "={{ JSON.stringify({ phone: $('Extrair dados').first().json.phone, name: $('Extrair dados').first().json.pushName, onboarding_step: 'nome', profile_type: 'outro' }) }}"
+        "body": "={{ JSON.stringify({ phone: $('Extrair dados').first().json.phone, name: $('Extrair dados').first().json.pushName, onboarding_step: 'aguardando_email', profile_type: 'outro' }) }}"
       }
     },
     {
@@ -140,7 +140,7 @@
         "sendBody": true,
         "contentType": "raw",
         "rawContentType": "application/json",
-        "body": "={{ JSON.stringify({ number: $('Extrair dados').first().json.remoteJid, text: '👋 Oi! Que bom ter você aqui!\\n\\nEu sou o *Sócio* — seu parceiro de negócios no WhatsApp. Vou te ajudar a organizar as finanças, agenda e muito mais, tudo por aqui mesmo. 🚀\\n\\nPrimeiro: *como você gostaria de ser chamado(a)?* 😊' }) }}"
+        "body": "={{ JSON.stringify({ number: $('Extrair dados').first().json.remoteJid, text: 'Olá, ' + $('Extrair dados').first().json.pushName + '! 👋 Sou o *Meu Sócio*, seu parceiro de negócios no WhatsApp.\\n\\nVocê já tem conta no *Meu Sócio app*? Se sim, me diga seu *email de cadastro* para eu vincular sua conta e tudo ficar sincronizado! 📲\\n\\nSe não tem conta ainda, responda *não* 😊' }) }}"
       }
     },
     {
@@ -429,6 +429,176 @@
       }
     },
     {
+      "id": "check-onboarding",
+      "name": "Aguardando email?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [1340, 140],
+      "parameters": {
+        "conditions": {
+          "string": [{ "value1": "={{ $json.onboarding_step }}", "operation": "equal", "value2": "aguardando_email" }]
+        }
+      }
+    },
+    {
+      "id": "parse-email-resp",
+      "name": "Analisar resposta email",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1560, 60],
+      "parameters": {
+        "jsCode": "const text = $('Extrair dados').first().json.text.toLowerCase().trim();\nconst tempUserId = $('Buscar usuário').first().json.id;\nconst tempUserName = $('Buscar usuário').first().json.name;\nconst remoteJid = $('Extrair dados').first().json.remoteJid;\nconst phone = $('Extrair dados').first().json.phone;\nconst isEmail = /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(text);\nconst isNao = /^n[aã]o$/.test(text) || text.includes('nao tenho') || text.includes('não tenho');\nconst action = isEmail ? 'buscar_email' : (isNao ? 'criar_novo' : 'reperguntar');\nreturn [{ json: { action, email: isEmail ? text : null, tempUserId, tempUserName, remoteJid, phone } }];"
+      }
+    },
+    {
+      "id": "switch-email-action",
+      "name": "Ação de vinculação",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 1,
+      "position": [1780, 60],
+      "parameters": {
+        "dataType": "string",
+        "value1": "={{ $json.action }}",
+        "rules": { "rules": [{ "value2": "buscar_email", "output": 0 }, { "value2": "criar_novo", "output": 1 }] },
+        "fallbackOutput": 2
+      }
+    },
+    {
+      "id": "buscar-por-email",
+      "name": "Buscar conta por email",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "alwaysOutputData": true,
+      "position": [2000, -80],
+      "parameters": {
+        "method": "GET",
+        "url": "=https://qjgjqrhsrfxfcmxhuirf.supabase.co/rest/v1/users?email=eq.{{ encodeURIComponent($json.email) }}&id=neq.{{ $json.tempUserId }}&select=id,name",
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [
+          { "name": "apikey", "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFqZ2pxcmhzcmZ4ZmNteGh1aXJmIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NDM3MTg3MCwiZXhwIjoyMDg5OTQ3ODcwfQ.hjH_yRcQdDAFE-Qk1xNB1tqmz4Dw6udrRNjy4DsUrU8" },
+          { "name": "Authorization", "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFqZ2pxcmhzcmZ4ZmNteGh1aXJmIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NDM3MTg3MCwiZXhwIjoyMDg5OTQ3ODcwfQ.hjH_yRcQdDAFE-Qk1xNB1tqmz4Dw6udrRNjy4DsUrU8" }
+        ]}
+      }
+    },
+    {
+      "id": "conta-encontrada",
+      "name": "Conta encontrada?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [2220, -80],
+      "parameters": {
+        "conditions": { "string": [{ "value1": "={{ $json.id }}", "operation": "isNotEmpty" }] }
+      }
+    },
+    {
+      "id": "vincular-conta",
+      "name": "Vincular phone à conta",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [2440, -200],
+      "parameters": {
+        "method": "PATCH",
+        "url": "=https://qjgjqrhsrfxfcmxhuirf.supabase.co/rest/v1/users?id=eq.{{ $json.id }}",
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [
+          { "name": "apikey", "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFqZ2pxcmhzcmZ4ZmNteGh1aXJmIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NDM3MTg3MCwiZXhwIjoyMDg5OTQ3ODcwfQ.hjH_yRcQdDAFE-Qk1xNB1tqmz4Dw6udrRNjy4DsUrU8" },
+          { "name": "Authorization", "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFqZ2pxcmhzcmZ4ZmNteGh1aXJmIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NDM3MTg3MCwiZXhwIjoyMDg5OTQ3ODcwfQ.hjH_yRcQdDAFE-Qk1xNB1tqmz4Dw6udrRNjy4DsUrU8" },
+          { "name": "Content-Type", "value": "application/json" }, { "name": "Prefer", "value": "return=minimal" }
+        ]},
+        "sendBody": true, "contentType": "raw", "rawContentType": "application/json",
+        "body": "={{ JSON.stringify({ phone: $('Analisar resposta email').first().json.phone }) }}"
+      }
+    },
+    {
+      "id": "deletar-temp",
+      "name": "Deletar usuário temporário",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [2660, -200],
+      "parameters": {
+        "method": "DELETE",
+        "url": "=https://qjgjqrhsrfxfcmxhuirf.supabase.co/rest/v1/users?id=eq.{{ $('Analisar resposta email').first().json.tempUserId }}",
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [
+          { "name": "apikey", "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFqZ2pxcmhzcmZ4ZmNteGh1aXJmIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NDM3MTg3MCwiZXhwIjoyMDg5OTQ3ODcwfQ.hjH_yRcQdDAFE-Qk1xNB1tqmz4Dw6udrRNjy4DsUrU8" },
+          { "name": "Authorization", "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFqZ2pxcmhzcmZ4ZmNteGh1aXJmIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NDM3MTg3MCwiZXhwIjoyMDg5OTQ3ODcwfQ.hjH_yRcQdDAFE-Qk1xNB1tqmz4Dw6udrRNjy4DsUrU8" }
+        ]}
+      }
+    },
+    {
+      "id": "msg-vinculado",
+      "name": "Msg conta vinculada",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [2880, -200],
+      "parameters": {
+        "method": "POST",
+        "url": "https://evolution-api-production-e9a3.up.railway.app/message/sendText/meu-socio",
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [
+          { "name": "apikey", "value": "762c9cac5efdde8e3b0aee288580ac2a3b11495fa892c757b5bc18dd2b0ec610" },
+          { "name": "Content-Type", "value": "application/json" }
+        ]},
+        "sendBody": true, "contentType": "raw", "rawContentType": "application/json",
+        "body": "={{ JSON.stringify({ number: $('Analisar resposta email').first().json.remoteJid, text: '✅ *Conta vinculada com sucesso!*\\n\\nOlá, ' + $('Buscar conta por email').first().json.name + '! Agora posso te atender aqui no WhatsApp 🎉\\n\\nRegistre vendas, despesas ou agendamentos por aqui mesmo. Como posso te ajudar?' }) }}"
+      }
+    },
+    {
+      "id": "confirmar-nova-conta",
+      "name": "Confirmar nova conta",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [2440, 0],
+      "parameters": {
+        "method": "PATCH",
+        "url": "=https://qjgjqrhsrfxfcmxhuirf.supabase.co/rest/v1/users?id=eq.{{ $('Analisar resposta email').first().json.tempUserId }}",
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [
+          { "name": "apikey", "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFqZ2pxcmhzcmZ4ZmNteGh1aXJmIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NDM3MTg3MCwiZXhwIjoyMDg5OTQ3ODcwfQ.hjH_yRcQdDAFE-Qk1xNB1tqmz4Dw6udrRNjy4DsUrU8" },
+          { "name": "Authorization", "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFqZ2pxcmhzcmZ4ZmNteGh1aXJmIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NDM3MTg3MCwiZXhwIjoyMDg5OTQ3ODcwfQ.hjH_yRcQdDAFE-Qk1xNB1tqmz4Dw6udrRNjy4DsUrU8" },
+          { "name": "Content-Type", "value": "application/json" }, { "name": "Prefer", "value": "return=minimal" }
+        ]},
+        "sendBody": true, "contentType": "raw", "rawContentType": "application/json",
+        "body": "={{ JSON.stringify({ onboarding_step: 'completo' }) }}"
+      }
+    },
+    {
+      "id": "msg-nova-conta",
+      "name": "Msg nova conta criada",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [2660, 0],
+      "parameters": {
+        "method": "POST",
+        "url": "https://evolution-api-production-e9a3.up.railway.app/message/sendText/meu-socio",
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [
+          { "name": "apikey", "value": "762c9cac5efdde8e3b0aee288580ac2a3b11495fa892c757b5bc18dd2b0ec610" },
+          { "name": "Content-Type", "value": "application/json" }
+        ]},
+        "sendBody": true, "contentType": "raw", "rawContentType": "application/json",
+        "body": "={{ JSON.stringify({ number: $('Analisar resposta email').first().json.remoteJid, text: '🚀 *Tudo certo!* Sua conta foi criada aqui no WhatsApp.\\n\\nOlá, ' + $('Analisar resposta email').first().json.tempUserName + '! Sou o *Meu Sócio* e estou aqui para te ajudar a organizar seu negócio 💼\\n\\nRegistre vendas, despesas e agendamentos aqui mesmo. Como posso te ajudar hoje?' }) }}"
+      }
+    },
+    {
+      "id": "msg-reperguntar",
+      "name": "Reperguntar email",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [2000, 120],
+      "parameters": {
+        "method": "POST",
+        "url": "https://evolution-api-production-e9a3.up.railway.app/message/sendText/meu-socio",
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [
+          { "name": "apikey", "value": "762c9cac5efdde8e3b0aee288580ac2a3b11495fa892c757b5bc18dd2b0ec610" },
+          { "name": "Content-Type", "value": "application/json" }
+        ]},
+        "sendBody": true, "contentType": "raw", "rawContentType": "application/json",
+        "body": "={{ JSON.stringify({ number: $('Analisar resposta email').first().json.remoteJid, text: 'Hmm, não entendi 😅\\n\\nMe diga seu *email de cadastro* no Meu Sócio app, ou responda *não* se ainda não tem conta.' }) }}"
+      }
+    },
+    {
       "id": "enviar-resposta",
       "name": "Enviar resposta",
       "type": "n8n-nodes-base.httpRequest",
@@ -457,7 +627,15 @@
     "Extrair dados": { "main": [[{ "node": "Tem texto?", "type": "main", "index": 0 }]] },
     "Tem texto?": { "main": [[{ "node": "Buscar usuário", "type": "main", "index": 0 }], []] },
     "Buscar usuário": { "main": [[{ "node": "Usuário existe?", "type": "main", "index": 0 }]] },
-    "Usuário existe?": { "main": [[{ "node": "Buscar últimas transações", "type": "main", "index": 0 }], [{ "node": "Criar usuário novo", "type": "main", "index": 0 }]] },
+    "Usuário existe?": { "main": [[{ "node": "Aguardando email?", "type": "main", "index": 0 }], [{ "node": "Criar usuário novo", "type": "main", "index": 0 }]] },
+    "Aguardando email?": { "main": [[{ "node": "Analisar resposta email", "type": "main", "index": 0 }], [{ "node": "Buscar últimas transações", "type": "main", "index": 0 }]] },
+    "Analisar resposta email": { "main": [[{ "node": "Ação de vinculação", "type": "main", "index": 0 }]] },
+    "Ação de vinculação": { "main": [[{ "node": "Buscar conta por email", "type": "main", "index": 0 }], [{ "node": "Confirmar nova conta", "type": "main", "index": 0 }], [{ "node": "Reperguntar email", "type": "main", "index": 0 }]] },
+    "Buscar conta por email": { "main": [[{ "node": "Conta encontrada?", "type": "main", "index": 0 }]] },
+    "Conta encontrada?": { "main": [[{ "node": "Vincular phone à conta", "type": "main", "index": 0 }], [{ "node": "Confirmar nova conta", "type": "main", "index": 0 }]] },
+    "Vincular phone à conta": { "main": [[{ "node": "Deletar usuário temporário", "type": "main", "index": 0 }]] },
+    "Deletar usuário temporário": { "main": [[{ "node": "Msg conta vinculada", "type": "main", "index": 0 }]] },
+    "Confirmar nova conta": { "main": [[{ "node": "Msg nova conta criada", "type": "main", "index": 0 }]] },
     "Criar usuário novo": { "main": [[{ "node": "Enviar boas-vindas", "type": "main", "index": 0 }]] },
     "Buscar últimas transações": { "main": [[{ "node": "GPT processar mensagem", "type": "main", "index": 0 }]] },
     "GPT processar mensagem": { "main": [[{ "node": "Interpretar GPT", "type": "main", "index": 0 }]] },
