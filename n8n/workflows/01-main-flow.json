@@ -163,6 +163,42 @@
       }
     },
     {
+      "id": "buscar-agenda-ctx",
+      "name": "Buscar agenda proximos dias",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "alwaysOutputData": true,
+      "position": [1560, 460],
+      "parameters": {
+        "method": "GET",
+        "url": "=https://qjgjqrhsrfxfcmxhuirf.supabase.co/rest/v1/appointments?user_id=eq.{{ $('Buscar usuário').first().json.id }}&scheduled_at=gte.{{ new Date().toISOString().substring(0,10) }}T00:00:00&scheduled_at=lte.{{ new Date(Date.now()+7*86400000).toISOString().substring(0,10) }}T23:59:59&select=service,scheduled_at,notes&order=scheduled_at.asc&limit=5",
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [
+          { "name": "apikey", "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFqZ2pxcmhzcmZ4ZmNteGh1aXJmIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NDM3MTg3MCwiZXhwIjoyMDg5OTQ3ODcwfQ.hjH_yRcQdDAFE-Qk1xNB1tqmz4Dw6udrRNjy4DsUrU8" },
+          { "name": "Authorization", "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFqZ2pxcmhzcmZ4ZmNteGh1aXJmIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NDM3MTg3MCwiZXhwIjoyMDg5OTQ3ODcwfQ.hjH_yRcQdDAFE-Qk1xNB1tqmz4Dw6udrRNjy4DsUrU8" }
+        ]}
+      },
+      "settings": { "alwaysOutputData": true }
+    },
+    {
+      "id": "buscar-tarefas-ctx",
+      "name": "Buscar tarefas pendentes ctx",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "alwaysOutputData": true,
+      "position": [1560, 540],
+      "parameters": {
+        "method": "GET",
+        "url": "=https://qjgjqrhsrfxfcmxhuirf.supabase.co/rest/v1/tasks?user_id=eq.{{ $('Buscar usuário').first().json.id }}&completed_at=is.null&select=title,priority,due_date&order=priority.asc&limit=5",
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [
+          { "name": "apikey", "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFqZ2pxcmhzcmZ4ZmNteGh1aXJmIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NDM3MTg3MCwiZXhwIjoyMDg5OTQ3ODcwfQ.hjH_yRcQdDAFE-Qk1xNB1tqmz4Dw6udrRNjy4DsUrU8" },
+          { "name": "Authorization", "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFqZ2pxcmhzcmZ4ZmNteGh1aXJmIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NDM3MTg3MCwiZXhwIjoyMDg5OTQ3ODcwfQ.hjH_yRcQdDAFE-Qk1xNB1tqmz4Dw6udrRNjy4DsUrU8" }
+        ]}
+      },
+      "settings": { "alwaysOutputData": true }
+    },
+    {
       "id": "gpt-processar",
       "name": "GPT processar mensagem",
       "type": "n8n-nodes-base.httpRequest",
@@ -181,7 +217,7 @@
         "sendBody": true,
         "contentType": "raw",
         "rawContentType": "application/json",
-        "body": "={{ JSON.stringify({ model: 'gpt-4o-mini', messages: [ { role: 'system', content: 'Você é o Sócio, parceiro de negócios para autônomos brasileiros. Hoje é ' + new Date().toLocaleDateString('pt-BR') + '.\\n\\nPersonalidade: acolhedor, direto, usa emojis com moderação, nunca formal demais. Trate o usuário pelo nome sempre que possível.\\n\\nRegras:\\n- Receita/venda/serviço/recebi → JSON: {\"intent\":\"registrar_receita\",\"amount\":NUMERO,\"description\":\"DESCRICAO\"}\\n- Despesa/gasto/paguei/comprei → JSON: {\"intent\":\"registrar_despesa\",\"amount\":NUMERO,\"description\":\"DESCRICAO\"}\\n- Agendar/marcar/consulta/horário → JSON: {\"intent\":\"registrar_agendamento\",\"service\":\"SERVICO\",\"client_name\":\"NOME\",\"scheduled_at\":\"YYYY-MM-DDTHH:MM:00\",\"price\":0}\\n- Meta/objetivo/quero faturar/minha meta → JSON: {\"intent\":\"definir_meta\",\"amount\":NUMERO}\\n- Tarefa/fazer/lembrar/não esquecer/pendente → JSON: {\"intent\":\"registrar_tarefa\",\"title\":\"TITULO\",\"priority\":\"alta|media|baixa\"}\\n- Qualquer outra mensagem → responda de forma útil, amigável e com emojis. Máximo 3 linhas.\\n\\nUsuário: ' + $('Buscar usuário').first().json.name + ($('Buscar usuário').first().json.email ? ' | Email cadastrado: ' + $('Buscar usuário').first().json.email : '') + '\\nÚltimas transações: ' + JSON.stringify($('Buscar últimas transações').first().json) }, { role: 'user', content: $('Extrair dados').first().json.text } ] }) }}"
+        "body": "={{ (() => { const u = $('Buscar usuário').first().json; const txs = $('Buscar últimas transações').all().map(i=>i.json).filter(t=>t&&t.type); const receita = txs.filter(t=>t.type==='receita').reduce((s,t)=>s+parseFloat(t.amount||0),0); const despesa = txs.filter(t=>t.type==='despesa').reduce((s,t)=>s+parseFloat(t.amount||0),0); const agenda = $('Buscar agenda proximos dias').all().map(i=>i.json).filter(a=>a&&a.scheduled_at); const tarefas = $('Buscar tarefas pendentes ctx').all().map(i=>i.json).filter(t=>t&&t.title); const agendaStr = agenda.length===0 ? 'Nenhum agendamento nos próximos 7 dias.' : agenda.map(a=>{const d=new Date(a.scheduled_at);return d.toLocaleDateString('pt-BR')+' '+d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})+': '+a.service+(a.notes?' ('+a.notes+')':'');}).join(' | '); const tarefasStr = tarefas.length===0 ? 'Nenhuma tarefa pendente.' : tarefas.map(t=>t.priority.toUpperCase()+': '+t.title).join(' | '); const sistema = 'Você é o Sócio, parceiro de negócios do usuário no WhatsApp. Hoje: '+new Date().toLocaleDateString('pt-BR')+'\\n\\nVocê TEM ACESSO COMPLETO aos dados do usuário abaixo. Use-os para responder qualquer pergunta.\\n\\nUSUÁRIO: '+u.name+'\\nMeta mensal: R$ '+(u.monthly_goal||0)+'\\nFaturamento este mês: R$ '+receita.toFixed(2)+'\\nDespesas este mês: R$ '+despesa.toFixed(2)+'\\nLíquido: R$ '+(receita-despesa).toFixed(2)+'\\n\\nAGENDA PRÓXIMOS 7 DIAS: '+agendaStr+'\\n\\nTAREFAS PENDENTES: '+tarefasStr+'\\n\\nÚLTIMAS TRANSAÇÕES: '+JSON.stringify(txs.slice(0,5))+'\\n\\nREGRAS:\\n- Se o usuário quer REGISTRAR algo → retorne JSON:\\n  Receita: {\"intent\":\"registrar_receita\",\"amount\":NUMERO,\"description\":\"DESC\"}\\n  Despesa: {\"intent\":\"registrar_despesa\",\"amount\":NUMERO,\"description\":\"DESC\"}\\n  Agendamento: {\"intent\":\"registrar_agendamento\",\"service\":\"SERVICO\",\"client_name\":\"NOME\",\"scheduled_at\":\"YYYY-MM-DDTHH:MM:00\",\"price\":0}\\n  Meta: {\"intent\":\"definir_meta\",\"amount\":NUMERO}\\n  Tarefa: {\"intent\":\"registrar_tarefa\",\"title\":\"TITULO\",\"priority\":\"alta|media|baixa\"}\\n- Se o usuário quer CONSULTAR dados (agenda, ganhos, tarefas, financeiro) → responda usando os dados acima. Seja específico e útil.\\n- Tom: acolhedor, direto, emojis com moderação. Máximo 5 linhas.'; return JSON.stringify({ model: 'gpt-4o-mini', messages: [{ role: 'system', content: sistema }, { role: 'user', content: $('Extrair dados').first().json.text }] }); })() }}"
       }
     },
     {
@@ -735,7 +771,9 @@
     "Deletar usuário temporário": { "main": [[{ "node": "Msg conta vinculada", "type": "main", "index": 0 }]] },
     "Confirmar nova conta": { "main": [[{ "node": "Msg nova conta criada", "type": "main", "index": 0 }]] },
     "Criar usuário novo": { "main": [[{ "node": "Enviar boas-vindas", "type": "main", "index": 0 }]] },
-    "Buscar últimas transações": { "main": [[{ "node": "GPT processar mensagem", "type": "main", "index": 0 }]] },
+    "Buscar últimas transações": { "main": [[{ "node": "Buscar agenda proximos dias", "type": "main", "index": 0 }]] },
+    "Buscar agenda proximos dias": { "main": [[{ "node": "Buscar tarefas pendentes ctx", "type": "main", "index": 0 }]] },
+    "Buscar tarefas pendentes ctx": { "main": [[{ "node": "GPT processar mensagem", "type": "main", "index": 0 }]] },
     "GPT processar mensagem": { "main": [[{ "node": "Interpretar GPT", "type": "main", "index": 0 }]] },
     "Interpretar GPT": { "main": [[{ "node": "Qual intenção?", "type": "main", "index": 0 }]] },
     "Qual intenção?": { "main": [[{ "node": "Salvar receita no Supabase", "type": "main", "index": 0 }], [{ "node": "Salvar despesa no Supabase", "type": "main", "index": 0 }], [{ "node": "Buscar cliente", "type": "main", "index": 0 }], [{ "node": "É meta?", "type": "main", "index": 0 }]] },
