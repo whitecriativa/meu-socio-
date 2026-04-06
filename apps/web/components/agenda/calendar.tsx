@@ -9,6 +9,7 @@ interface CalendarProps {
   month: number             // 0-indexed
   selected: string          // 'YYYY-MM-DD'
   dotMap: Record<string, AppointmentStatus[]>   // date → statuses present
+  seasonalDates?: Record<string, string>        // date → label
   onSelect: (date: string) => void
   onPrev: () => void
   onNext: () => void
@@ -29,7 +30,7 @@ const STATUS_COLOR: Record<AppointmentStatus, string> = {
 
 function pad(n: number) { return String(n).padStart(2, '0') }
 
-export function Calendar({ year, month, selected, dotMap, onSelect, onPrev, onNext }: CalendarProps) {
+export function Calendar({ year, month, selected, dotMap, seasonalDates = {}, onSelect, onPrev, onNext }: CalendarProps) {
   const today = new Date().toISOString().slice(0, 10)
 
   // Dias do mês
@@ -43,6 +44,9 @@ export function Calendar({ year, month, selected, dotMap, onSelect, onPrev, onNe
   // Preencher até múltiplo de 7
   while (cells.length % 7 !== 0) cells.push(null)
 
+  // Datas sazonais do mês ordenadas
+  const monthSeasonals = Object.entries(seasonalDates).sort(([a], [b]) => a.localeCompare(b))
+
   return (
     <Card>
       <CardContent className="p-4">
@@ -54,7 +58,7 @@ export function Calendar({ year, month, selected, dotMap, onSelect, onPrev, onNe
           >
             <ChevronLeft className="w-4 h-4" />
           </button>
-          <p className="text-sm font-semibold text-gray-900">
+          <p className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
             {MONTHS[month]} {year}
           </p>
           <button
@@ -83,48 +87,93 @@ export function Calendar({ year, month, selected, dotMap, onSelect, onPrev, onNe
             const isSelected = dateStr === selected
             const isToday    = dateStr === today
             const dots       = dotMap[dateStr] ?? []
+            const seasonal   = seasonalDates[dateStr]
 
             return (
               <button
                 key={dateStr}
                 onClick={() => onSelect(dateStr)}
+                title={seasonal}
                 className={`relative flex flex-col items-center justify-center rounded-xl py-1.5 transition-all text-sm font-medium ${
                   isSelected
                     ? 'bg-[#0F40CB] text-white'
                     : isToday
                     ? 'border border-[#0F40CB] text-[#0F40CB]'
-                    : 'text-gray-700 hover:bg-gray-50'
+                    : 'hover:bg-gray-50'
                 }`}
+                style={{ color: isSelected ? 'white' : isToday ? '#0F40CB' : 'var(--text-primary)' }}
               >
                 {day}
-                {/* Dots de status */}
-                {dots.length > 0 && (
-                  <div className="flex gap-0.5 mt-0.5">
-                    {[...new Set(dots)].slice(0, 3).map((s) => (
-                      <span
-                        key={s}
-                        className="w-1 h-1 rounded-full"
-                        style={{
-                          backgroundColor: isSelected ? 'rgba(255,255,255,0.8)' : STATUS_COLOR[s],
-                        }}
-                      />
-                    ))}
-                  </div>
-                )}
+                {/* Dots de status + indicador sazonal */}
+                <div className="flex gap-0.5 mt-0.5 items-center">
+                  {[...new Set(dots)].slice(0, 3).map((s) => (
+                    <span
+                      key={s}
+                      className="w-1 h-1 rounded-full"
+                      style={{
+                        backgroundColor: isSelected ? 'rgba(255,255,255,0.8)' : STATUS_COLOR[s],
+                      }}
+                    />
+                  ))}
+                  {seasonal && (
+                    <span
+                      className="text-[7px] leading-none"
+                      style={{ opacity: isSelected ? 0.9 : 1 }}
+                    >
+                      ⭐
+                    </span>
+                  )}
+                </div>
               </button>
             )
           })}
         </div>
 
-        {/* Legenda */}
-        <div className="flex flex-wrap gap-3 mt-4 pt-3 border-t border-gray-50">
+        {/* Legenda status */}
+        <div className="flex flex-wrap gap-3 mt-4 pt-3 border-t" style={{ borderColor: 'var(--border)' }}>
           {Object.entries(STATUS_COLOR).filter(([k]) => k !== 'concluido').map(([status, color]) => (
             <span key={status} className="flex items-center gap-1 text-xs text-gray-500 capitalize">
               <span className="w-2 h-2 rounded-full" style={{ backgroundColor: color }} />
               {status}
             </span>
           ))}
+          <span className="flex items-center gap-1 text-xs text-gray-500">
+            ⭐ Data especial
+          </span>
         </div>
+
+        {/* Datas sazonais do mês */}
+        {monthSeasonals.length > 0 && (
+          <div className="mt-3 pt-3 border-t" style={{ borderColor: 'var(--border)' }}>
+            <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide mb-2">
+              Datas do mês
+            </p>
+            <div className="flex flex-col gap-1">
+              {monthSeasonals.map(([date, label]) => {
+                const d = new Date(date + 'T12:00:00')
+                const dayNum = d.getDate()
+                const weekday = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'][d.getDay()]
+                return (
+                  <button
+                    key={date}
+                    onClick={() => onSelect(date)}
+                    className="flex items-center gap-2 text-xs rounded-lg px-2 py-1 transition-colors hover:bg-gray-50 text-left"
+                    style={{ color: 'var(--text-muted)' }}
+                  >
+                    <span
+                      className="text-[10px] font-bold w-8 text-center flex-shrink-0 rounded-md py-0.5"
+                      style={{ backgroundColor: '#0F40CB18', color: '#0F40CB' }}
+                    >
+                      {pad(dayNum)}
+                    </span>
+                    <span className="text-gray-400 text-[10px] w-6 flex-shrink-0">{weekday}</span>
+                    <span className="flex-1">{label}</span>
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+        )}
       </CardContent>
     </Card>
   )

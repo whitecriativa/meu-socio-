@@ -1,9 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { Calendar } from './calendar'
 import { AppointmentsList } from './appointments-list'
 import { NovoAgendamentoModal } from './novo-agendamento-modal'
+import { getSeasonalDatesForMonth } from '@/lib/seasonal-dates'
 import type { Appointment, AppointmentStatus } from './types'
 
 interface AgendaClientProps {
@@ -15,6 +16,11 @@ export function AgendaClient({ appointments, initialDate }: AgendaClientProps) {
   const [selected, setSelected] = useState(initialDate)
   const [navYear,  setNavYear]  = useState(() => Number(initialDate.slice(0, 4)))
   const [navMonth, setNavMonth] = useState(() => Number(initialDate.slice(5, 7)) - 1)
+
+  const seasonalDates = useMemo(
+    () => getSeasonalDatesForMonth(navYear, navMonth),
+    [navYear, navMonth],
+  )
 
   // Mapa: 'YYYY-MM-DD' → statuses presentes (para os dots do calendário)
   const dotMap: Record<string, AppointmentStatus[]> = {}
@@ -64,6 +70,7 @@ export function AgendaClient({ appointments, initialDate }: AgendaClientProps) {
             month={navMonth}
             selected={selected}
             dotMap={dotMap}
+            seasonalDates={seasonalDates}
             onSelect={setSelected}
             onPrev={prevMonth}
             onNext={nextMonth}
