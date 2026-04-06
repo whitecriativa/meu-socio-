@@ -19,7 +19,7 @@
       "position": [460, 300],
       "parameters": {
         "method": "GET",
-        "url": "https://qjgjqrhsrfxfcmxhuirf.supabase.co/rest/v1/users?select=id,name,phone&phone=not.is.null&onboarding_step=neq.aguardando_email",
+        "url": "https://qjgjqrhsrfxfcmxhuirf.supabase.co/rest/v1/users?select=id,name,phone&phone=like.55*&onboarding_step=neq.aguardando_email",
         "sendHeaders": true,
         "headerParameters": { "parameters": [
           { "name": "apikey", "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFqZ2pxcmhzcmZ4ZmNteGh1aXJmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzNzE4NzAsImV4cCI6MjA4OTk0Nzg3MH0.7XW8nHUNrECAAc8Ynn6DbKIwvNVnGbQk6G7KvhvH6E0" },

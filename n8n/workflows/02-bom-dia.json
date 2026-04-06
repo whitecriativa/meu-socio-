@@ -21,7 +21,7 @@
       "position": [460, 300],
       "parameters": {
         "method": "GET",
-        "url": "https://qjgjqrhsrfxfcmxhuirf.supabase.co/rest/v1/users?select=id,name,phone,monthly_goal,dream,profile_type&phone=not.is.null",
+        "url": "https://qjgjqrhsrfxfcmxhuirf.supabase.co/rest/v1/users?select=id,name,phone,monthly_goal,dream,profile_type&phone=like.55*&onboarding_step=neq.aguardando_email",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
@@ -127,6 +127,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 3,
       "position": [2000, 300],
+      "continueOnFail": true,
       "parameters": {
         "method": "POST",
         "url": "https://evolution-api-production-e9a3.up.railway.app/message/sendText/meu-socio",
