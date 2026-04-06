@@ -172,6 +172,35 @@ ALTER TABLE public.appointments
   ADD COLUMN IF NOT EXISTS is_recurrence_instance BOOLEAN NOT NULL DEFAULT false;
 
 -- ============================================================
+-- MIGRATION — Tabela messages (histórico de conversa WhatsApp)
+-- ============================================================
+
+CREATE TABLE IF NOT EXISTS public.messages (
+  id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id     UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
+  phone       TEXT NOT NULL,
+  content     TEXT,
+  direction   TEXT NOT NULL CHECK (direction IN ('inbound', 'outbound')),
+  intent      TEXT,
+  created_at  TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_messages_user_id    ON public.messages(user_id);
+CREATE INDEX IF NOT EXISTS idx_messages_created_at ON public.messages(user_id, created_at DESC);
+
+ALTER TABLE public.messages ENABLE ROW LEVEL SECURITY;
+
+DO $$ BEGIN
+  CREATE POLICY "messages_all_service_role" ON public.messages
+    FOR ALL TO service_role USING (true) WITH CHECK (true);
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+
+DO $$ BEGIN
+  CREATE POLICY "messages_select_own" ON public.messages
+    FOR SELECT TO authenticated USING (user_id = auth.uid());
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+
+-- ============================================================
 -- FIM DAS MIGRATIONS
 -- ============================================================
 -- Depois de rodar, todas as funcionalidades do painel estarão disponíveis.
