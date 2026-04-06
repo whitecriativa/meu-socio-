@@ -67,13 +67,21 @@ async function getData() {
   ])
 
   // Tabelas opcionais (podem não existir em todas as versões do banco)
-  const { data: userBadges } = await supabase.from('user_badges').select('badge_id, earned_at').eq('user_id', userId).then(r => r, () => ({ data: null, error: null }))
-  const { data: pointsHistory } = await supabase.from('points_history').select('action_type, points, description, created_at').eq('user_id', userId).order('created_at', { ascending: false }).limit(10).then(r => r, () => ({ data: null, error: null }))
+  let userBadges: { badge_id: string; earned_at: string }[] | null = null
+  let pointsHistory: { action_type: string; points: number; description: string | null; created_at: string }[] | null = null
+  try {
+    const r1 = await supabase.from('user_badges').select('badge_id, earned_at').eq('user_id', userId)
+    userBadges = r1.data
+  } catch { /* tabela inexistente */ }
+  try {
+    const r2 = await supabase.from('points_history').select('action_type, points, description, created_at').eq('user_id', userId).order('created_at', { ascending: false }).limit(10)
+    pointsHistory = r2.data
+  } catch { /* tabela inexistente */ }
 
   type TxRow = { type: string; competence_date: string | null }
   type TaskRow = { completed_at: string | null }
-  type BadgeRow = { badge_id: string; earned_at: string }
-  type PointRow = { action_type: string; points: number; description: string | null; created_at: string }
+  type BadgeRow = typeof userBadges extends (infer U)[] | null ? U : never
+  type PointRow = typeof pointsHistory extends (infer U)[] | null ? U : never
 
   // Calcular pontos de transações (substitui pontos_history se tabela vazia)
   const allTxs = await supabase.from('transactions').select('type, amount').eq('user_id', userId)
