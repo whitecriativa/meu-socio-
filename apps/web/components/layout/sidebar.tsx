@@ -29,11 +29,15 @@ const NAV_ITEMS = [
 ]
 
 const MOBILE_NAV = [
-  { href: '/',            label: 'Dashboard',  icon: LayoutDashboard },
-  { href: '/financeiro',  label: 'Financeiro', icon: DollarSign },
-  { href: '/agenda',      label: 'Agenda',     icon: CalendarDays },
-  { href: '/aprenda',     label: 'Aprenda',    icon: BookOpen },
-  { href: '/gamificacao', label: 'Conquistas', icon: Zap },
+  { href: '/',             label: 'Dashboard',   icon: LayoutDashboard },
+  { href: '/financeiro',   label: 'Financeiro',  icon: DollarSign },
+  { href: '/agenda',       label: 'Agenda',      icon: CalendarDays },
+  { href: '/clientes',     label: 'Clientes',    icon: Users },
+  { href: '/tarefas',      label: 'Tarefas',     icon: CheckSquare },
+  { href: '/metas',        label: 'Metas',       icon: Target },
+  { href: '/gamificacao',  label: 'Conquistas',  icon: Zap },
+  { href: '/aprenda',      label: 'Aprenda',     icon: BookOpen },
+  { href: '/calculadora',  label: 'Calculadora', icon: Calculator },
 ]
 
 interface SidebarProps {
@@ -125,21 +129,23 @@ export function Sidebar({ userName, userRole }: SidebarProps) {
       </aside>
 
       {/* ── Bottom nav mobile ───────────────────────────────── */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-30 flex" style={{ backgroundColor: 'var(--bg-card)', borderTop: '1px solid var(--border)' }}>
-        {MOBILE_NAV.map(({ href, label, icon: Icon }) => {
-          const isActive = pathname === href
-          return (
-            <Link
-              key={href}
-              href={href}
-              className="flex-1 flex flex-col items-center justify-center py-2 gap-0.5 text-[10px] font-medium transition-colors"
-              style={{ color: isActive ? '#0F40CB' : 'var(--text-muted)' }}
-            >
-              <Icon className="w-5 h-5" style={{ color: isActive ? '#0F40CB' : 'var(--text-muted)' }} />
-              {label}
-            </Link>
-          )
-        })}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-30 overflow-x-auto" style={{ backgroundColor: 'var(--bg-card)', borderTop: '1px solid var(--border)' }}>
+        <div className="flex min-w-max px-1">
+          {MOBILE_NAV.map(({ href, label, icon: Icon }) => {
+            const isActive = pathname === href
+            return (
+              <Link
+                key={href}
+                href={href}
+                className="flex flex-col items-center justify-center py-2 px-3 gap-0.5 text-[10px] font-medium transition-colors min-w-[60px]"
+                style={{ color: isActive ? '#0F40CB' : 'var(--text-muted)' }}
+              >
+                <Icon className="w-5 h-5" style={{ color: isActive ? '#0F40CB' : 'var(--text-muted)' }} />
+                {label}
+              </Link>
+            )
+          })}
+        </div>
       </nav>
     </>
   )

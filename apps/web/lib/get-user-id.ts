@@ -116,11 +116,7 @@ function extractMetaFromCookies(allCookies: { name: string; value: string }[]): 
 }
 
 async function getNameFromAuth(authUserId: string, cookieStore: Awaited<ReturnType<typeof cookies>>): Promise<string> {
-  // Tenta 1: cookies
-  const meta = extractMetaFromCookies(cookieStore.getAll())
-  if (meta.name && meta.name !== 'Usuário') return meta.name
-
-  // Tenta 2: auth.admin para pegar email diretamente
+  // Tenta 1: auth.admin (fonte mais confiável)
   try {
     const admin = adminClient()
     const { data } = await admin.auth.admin.getUserById(authUserId)
@@ -132,6 +128,10 @@ async function getNameFromAuth(authUserId: string, cookieStore: Awaited<ReturnTy
       if (email) return email.split('@')[0]!
     }
   } catch { /* fallback */ }
+
+  // Tenta 2: cookies
+  const meta = extractMetaFromCookies(cookieStore.getAll())
+  if (meta.name && meta.name !== 'Usuário') return meta.name
 
   return 'Usuário'
 }
@@ -167,7 +167,10 @@ async function ensureUserExists(authUserId: string, cookieStore: Awaited<ReturnT
 
   const name = await getNameFromAuth(authUserId, cookieStore)
   const meta = extractMetaFromCookies(cookieStore.getAll())
-  const userPhone = meta.phone || `uid_${authUserId.replace(/-/g, '')}`
+  const rawPhone = (meta.phone || '').replace(/\D/g, '')
+  const userPhone = rawPhone
+    ? (rawPhone.startsWith('55') ? rawPhone : `55${rawPhone}`)
+    : `uid_${authUserId.replace(/-/g, '')}`
 
   // Busca email do auth
   let userEmail: string | undefined

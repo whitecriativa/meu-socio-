@@ -477,7 +477,7 @@
       "typeVersion": 2,
       "position": [2640, 440],
       "parameters": {
-        "jsCode": "const agendamento = $('Interpretar GPT').first().json;\nconst clientSearch = $input.first().json;\nconst clientId = clientSearch.id || null;\nreturn [{ json: { ...agendamento, clientId } }];"
+        "jsCode": "const agendamento = $('Interpretar GPT').first().json;\nconst raw = $input.first().json;\n// Criar cliente retorna array com o objeto; Buscar cliente retorna objeto direto\nconst clientData = Array.isArray(raw) ? raw[0] : raw;\nconst clientId = clientData?.id || null;\nreturn [{ json: { ...agendamento, clientId } }];"
       }
     },
     {
@@ -570,7 +570,7 @@
       "position": [2000, -80],
       "parameters": {
         "method": "GET",
-        "url": "=https://qjgjqrhsrfxfcmxhuirf.supabase.co/rest/v1/users?email=eq.{{ encodeURIComponent($json.email) }}&id=neq.{{ $json.tempUserId }}&select=id,name",
+        "url": "=https://qjgjqrhsrfxfcmxhuirf.supabase.co/rest/v1/users?email=ilike.{{ $json.email }}&id=neq.{{ $json.tempUserId }}&select=id,name",
         "sendHeaders": true,
         "headerParameters": { "parameters": [
           { "name": "apikey", "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFqZ2pxcmhzcmZ4ZmNteGh1aXJmIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NDM3MTg3MCwiZXhwIjoyMDg5OTQ3ODcwfQ.hjH_yRcQdDAFE-Qk1xNB1tqmz4Dw6udrRNjy4DsUrU8" },

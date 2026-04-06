@@ -26,10 +26,13 @@ export default function CadastroPage() {
 
     const supabase = createBrowserClient()
 
+    const rawPhone = form.phone.replace(/\D/g, '')
+    const phone = rawPhone.startsWith('55') ? rawPhone : `55${rawPhone}`
+
     const { error: signUpError } = await supabase.auth.signUp({
       email: form.email,
       password: form.password,
-      options: { data: { name: form.name, phone: form.phone } },
+      options: { data: { name: form.name, phone } },
     })
 
     if (signUpError) {
