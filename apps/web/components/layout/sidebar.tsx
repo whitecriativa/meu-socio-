@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
@@ -13,6 +14,8 @@ import {
   Settings,
   Zap,
   BookOpen,
+  MoreHorizontal,
+  X,
 } from 'lucide-react'
 import { LogoIcon } from '@/components/brand/logo'
 
@@ -28,16 +31,22 @@ const NAV_ITEMS = [
   { href: '/calculadora',   label: 'Calculadora',  icon: Calculator },
 ]
 
-const MOBILE_NAV = [
-  { href: '/',             label: 'Dashboard',   icon: LayoutDashboard },
-  { href: '/financeiro',   label: 'Financeiro',  icon: DollarSign },
-  { href: '/agenda',       label: 'Agenda',      icon: CalendarDays },
-  { href: '/clientes',     label: 'Clientes',    icon: Users },
-  { href: '/tarefas',      label: 'Tarefas',     icon: CheckSquare },
-  { href: '/metas',        label: 'Metas',       icon: Target },
-  { href: '/gamificacao',  label: 'Conquistas',  icon: Zap },
-  { href: '/aprenda',      label: 'Aprenda',     icon: BookOpen },
-  { href: '/calculadora',  label: 'Calculadora', icon: Calculator },
+// 4 itens principais + botão "Mais"
+const MOBILE_MAIN = [
+  { href: '/',            label: 'Dashboard',  icon: LayoutDashboard },
+  { href: '/financeiro',  label: 'Financeiro', icon: DollarSign },
+  { href: '/agenda',      label: 'Agenda',     icon: CalendarDays },
+  { href: '/aprenda',     label: 'Aprenda',    icon: BookOpen },
+]
+
+// Itens do menu "Mais"
+const MOBILE_MORE = [
+  { href: '/clientes',    label: 'Clientes',    icon: Users },
+  { href: '/tarefas',     label: 'Tarefas',     icon: CheckSquare },
+  { href: '/metas',       label: 'Metas',       icon: Target },
+  { href: '/gamificacao', label: 'Conquistas',  icon: Zap },
+  { href: '/calculadora', label: 'Calculadora', icon: Calculator },
+  { href: '/configuracoes', label: 'Config.',   icon: Settings },
 ]
 
 interface SidebarProps {
@@ -47,8 +56,12 @@ interface SidebarProps {
 
 export function Sidebar({ userName, userRole }: SidebarProps) {
   const pathname = usePathname()
+  const [moreOpen, setMoreOpen] = useState(false)
   const isConfigActive = pathname === '/configuracoes'
   const initials = userName.split(' ').map((w) => w[0]).slice(0, 2).join('').toUpperCase()
+
+  // Se a página atual está no "Mais", o botão Mais fica ativo
+  const moreActive = MOBILE_MORE.some((i) => i.href === pathname)
 
   return (
     <>
@@ -128,24 +141,75 @@ export function Sidebar({ userName, userRole }: SidebarProps) {
         </div>
       </aside>
 
-      {/* ── Bottom nav mobile ───────────────────────────────── */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-30 overflow-x-auto" style={{ backgroundColor: 'var(--bg-card)', borderTop: '1px solid var(--border)' }}>
-        <div className="flex min-w-max px-1">
-          {MOBILE_NAV.map(({ href, label, icon: Icon }) => {
-            const isActive = pathname === href
-            return (
-              <Link
-                key={href}
-                href={href}
-                className="flex flex-col items-center justify-center py-2 px-3 gap-0.5 text-[10px] font-medium transition-colors min-w-[60px]"
-                style={{ color: isActive ? '#0F40CB' : 'var(--text-muted)' }}
-              >
-                <Icon className="w-5 h-5" style={{ color: isActive ? '#0F40CB' : 'var(--text-muted)' }} />
-                {label}
-              </Link>
-            )
-          })}
+      {/* ── Overlay menu "Mais" ─────────────────────────────── */}
+      {moreOpen && (
+        <div
+          className="md:hidden fixed inset-0 z-40 bg-black/50"
+          onClick={() => setMoreOpen(false)}
+        >
+          <div
+            className="absolute bottom-16 left-0 right-0 rounded-t-2xl p-4 grid grid-cols-3 gap-3"
+            style={{ backgroundColor: 'var(--bg-card)' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Botão fechar */}
+            <div className="col-span-3 flex justify-between items-center mb-1">
+              <p className="text-xs font-semibold" style={{ color: 'var(--text-muted)' }}>MAIS OPÇÕES</p>
+              <button onClick={() => setMoreOpen(false)}>
+                <X className="w-4 h-4" style={{ color: 'var(--text-muted)' }} />
+              </button>
+            </div>
+            {MOBILE_MORE.map(({ href, label, icon: Icon }) => {
+              const isActive = pathname === href
+              return (
+                <Link
+                  key={href}
+                  href={href}
+                  onClick={() => setMoreOpen(false)}
+                  className="flex flex-col items-center justify-center gap-1.5 py-3 rounded-xl transition-colors"
+                  style={{
+                    backgroundColor: isActive ? '#0F40CB15' : 'var(--bg-base)',
+                    color: isActive ? '#0F40CB' : 'var(--text-secondary)',
+                  }}
+                >
+                  <Icon className="w-5 h-5" />
+                  <span className="text-[11px] font-medium">{label}</span>
+                </Link>
+              )
+            })}
+          </div>
         </div>
+      )}
+
+      {/* ── Bottom nav mobile ───────────────────────────────── */}
+      <nav
+        className="md:hidden fixed bottom-0 left-0 right-0 z-30 flex"
+        style={{ backgroundColor: 'var(--bg-card)', borderTop: '1px solid var(--border)' }}
+      >
+        {MOBILE_MAIN.map(({ href, label, icon: Icon }) => {
+          const isActive = pathname === href
+          return (
+            <Link
+              key={href}
+              href={href}
+              className="flex-1 flex flex-col items-center justify-center py-2 gap-0.5 text-[10px] font-medium transition-colors"
+              style={{ color: isActive ? '#0F40CB' : 'var(--text-muted)' }}
+            >
+              <Icon className="w-5 h-5" />
+              {label}
+            </Link>
+          )
+        })}
+
+        {/* Botão Mais */}
+        <button
+          onClick={() => setMoreOpen((v) => !v)}
+          className="flex-1 flex flex-col items-center justify-center py-2 gap-0.5 text-[10px] font-medium transition-colors"
+          style={{ color: moreActive || moreOpen ? '#0F40CB' : 'var(--text-muted)' }}
+        >
+          {moreOpen ? <X className="w-5 h-5" /> : <MoreHorizontal className="w-5 h-5" />}
+          Mais
+        </button>
       </nav>
     </>
   )
