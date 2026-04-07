@@ -41,7 +41,7 @@ export default function CadastroPage() {
       return
     }
 
-    const { error: loginError } = await supabase.auth.signInWithPassword({
+    const { data: loginData, error: loginError } = await supabase.auth.signInWithPassword({
       email: form.email,
       password: form.password,
     })
@@ -50,6 +50,24 @@ export default function CadastroPage() {
       setError('Conta criada! Verifique seu email e depois faça login.')
       setLoading(false)
       return
+    }
+
+    // Inserir na tabela users para o bot conseguir vincular pelo email
+    if (loginData?.user) {
+      await supabase.from('users').upsert({
+        id: loginData.user.id,
+        name: form.name,
+        email: form.email,
+        phone,
+        onboarding_step: 'completo',
+      }, { onConflict: 'id' })
+
+      // Deletar usuário temporário criado pelo bot (mesmo phone, id diferente)
+      await fetch('/api/onboarding/merge', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ authUserId: loginData.user.id, phone }),
+      })
     }
 
     window.location.href = '/'
