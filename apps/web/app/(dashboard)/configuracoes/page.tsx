@@ -34,6 +34,7 @@ async function updateSettings(formData: FormData) {
   const workStart      = String(formData.get('work_hours_start') ?? '08:00')
   const workEnd        = String(formData.get('work_hours_end') ?? '19:00')
   const radarMinutes   = parseInt(String(formData.get('radar_alert_minutes') ?? '30'))
+  const bomDiaEnabled  = formData.get('bom_dia_enabled') === '1'
 
   const updateData: Record<string, unknown> = {
     name:                name || undefined,
@@ -44,6 +45,7 @@ async function updateSettings(formData: FormData) {
     work_hours_start:    workStart,
     work_hours_end:      workEnd,
     radar_alert_minutes: radarMinutes > 0 ? radarMinutes : 30,
+    bom_dia_enabled:     bomDiaEnabled,
   }
 
   if (phone && phone.length >= 10) {
@@ -69,7 +71,7 @@ export default async function ConfiguracoesPage({
 
   const { data: user } = await supabase
     .from('users')
-    .select('name, phone, profile_type, work_modality, dream, monthly_goal, work_hours_start, work_hours_end, radar_alert_minutes, plan, avatar_url, google_calendar_token')
+    .select('name, phone, profile_type, work_modality, dream, monthly_goal, work_hours_start, work_hours_end, radar_alert_minutes, plan, avatar_url, google_calendar_token, bom_dia_enabled')
     .eq('id', userId)
     .single()
 
@@ -255,6 +257,29 @@ export default async function ConfiguracoesPage({
               />
               <p className="text-[10px] text-gray-400">Aviso de mensagem sem resposta</p>
             </div>
+          </div>
+
+          {/* Toggle Bom Dia */}
+          <div className="flex items-center justify-between py-2 border-t border-gray-50">
+            <div>
+              <p className="text-sm font-medium text-gray-700">☀️ Bom Dia Sócio (7h)</p>
+              <p className="text-xs text-gray-400">Briefing diário com faturamento, agenda e metas</p>
+            </div>
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input
+                type="hidden"
+                name="bom_dia_enabled"
+                value="0"
+              />
+              <input
+                type="checkbox"
+                name="bom_dia_enabled"
+                value="1"
+                defaultChecked={user?.bom_dia_enabled !== false}
+                className="sr-only peer"
+              />
+              <div className="w-10 h-5 bg-gray-200 peer-checked:bg-[#0F40CB] rounded-full transition-colors after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:w-4 after:h-4 after:bg-white after:rounded-full after:shadow after:transition-all peer-checked:after:translate-x-5" />
+            </label>
           </div>
         </section>
 
