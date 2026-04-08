@@ -2,8 +2,6 @@ import { getAuthenticatedUserId } from '@/lib/get-user-id'
 import { createClient } from '@supabase/supabase-js'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
-import { CustosFixosSection } from '@/components/configuracoes/custos-fixos-section'
-import type { CustoFixo } from '@/components/configuracoes/custos-fixos-section'
 import { AvatarUpload } from '@/components/configuracoes/avatar-upload'
 
 export const dynamic = 'force-dynamic'
@@ -48,7 +46,6 @@ async function updateSettings(formData: FormData) {
     radar_alert_minutes: radarMinutes > 0 ? radarMinutes : 30,
   }
 
-  // Só atualiza phone se foi preenchido e é diferente do placeholder uid_
   if (phone && phone.length >= 10) {
     updateData.phone = phone
   }
@@ -64,34 +61,21 @@ async function updateSettings(formData: FormData) {
 export default async function ConfiguracoesPage({
   searchParams,
 }: {
-  searchParams?: Promise<{ saved?: string }>
+  searchParams?: Promise<{ saved?: string; gcal?: string }>
 }) {
-  const params   = await (searchParams ?? Promise.resolve({} as { saved?: string }))
+  const params   = await (searchParams ?? Promise.resolve({} as { saved?: string; gcal?: string }))
   const userId = (await getAuthenticatedUserId()) ?? process.env.NEXT_PUBLIC_DEMO_USER_ID!
   const supabase = adminClient()
 
-  const [{ data: user }, { data: rawCosts }] = await Promise.all([
-    supabase
-      .from('users')
-      .select('name, phone, profile_type, work_modality, dream, monthly_goal, work_hours_start, work_hours_end, radar_alert_minutes, plan, avatar_url')
-      .eq('id', userId)
-      .single(),
-    supabase
-      .from('costs_fixed')
-      .select('id, name, amount, periodicity, category')
-      .eq('user_id', userId)
-      .order('created_at', { ascending: true }),
-  ])
+  const { data: user } = await supabase
+    .from('users')
+    .select('name, phone, profile_type, work_modality, dream, monthly_goal, work_hours_start, work_hours_end, radar_alert_minutes, plan, avatar_url, google_calendar_token')
+    .eq('id', userId)
+    .single()
 
-  const custos: CustoFixo[] = (rawCosts ?? []).map((c) => ({
-    id:          String(c.id),
-    name:        String(c.name),
-    amount:      Number(c.amount),
-    periodicity: (c.periodicity as CustoFixo['periodicity']) ?? 'mensal',
-    category:    String(c.category ?? 'outro'),
-  }))
-
-  const saved = params.saved === '1'
+  const saved    = params.saved === '1'
+  const gcalOk   = params.gcal === '1'
+  const gcalErr  = params.gcal === 'error'
 
   return (
     <div className="px-4 py-5 md:px-8 md:py-8 max-w-2xl space-y-5">
@@ -105,8 +89,17 @@ export default async function ConfiguracoesPage({
           ✅ Configurações salvas com sucesso.
         </div>
       )}
+      {gcalOk && (
+        <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 font-medium">
+          ✅ Google Calendar conectado! Seus agendamentos serão sincronizados automaticamente.
+        </div>
+      )}
+      {gcalErr && (
+        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600 font-medium">
+          Erro ao conectar Google Calendar. Tente novamente.
+        </div>
+      )}
 
-      {/* ── Formulário de configurações do perfil ─────────── */}
       <form action={updateSettings} className="space-y-5">
 
         {/* Perfil */}
@@ -276,9 +269,6 @@ export default async function ConfiguracoesPage({
         </div>
       </form>
 
-      {/* ── Custos Fixos — tem suas próprias Server Actions ── */}
-      <CustosFixosSection initialCosts={custos} />
-
       {/* ── Como falar com o Sócio ─────────── */}
       <section className="rounded-2xl bg-[#0F40CB] p-5 space-y-3">
         <h2 className="text-sm font-semibold text-white flex items-center gap-2">
@@ -305,7 +295,7 @@ export default async function ConfiguracoesPage({
         </p>
       </section>
 
-      {/* ── Plano e integrações (somente leitura) ─────────── */}
+      {/* ── Plano e Google Calendar ─────────── */}
       <section className="rounded-2xl bg-white border border-gray-100 shadow-sm p-5 space-y-3">
         <h2 className="text-sm font-semibold text-gray-800">Plano e integrações</h2>
 
@@ -317,16 +307,17 @@ export default async function ConfiguracoesPage({
             </p>
           </div>
           <div className="rounded-xl border border-gray-100 bg-gray-50 px-4 py-3">
-            <p className="text-xs text-gray-400 mb-0.5">WhatsApp (Evolution API)</p>
-            <p className="text-sm font-semibold text-amber-600">Aguardando chip dedicado</p>
-          </div>
-          <div className="rounded-xl border border-gray-100 bg-gray-50 px-4 py-3">
             <p className="text-xs text-gray-400 mb-0.5">Google Calendar</p>
-            <p className="text-sm font-semibold text-gray-400">Não conectado</p>
-          </div>
-          <div className="rounded-xl border border-gray-100 bg-gray-50 px-4 py-3">
-            <p className="text-xs text-gray-400 mb-0.5">Bom Dia Sócio (n8n cron 7h)</p>
-            <p className="text-sm font-semibold text-[#0F40CB]">Ativo no Railway</p>
+            {user?.google_calendar_token ? (
+              <p className="text-sm font-semibold text-[#0F40CB]">✅ Conectado</p>
+            ) : (
+              <a
+                href="/api/auth/google-calendar"
+                className="inline-flex items-center gap-1.5 text-sm font-semibold text-white bg-[#0F40CB] hover:bg-[#0a32a0] transition-colors px-3 py-1.5 rounded-lg mt-1"
+              >
+                Conectar Google Calendar
+              </a>
+            )}
           </div>
         </div>
       </section>

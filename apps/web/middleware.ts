@@ -7,7 +7,8 @@ export function middleware(request: NextRequest) {
     pathname.startsWith('/cadastro') ||
     pathname.startsWith('/auth') ||
     pathname.startsWith('/recuperar-senha') ||
-    pathname.startsWith('/nova-senha')
+    pathname.startsWith('/nova-senha') ||
+    pathname.startsWith('/agendar')
 
   const cookies = request.cookies.getAll()
   const hasSession = cookies.some(

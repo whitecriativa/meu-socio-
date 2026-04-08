@@ -25,14 +25,42 @@ export interface LancamentoInput {
   description: string
   payment_method: string
   competence_date: string
+  client_name?: string | undefined
+}
+
+async function findClientId(
+  supabase: ReturnType<typeof adminClient>,
+  userId: string,
+  name: string,
+): Promise<string | null> {
+  if (!name?.trim()) return null
+  const trimmed = name.trim()
+
+  // Busca exata → parcial → primeira palavra
+  for (const pattern of [trimmed, `%${trimmed}%`, `${trimmed.split(' ')[0]}%`]) {
+    if (pattern.replace(/%/g, '').length < 2) continue
+    const { data } = await supabase
+      .from('clients')
+      .select('id')
+      .eq('user_id', userId)
+      .ilike('name', pattern)
+      .limit(1)
+      .maybeSingle()
+    if (data?.id) return data.id
+  }
+  return null
 }
 
 export async function salvarLancamento(input: LancamentoInput) {
   const userId = await requireUserId()
   const supabase = adminClient()
 
+  // Tenta vincular ao cliente se nome foi fornecido
+  const clientId = input.client_name ? await findClientId(supabase, userId, input.client_name) : null
+
   const { error } = await supabase.from('transactions').insert({
     user_id:         userId,
+    client_id:       clientId,
     type:            input.type,
     amount:          input.amount,
     category:        input.category,

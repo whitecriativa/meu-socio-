@@ -14,6 +14,7 @@ import {
   Settings,
   Zap,
   BookOpen,
+  Radio,
   MoreHorizontal,
   X,
 } from 'lucide-react'
@@ -27,6 +28,7 @@ const NAV_ITEMS = [
   { href: '/tarefas',       label: 'Tarefas',      icon: CheckSquare },
   { href: '/metas',         label: 'Metas',        icon: Target },
   { href: '/gamificacao',   label: 'Conquistas',   icon: Zap },
+  { href: '/radar',         label: 'Radar',        icon: Radio },
   { href: '/aprenda',       label: 'Aprenda',      icon: BookOpen },
   { href: '/calculadora',   label: 'Calculadora',  icon: Calculator },
 ]
@@ -45,6 +47,7 @@ const MOBILE_MORE = [
   { href: '/tarefas',     label: 'Tarefas',     icon: CheckSquare },
   { href: '/metas',       label: 'Metas',       icon: Target },
   { href: '/gamificacao', label: 'Conquistas',  icon: Zap },
+  { href: '/radar',       label: 'Radar',       icon: Radio },
   { href: '/calculadora', label: 'Calculadora', icon: Calculator },
   { href: '/configuracoes', label: 'Config.',   icon: Settings },
 ]

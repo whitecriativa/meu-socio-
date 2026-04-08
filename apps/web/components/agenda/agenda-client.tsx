@@ -31,6 +31,7 @@ export function AgendaClient({ appointments, initialDate }: AgendaClientProps) {
   }
 
   const dayAppointments = appointments.filter((a) => a.date === selected)
+  const selectedSeasonal = seasonalDates[selected]
 
   // Resumo do mês visível
   const monthStr = `${navYear}-${String(navMonth + 1).padStart(2, '0')}`
@@ -77,7 +78,7 @@ export function AgendaClient({ appointments, initialDate }: AgendaClientProps) {
           />
         </div>
         <div className="lg:col-span-3">
-          <AppointmentsList key={selected} date={selected} appointments={dayAppointments} />
+          <AppointmentsList key={selected} date={selected} appointments={dayAppointments} seasonalLabel={selectedSeasonal} />
         </div>
       </div>
     </div>

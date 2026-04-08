@@ -24,6 +24,16 @@ type AptRow = {
   notes: string | null
 }
 
+type TxRow = {
+  id: string
+  type: string
+  amount: number
+  category: string
+  payment_method: string | null
+  description: string | null
+  competence_date: string | null
+}
+
 export interface ClienteDetalhado {
   id: string
   name: string
@@ -40,6 +50,15 @@ export interface ClienteDetalhado {
     price: number
     notes: string | null
   }[]
+  transactions: {
+    id: string
+    type: string
+    amount: number
+    category: string
+    payment_method: string | null
+    description: string | null
+    competence_date: string | null
+  }[]
 }
 
 const COLORS = ['#0F40CB', '#B6F273', '#a78bfa', '#34d399', '#818cf8', '#fbbf24', '#f87171']
@@ -48,7 +67,7 @@ async function getCliente(id: string): Promise<ClienteDetalhado | null> {
   const userId = (await getAuthenticatedUserId()) ?? process.env.NEXT_PUBLIC_DEMO_USER_ID!
   const supabase = adminClient()
 
-  const [{ data: client }, { data: apts }] = await Promise.all([
+  const [{ data: client }, { data: apts }, { data: txs }] = await Promise.all([
     supabase
       .from('clients')
       .select('id, name, phone, status, total_spent, last_contact')
@@ -61,6 +80,13 @@ async function getCliente(id: string): Promise<ClienteDetalhado | null> {
       .eq('client_id', id)
       .eq('user_id', userId)
       .order('scheduled_at', { ascending: false }),
+    supabase
+      .from('transactions')
+      .select('id, type, amount, category, payment_method, description, competence_date')
+      .eq('client_id', id)
+      .eq('user_id', userId)
+      .order('competence_date', { ascending: false })
+      .limit(30),
   ])
 
   if (!client) return null
@@ -97,6 +123,15 @@ async function getCliente(id: string): Promise<ClienteDetalhado | null> {
       status: a.status ?? 'pendente',
       price: Number(a.price ?? 0),
       notes: a.notes,
+    })),
+    transactions: (txs as TxRow[] ?? []).map((t) => ({
+      id: t.id,
+      type: t.type,
+      amount: Number(t.amount),
+      category: t.category,
+      payment_method: t.payment_method,
+      description: t.description,
+      competence_date: t.competence_date,
     })),
   }
 }

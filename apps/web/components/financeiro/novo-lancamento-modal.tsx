@@ -64,6 +64,7 @@ export function NovoLancamentoModal() {
           description:     fd.get('description') as string,
           payment_method:  fd.get('payment_method') as string,
           competence_date: fd.get('competence_date') as string,
+          client_name:     (fd.get('client_name') as string) || undefined,
         })
         handleClose()
       } catch (err) {
@@ -157,17 +158,30 @@ export function NovoLancamentoModal() {
                 </datalist>
               </div>
 
-              {/* Descrição */}
-              <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">
-                  Descrição <span className="text-gray-300">(opcional)</span>
-                </label>
-                <input
-                  name="description"
-                  type="text"
-                  placeholder="Ex: Cliente João, Projeto site..."
-                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm text-gray-900 outline-none focus:border-[#0F40CB] focus:ring-2 focus:ring-[#0F40CB]/10 transition"
-                />
+              {/* Cliente + Descrição */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">
+                    Cliente <span className="text-gray-300">(opcional)</span>
+                  </label>
+                  <input
+                    name="client_name"
+                    type="text"
+                    placeholder="Ex: João Silva"
+                    className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm text-gray-900 outline-none focus:border-[#0F40CB] focus:ring-2 focus:ring-[#0F40CB]/10 transition"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">
+                    Descrição <span className="text-gray-300">(opcional)</span>
+                  </label>
+                  <input
+                    name="description"
+                    type="text"
+                    placeholder="Ex: Projeto site, Consultoria..."
+                    className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm text-gray-900 outline-none focus:border-[#0F40CB] focus:ring-2 focus:ring-[#0F40CB]/10 transition"
+                  />
+                </div>
               </div>
 
               {/* Linha: Forma de pagamento + Data */}

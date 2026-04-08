@@ -131,6 +131,18 @@ async function getData() {
   const netMargin      = totalRevenue > 0 ? Math.round(((totalRevenue - totalExpenses) / totalRevenue) * 100) : 0
   const breakEven      = totalExpenses
 
+  // Inadimplência: parcelas atrasadas (vencidas e não pagas) / valor total de parcelas do mês
+  const allInstallments = (rawContracts as { installments: { amount: number | null; due_date: string; status: string }[] | null }[] ?? [])
+    .flatMap((c) => c.installments ?? [])
+  const overdueAmount = allInstallments
+    .filter((i) => i.status === 'pendente' && i.due_date < now.toISOString().slice(0, 10))
+    .reduce((s, i) => s + Number(i.amount ?? 0), 0)
+  const totalInstallmentAmount = allInstallments
+    .reduce((s, i) => s + Number(i.amount ?? 0), 0)
+  const defaultRate = totalInstallmentAmount > 0
+    ? Math.round((overdueAmount / totalInstallmentAmount) * 100)
+    : 0
+
   // Pie
   const expensesPie = Object.entries(expByCategory).map(([name, value], i) => ({
     name,
@@ -216,7 +228,7 @@ async function getData() {
       cost_per_service: costPerService,
       net_margin: netMargin,
       break_even: breakEven,
-      default_rate: 0,
+      default_rate: defaultRate,
     },
     revenueHistory,
     expensesByCategory:

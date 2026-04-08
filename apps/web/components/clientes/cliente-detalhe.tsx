@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { Phone, Calendar, TrendingUp, Clock, CheckCircle, AlertCircle, RefreshCw, Edit2, X } from 'lucide-react'
+import { Phone, Calendar, TrendingUp, Clock, CheckCircle, AlertCircle, RefreshCw, Edit2, X, ArrowUpCircle, ArrowDownCircle } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { reativarCliente, editarCliente } from '@/app/(dashboard)/clientes/actions'
 import type { ClienteDetalhado } from '@/app/(dashboard)/clientes/[id]/page'
@@ -272,6 +272,46 @@ export function ClienteDetalhe({ cliente }: { cliente: ClienteDetalhado }) {
           )}
         </CardContent>
       </Card>
+
+      {/* Histórico financeiro */}
+      {cliente.transactions.length > 0 && (
+        <Card className="mt-4">
+          <CardHeader>
+            <CardTitle className="text-sm font-semibold text-gray-700 flex items-center gap-1.5">
+              <TrendingUp className="w-4 h-4 text-[#0F40CB]" />
+              Histórico financeiro
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-0">
+            <div className="divide-y divide-gray-50">
+              {cliente.transactions.map((tx) => (
+                <div key={tx.id} className="flex items-start gap-3 px-4 py-3.5">
+                  <div className={`mt-0.5 flex-shrink-0 ${tx.type === 'receita' ? 'text-[#0F40CB]' : 'text-red-400'}`}>
+                    {tx.type === 'receita'
+                      ? <ArrowUpCircle className="w-3.5 h-3.5" />
+                      : <ArrowDownCircle className="w-3.5 h-3.5" />}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-gray-800 capitalize">{tx.category}</p>
+                    {tx.description && (
+                      <p className="text-xs text-gray-400 truncate">{tx.description}</p>
+                    )}
+                    <p className="text-xs text-gray-400">
+                      {formatDate(tx.competence_date)}
+                      {tx.payment_method && ` · ${tx.payment_method.replace('_', ' ')}`}
+                    </p>
+                  </div>
+                  <div className="text-right flex-shrink-0">
+                    <p className={`text-sm font-semibold ${tx.type === 'receita' ? 'text-[#0F40CB]' : 'text-red-500'}`}>
+                      {tx.type === 'receita' ? '+' : '-'}{fmt(tx.amount)}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Último contato */}
       <p className="mt-4 text-xs text-gray-400 text-right">

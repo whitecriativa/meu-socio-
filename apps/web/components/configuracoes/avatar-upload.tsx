@@ -2,7 +2,6 @@
 
 import { useState, useRef } from 'react'
 import { Camera } from 'lucide-react'
-import { createBrowserClient } from '@/lib/supabase'
 
 interface AvatarUploadProps {
   userId: string
@@ -11,9 +10,10 @@ interface AvatarUploadProps {
 }
 
 export function AvatarUpload({ userId, currentUrl, name }: AvatarUploadProps) {
-  const [url, setUrl] = useState(currentUrl)
+  const [url, setUrl]       = useState(currentUrl)
   const [loading, setLoading] = useState(false)
-  const inputRef = useRef<HTMLInputElement>(null)
+  const [error, setError]   = useState('')
+  const inputRef            = useRef<HTMLInputElement>(null)
 
   const initials = name.split(' ').map((w) => w[0]).slice(0, 2).join('').toUpperCase() || 'U'
 
@@ -22,31 +22,24 @@ export function AvatarUpload({ userId, currentUrl, name }: AvatarUploadProps) {
     if (!file) return
 
     if (file.size > 2 * 1024 * 1024) {
-      alert('Imagem muito grande. Máximo 2MB.')
+      setError('Imagem muito grande. Máximo 2MB.')
       return
     }
 
     setLoading(true)
+    setError('')
     try {
-      const supabase = createBrowserClient()
-      const ext = file.name.split('.').pop()
-      const path = `${userId}/avatar.${ext}`
+      const form = new FormData()
+      form.append('file', file)
 
-      const { error } = await supabase.storage
-        .from('avatars')
-        .upload(path, file, { upsert: true })
+      const res = await fetch('/api/avatar', { method: 'POST', body: form })
+      const json = await res.json()
 
-      if (error) throw error
+      if (!res.ok) throw new Error(json.error ?? 'Erro no upload')
 
-      const { data } = supabase.storage.from('avatars').getPublicUrl(path)
-      const publicUrl = `${data.publicUrl}?t=${Date.now()}`
-      setUrl(publicUrl)
-
-      // Salva avatar_url no banco
-      await supabase.from('users').update({ avatar_url: data.publicUrl }).eq('id', userId)
+      setUrl(`${json.url}?t=${Date.now()}`)
     } catch (err) {
-      alert('Erro ao fazer upload. Tente novamente.')
-      console.error(err)
+      setError(err instanceof Error ? err.message : 'Erro ao fazer upload.')
     } finally {
       setLoading(false)
     }
@@ -95,6 +88,7 @@ export function AvatarUpload({ userId, currentUrl, name }: AvatarUploadProps) {
         >
           {url ? 'Trocar foto' : 'Adicionar foto'}
         </button>
+        {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
       </div>
     </div>
   )

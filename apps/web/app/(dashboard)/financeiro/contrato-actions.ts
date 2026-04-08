@@ -45,7 +45,7 @@ export async function criarContrato(formData: FormData) {
     .select('id')
     .single()
 
-  if (!contract) return
+  if (!contract) throw new Error('Erro ao criar contrato. Verifique os dados e tente novamente.')
 
   const parts = firstDueDate.split('-').map(Number)
   const baseYear  = parts[0] ?? new Date().getFullYear()
@@ -97,7 +97,7 @@ export async function pagarParcela(installmentId: string) {
     category:        'Contratos',
     description:     `Parcela ${inst.installment_number}/${contract?.installments_count ?? '?'} — ${contract?.description ?? ''} (${contract?.client_name ?? ''})`,
     competence_date: today,
-    payment_method:  'outros',
+    payment_method:  'outro',
   })
 
   const { data: pendentes } = await supabase

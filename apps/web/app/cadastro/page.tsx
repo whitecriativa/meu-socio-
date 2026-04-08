@@ -52,8 +52,16 @@ export default function CadastroPage() {
       return
     }
 
-    // Inserir na tabela users para o bot conseguir vincular pelo email
     if (loginData?.user) {
+      // Deletar PRIMEIRO o usuário temporário criado pelo bot (mesmo phone, id diferente)
+      // Isso evita UNIQUE violation no phone ao inserir o usuário real logo abaixo
+      await fetch('/api/onboarding/merge', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ authUserId: loginData.user.id, phone }),
+      })
+
+      // Agora que o temp user foi removido, inserir/atualizar o usuário real
       await supabase.from('users').upsert({
         id: loginData.user.id,
         name: form.name,
@@ -61,13 +69,6 @@ export default function CadastroPage() {
         phone,
         onboarding_step: 'completo',
       }, { onConflict: 'id' })
-
-      // Deletar usuário temporário criado pelo bot (mesmo phone, id diferente)
-      await fetch('/api/onboarding/merge', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ authUserId: loginData.user.id, phone }),
-      })
     }
 
     window.location.href = '/'

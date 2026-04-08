@@ -9,4 +9,6 @@ export interface Appointment {
   duration_min: number
   price: number
   status: AppointmentStatus
+  client_phone?: string | undefined
+  notes_raw?: string | undefined
 }
