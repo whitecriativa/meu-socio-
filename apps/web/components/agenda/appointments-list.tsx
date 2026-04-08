@@ -257,7 +257,7 @@ function AptCard({ apt, index, onDelete }: { apt: Appointment; index: number; on
               ))}
               <button
                 onClick={handleWhatsApp}
-                className="flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-lg ml-auto transition-colors"
+                className="flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-lg ml-auto transition-colors border border-[#25D366]/30 hover:bg-[#25D366]/10"
                 style={{ color: '#25D366' }}
               >
                 <MessageCircle className="w-3 h-3" />
