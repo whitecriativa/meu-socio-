@@ -136,19 +136,41 @@ export async function criarAgendamento(input: {
   // Localiza ou cria o cliente (vincula histórico)
   const clientId = await findOrCreateClient(supabase, userId, input.client_name, input.client_phone)
 
-  const { data: apt, error } = await supabase.from('appointments').insert({
+  // Monta notes com nome, local e obs concatenados
+  const notesValue = [input.client_name, input.location, input.notes].filter(Boolean).join(' — ') || null
+
+  // Tenta inserir com colunas extras (migration 009); faz fallback se não existirem
+  let apt: { id: string } | null = null
+  const { data: fullApt, error: fullError } = await supabase.from('appointments').insert({
     user_id:      userId,
     client_id:    clientId,
     service:      input.service,
     scheduled_at,
     status:       dbStatus,
     price:        input.price || null,
-    notes:        [input.client_name, input.location, input.notes].filter(Boolean).join(' — ') || null,
+    notes:        notesValue,
     client_name:  input.client_name || null,
     client_phone: input.client_phone || null,
   }).select('id').single()
 
-  if (error) throw new Error(error.message)
+  if (!fullError) {
+    apt = fullApt
+  } else if (fullError.message?.includes('client_name') || fullError.message?.includes('client_phone') || fullError.code === '42703') {
+    // Coluna não existe ainda — insere sem ela (migration pendente)
+    const { data: basicApt, error: basicError } = await supabase.from('appointments').insert({
+      user_id:      userId,
+      client_id:    clientId,
+      service:      input.service,
+      scheduled_at,
+      status:       dbStatus,
+      price:        input.price || null,
+      notes:        notesValue,
+    }).select('id').single()
+    if (basicError) throw new Error(basicError.message)
+    apt = basicApt
+  } else {
+    throw new Error(fullError.message)
+  }
 
   // Atualiza last_contact do cliente (silencioso)
   if (clientId) {
@@ -175,7 +197,7 @@ export async function criarAgendamento(input: {
         durationMin:   60,
       })
       // Salvar eventId e token atualizado
-      await supabase.from('appointments').update({ google_calendar_event_id: eventId }).eq('id', apt.id)
+      if (apt?.id) await supabase.from('appointments').update({ google_calendar_event_id: eventId }).eq('id', apt.id)
       if (updatedToken.access_token !== token.access_token) {
         await supabase.from('users').update({ google_calendar_token: updatedToken }).eq('id', userId)
       }
