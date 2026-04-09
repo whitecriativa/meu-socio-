@@ -13,6 +13,7 @@ export interface CustoFixo {
   amount: number
   periodicity: 'mensal' | 'semanal' | 'anual'
   category: string
+  due_day?: number | null
 }
 
 interface Props {
@@ -134,7 +135,7 @@ export function CustosFixosSection({ initialCosts }: Props) {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-3 gap-3">
             <div className="space-y-1">
               <label className="text-xs font-medium text-gray-600">Valor (R$)</label>
               <input
@@ -157,6 +158,17 @@ export function CustosFixosSection({ initialCosts }: Props) {
                 <option value="semanal">Semanal</option>
                 <option value="anual">Anual</option>
               </select>
+            </div>
+            <div className="space-y-1">
+              <label className="text-xs font-medium text-gray-600">Dia de vencimento</label>
+              <input
+                name="due_day"
+                type="number"
+                min="1"
+                max="31"
+                placeholder="Ex: 10"
+                className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#0F40CB] focus:ring-2 focus:ring-[#0F40CB]/10 transition"
+              />
             </div>
           </div>
 
@@ -195,7 +207,10 @@ export function CustosFixosSection({ initialCosts }: Props) {
               </div>
               <div className="text-right flex-shrink-0">
                 <p className="text-sm font-semibold text-gray-800">{fmt(c.amount)}</p>
-                <p className="text-[10px] text-gray-400">{PERIOD_LABELS[c.periodicity] ?? '/mês'}</p>
+                <p className="text-[10px] text-gray-400">
+                  {PERIOD_LABELS[c.periodicity] ?? '/mês'}
+                  {c.due_day ? ` · vence dia ${c.due_day}` : ''}
+                </p>
               </div>
               {toMonthly(c.amount, c.periodicity) !== c.amount && (
                 <div className="text-right flex-shrink-0 text-[10px] text-[#0F40CB] font-medium w-16">

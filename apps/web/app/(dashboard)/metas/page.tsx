@@ -1,5 +1,5 @@
 import { getAuthenticatedUserId } from '@/lib/get-user-id'
-import { Star, Flame, Target, Trophy, Heart, Zap } from 'lucide-react'
+import { Star, Flame, Target, Trophy, Zap } from 'lucide-react'
 import { EditarMetaModal } from '@/components/metas/editar-meta-modal'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
@@ -61,7 +61,7 @@ async function getData() {
   const daysLeft = daysInMonth - daysPassed
 
   const [{ data: user }, { data: txs }, { data: completedTasks }] = await Promise.all([
-    supabase.from('users').select('name, monthly_goal, dream').eq('id', userId).maybeSingle(),
+    supabase.from('users').select('name, monthly_goal').eq('id', userId).maybeSingle(),
     supabase.from('transactions').select('type, amount').eq('user_id', userId)
       .gte('competence_date', monthStart).lte('competence_date', today),
     supabase.from('tasks').select('quadrant, completed_at').eq('user_id', userId)
@@ -102,7 +102,6 @@ async function getData() {
   const monthLabel = monthName.charAt(0).toUpperCase() + monthName.slice(1)
 
   return {
-    dream: (user?.dream as string) ?? '',
     target,
     achieved,
     daysLeft,
@@ -115,7 +114,7 @@ async function getData() {
 }
 
 export default async function MetasPage() {
-  const { dream, target, achieved, daysLeft, projection, monthLabel, totalPoints, streak, totalReceitas } =
+  const { target, achieved, daysLeft, projection, monthLabel, totalPoints, streak, totalReceitas } =
     await getData()
 
   const goalPercent   = target > 0 ? Math.min(100, Math.round((achieved / target) * 100)) : 0
@@ -144,47 +143,8 @@ export default async function MetasPage() {
           <h1 className="text-xl font-bold text-gray-900">Metas</h1>
           <p className="text-sm text-gray-500 mt-0.5">Seu progresso e conquistas</p>
         </div>
-        <EditarMetaModal currentGoal={target} currentDream={dream} />
+        <EditarMetaModal currentGoal={target} currentDream="" />
       </div>
-
-      {/* Card do sonho */}
-      <Card className="bg-[#0F40CB] border-0 text-white relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-32 h-32 rounded-full bg-white/5 -translate-y-8 translate-x-8" />
-        <div className="absolute bottom-0 left-10 w-20 h-20 rounded-full bg-[#B6F273]/20 translate-y-6" />
-        <CardContent className="p-5 relative">
-          <div className="flex items-start justify-between mb-2">
-            <div>
-              <p className="text-white/60 text-xs mb-1 flex items-center gap-1">
-                <Heart className="w-3 h-3" /> Seu sonho
-              </p>
-              <h2 className="text-lg font-bold text-white">
-                {dream || 'Clique em "Editar meta" para definir seu sonho'}
-              </h2>
-              {!dream && (
-                <p className="text-white/60 text-xs mt-1">
-                  Mande: &quot;Meu sonho é [descreva aqui]&quot;
-                </p>
-              )}
-            </div>
-            <span className="text-3xl">✨</span>
-          </div>
-          {target > 0 && (
-            <div className="mt-3">
-              <div className="flex justify-between text-xs mb-1.5">
-                <span className="text-white/70">Conquistado este mês</span>
-                <span className="text-white font-semibold">{fmt(achieved)}</span>
-              </div>
-              <div className="w-full bg-white/20 rounded-full h-2">
-                <div
-                  className="h-2 rounded-full transition-all duration-500"
-                  style={{ width: `${goalPercent}%`, backgroundColor: '#B6F273' }}
-                />
-              </div>
-              <p className="text-white/50 text-xs mt-1.5">Meta mensal: {fmt(target)}</p>
-            </div>
-          )}
-        </CardContent>
-      </Card>
 
       {/* Termômetro da meta mensal */}
       {target > 0 ? (

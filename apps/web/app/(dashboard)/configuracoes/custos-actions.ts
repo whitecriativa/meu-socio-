@@ -26,6 +26,8 @@ export async function adicionarCusto(formData: FormData) {
   const amount      = parseFloat(String(formData.get('amount') ?? '0').replace(',', '.'))
   const periodicity = String(formData.get('periodicity') ?? 'mensal')
   const category    = String(formData.get('category') ?? 'outro')
+  const dueDayRaw   = parseInt(String(formData.get('due_day') ?? ''))
+  const due_day     = !isNaN(dueDayRaw) && dueDayRaw >= 1 && dueDayRaw <= 31 ? dueDayRaw : null
 
   if (!name || amount <= 0) return
 
@@ -35,6 +37,7 @@ export async function adicionarCusto(formData: FormData) {
     amount,
     periodicity,
     category,
+    due_day,
   })
 
   revalidatePath('/configuracoes')

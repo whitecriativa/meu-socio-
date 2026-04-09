@@ -21,7 +21,21 @@ function adminClient() {
 
 
 type TxRow    = { type: string | null; amount: number | null; competence_date: string | null }
-type AptRow   = { id: string; service: string | null; scheduled_at: string | null; status: string | null; clients: { name: string | null }[] | null }
+type AptRow   = { id: string; service: string | null; scheduled_at: string | null; status: string | null; notes: string | null; client_name?: string | null; clients: { name: string | null }[] | null }
+
+const GENERIC_NAMES = new Set(['cliente', 'sem nome', 'amigo', 'usuário', 'user', '', 'null', 'undefined'])
+function extractAptName(row: AptRow): string {
+  const candidates = [
+    row.client_name?.trim(),
+    row.clients?.[0]?.name?.trim(),
+    row.notes?.includes(' — ') ? row.notes.split(' — ')[0]!.trim() : null,
+    (row.notes?.trim() && !row.notes.includes(' — ') && row.notes.trim().length < 60) ? row.notes.trim() : null,
+  ]
+  for (const c of candidates) {
+    if (c && !GENERIC_NAMES.has(c.toLowerCase())) return c
+  }
+  return ''
+}
 type TaskRow  = { id: string; title: string | null; quadrant: string | null; completed_at: string | null }
 type AlertRow = { id: string; type: string; title: string; message: string; created_at: string }
 type GamifRow = { total_points: number | null; current_level: string | null; current_streak: number | null }
@@ -54,7 +68,7 @@ async function getDashboardData() {
     supabase.from('transactions').select('amount').eq('user_id', userId).eq('type', 'receita').eq('competence_date', yesterday),
     supabase.from('transactions').select('type, amount').eq('user_id', userId).gte('competence_date', monthStart).lte('competence_date', today),
     supabase.from('transactions').select('amount').eq('user_id', userId).eq('type', 'receita').gte('competence_date', prevMonthStart).lt('competence_date', prevMonthEnd),
-    supabase.from('appointments').select('id, service, scheduled_at, status, clients(name)')
+    supabase.from('appointments').select('id, service, scheduled_at, status, notes, client_name, clients(name)')
       .eq('user_id', userId)
       .gte('scheduled_at', `${today}T00:00:00`)
       .lte('scheduled_at', `${new Date(now.getTime() + 7 * 86400000).toISOString().substring(0, 10)}T23:59:59`)
@@ -88,7 +102,7 @@ async function getDashboardData() {
   const aptRows = (apts as AptRow[] ?? [])
   const appointments = aptRows.map((a) => ({
     id:          a.id,
-    client_name: a.clients?.[0]?.name ?? 'Cliente',
+    client_name: extractAptName(a) || a.service || 'Agendamento',
     service:     a.service ?? '—',
     time:        a.scheduled_at ? new Date(a.scheduled_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : '—',
     status:      (a.status === 'confirmado' ? 'confirmado' : 'aguardando') as 'confirmado' | 'aguardando',

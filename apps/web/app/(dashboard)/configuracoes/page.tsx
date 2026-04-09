@@ -233,34 +233,19 @@ export default async function ConfiguracoesPage({
 
         {/* Metas */}
         <section className="rounded-2xl bg-white border border-gray-100 shadow-sm p-5 space-y-4">
-          <h2 className="text-sm font-semibold text-gray-800">Metas e sonho</h2>
+          <h2 className="text-sm font-semibold text-gray-800">Meta mensal</h2>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-1.5">
-              <label className="text-xs font-medium text-gray-600">Meta mensal de faturamento (R$)</label>
-              <input
-                type="number"
-                name="monthly_goal"
-                min="0"
-                step="0.01"
-                defaultValue={user?.monthly_goal ?? ''}
-                placeholder="Ex: 5000"
-                className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm outline-none focus:border-[#0F40CB] focus:ring-2 focus:ring-[#0F40CB]/10 transition"
-              />
-            </div>
-
-            <div className="space-y-1.5">
-              <label className="text-xs font-medium text-gray-600">
-                Seu sonho <span className="text-gray-400 font-normal">(opcional)</span>
-              </label>
-              <input
-                name="dream"
-                type="text"
-                defaultValue={user?.dream ?? ''}
-                placeholder="Ex: Viagem para a Europa, trocar de carro..."
-                className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm outline-none focus:border-[#0F40CB] focus:ring-2 focus:ring-[#0F40CB]/10 transition"
-              />
-            </div>
+          <div className="space-y-1.5 max-w-xs">
+            <label className="text-xs font-medium text-gray-600">Meta de faturamento (R$)</label>
+            <input
+              type="number"
+              name="monthly_goal"
+              min="0"
+              step="0.01"
+              defaultValue={user?.monthly_goal ?? ''}
+              placeholder="Ex: 5000"
+              className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm outline-none focus:border-[#0F40CB] focus:ring-2 focus:ring-[#0F40CB]/10 transition"
+            />
           </div>
         </section>
 
