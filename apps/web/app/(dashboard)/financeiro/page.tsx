@@ -293,7 +293,7 @@ export default async function FinanceiroPage({
 }: {
   searchParams?: Promise<{ mes?: string }>
 }) {
-  const params = await (searchParams ?? Promise.resolve({}))
+  const params = await (searchParams ?? Promise.resolve({} as { mes?: string }))
   const { pjData, pfData, custosFixos, currentPeriod } = await getData(params.mes)
 
   return (
