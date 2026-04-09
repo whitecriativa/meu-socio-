@@ -92,7 +92,7 @@ async function getAppointments(): Promise<Appointment[]> {
 
   return rows.map((row) => {
     const dt   = row.scheduled_at ? new Date(row.scheduled_at) : new Date()
-    const date = dt.toISOString().slice(0, 10)
+    const date = dt.toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo', year: 'numeric', month: '2-digit', day: '2-digit' }).split('/').reverse().join('-')
     const time = dt.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo' })
 
     const notesClean = row.notes?.includes(' — ')

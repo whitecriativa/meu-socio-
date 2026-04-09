@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="192" height="192" viewBox="0 0 192 192">
+  <rect width="192" height="192" rx="42.24" fill="#1A35D4"/>
+  <!-- Bolha verde (topo) -->
+  <rect x="23.04" y="38.400000000000006" width="105.60000000000001" height="42.24" rx="34.56" fill="#7ED957"/>
+  <!-- Bolha azul claro (baixo, com cauda) -->
+  <rect x="23.04" y="96" width="96" height="42.24" rx="34.56" fill="#A8D8F0"/>
+  <polygon points="30.72,138.24 23.04,153.60000000000002 49.92,138.24" fill="#A8D8F0"/>
+</svg>

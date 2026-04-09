@@ -129,7 +129,7 @@ export async function criarAgendamento(input: {
 }) {
   const userId   = await requireUserId()
   const supabase = adminClient()
-  const scheduled_at = `${input.date}T${input.time}:00`
+  const scheduled_at = `${input.date}T${input.time}:00-03:00`
 
   const dbStatus = input.status === 'pendente' ? 'aguardando_confirmacao' : input.status
 
