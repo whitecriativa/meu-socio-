@@ -74,6 +74,18 @@ export async function salvarLancamento(input: LancamentoInput) {
   revalidatePath('/financeiro')
 }
 
+export async function editarDataLancamento(id: string, competence_date: string) {
+  const userId = await requireUserId()
+  const supabase = adminClient()
+  const { error } = await supabase
+    .from('transactions')
+    .update({ competence_date })
+    .eq('id', id)
+    .eq('user_id', userId)
+  if (error) throw new Error(error.message)
+  revalidatePath('/financeiro')
+}
+
 export async function excluirLancamento(id: string) {
   const userId = await requireUserId()
   const supabase = adminClient()

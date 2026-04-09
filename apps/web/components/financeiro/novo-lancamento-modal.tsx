@@ -25,7 +25,8 @@ const PAGAMENTOS = [
   { label: 'Outro',            value: 'outro' },
 ]
 
-const TODAY = new Date().toISOString().slice(0, 10)
+// Usa fuso de São Paulo para não pegar o dia errado
+const TODAY = new Date().toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo', year: 'numeric', month: '2-digit', day: '2-digit' }).split('/').reverse().join('-')
 
 export function NovoLancamentoModal() {
   const [open, setOpen]         = useState(false)

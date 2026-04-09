@@ -1,9 +1,9 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { Trash2, TrendingUp, TrendingDown, ChevronDown, ChevronUp } from 'lucide-react'
+import { Trash2, TrendingUp, TrendingDown, ChevronDown, ChevronUp, Pencil, Check, X } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { excluirLancamento } from '@/app/(dashboard)/financeiro/actions'
+import { excluirLancamento, editarDataLancamento } from '@/app/(dashboard)/financeiro/actions'
 
 export interface LancamentoItem {
   id: string
@@ -33,6 +33,44 @@ const PAYMENT_LABELS: Record<string, string> = {
   boleto: 'Boleto',
 }
 
+function EditDateInline({ item, onSave }: { item: LancamentoItem; onSave: (id: string, date: string) => void }) {
+  const [editing, setEditing] = useState(false)
+  const [val, setVal]         = useState(item.competence_date)
+
+  if (!editing) {
+    return (
+      <button
+        onClick={() => setEditing(true)}
+        className="text-xs text-gray-400 hover:text-[#0F40CB] flex items-center gap-0.5 transition-colors"
+        title="Editar data"
+      >
+        {formatDate(item.competence_date)}
+        <Pencil className="w-2.5 h-2.5 opacity-0 group-hover:opacity-100" />
+      </button>
+    )
+  }
+
+  return (
+    <span className="flex items-center gap-1">
+      <input
+        type="date"
+        value={val}
+        onChange={(e) => setVal(e.target.value)}
+        className="text-xs border border-[#0F40CB] rounded-lg px-1.5 py-0.5 outline-none"
+        autoFocus
+      />
+      <button onClick={() => { onSave(item.id, val); setEditing(false) }}
+        className="p-0.5 rounded hover:bg-[#B6F273]/20 text-[#0F40CB]">
+        <Check className="w-3 h-3" />
+      </button>
+      <button onClick={() => { setVal(item.competence_date); setEditing(false) }}
+        className="p-0.5 rounded hover:bg-red-50 text-gray-400">
+        <X className="w-3 h-3" />
+      </button>
+    </span>
+  )
+}
+
 export function LancamentosList({ items }: { items: LancamentoItem[] }) {
   const [expanded, setExpanded] = useState(true)
   const [list, setList] = useState(items)
@@ -41,6 +79,11 @@ export function LancamentosList({ items }: { items: LancamentoItem[] }) {
   function handleDelete(id: string) {
     setList((prev) => prev.filter((i) => i.id !== id))
     startTransition(() => { excluirLancamento(id) })
+  }
+
+  function handleEditDate(id: string, date: string) {
+    setList((prev) => prev.map((i) => i.id === id ? { ...i, competence_date: date } : i))
+    startTransition(() => { editarDataLancamento(id, date) })
   }
 
   const receitas = list.filter((i) => i.type === 'receita').reduce((s, i) => s + i.amount, 0)
@@ -98,7 +141,7 @@ export function LancamentosList({ items }: { items: LancamentoItem[] }) {
                         </span>
                       </div>
                       <div className="flex items-center gap-2 mt-0.5">
-                        <span className="text-xs text-gray-400">{formatDate(item.competence_date)}</span>
+                        <EditDateInline item={item} onSave={handleEditDate} />
                         {item.payment_method && (
                           <span className="text-xs text-gray-400">
                             · {PAYMENT_LABELS[item.payment_method] ?? item.payment_method}
