@@ -6,13 +6,12 @@ import { salvarMeta } from '@/app/(dashboard)/metas/actions'
 
 interface EditarMetaModalProps {
   currentGoal: number
-  currentDream: string
+  currentDream: string // mantido por compatibilidade, não usado
 }
 
-export function EditarMetaModal({ currentGoal, currentDream }: EditarMetaModalProps) {
+export function EditarMetaModal({ currentGoal }: EditarMetaModalProps) {
   const [open, setOpen]              = useState(false)
   const [goal, setGoal]              = useState(String(currentGoal || ''))
-  const [dream, setDream]            = useState(currentDream || '')
   const [error, setError]            = useState('')
   const [isPending, startTransition] = useTransition()
 
@@ -20,7 +19,6 @@ export function EditarMetaModal({ currentGoal, currentDream }: EditarMetaModalPr
     setOpen(false)
     setError('')
     setGoal(String(currentGoal || ''))
-    setDream(currentDream || '')
   }
 
   function handleSubmit(e: React.FormEvent) {
@@ -35,7 +33,7 @@ export function EditarMetaModal({ currentGoal, currentDream }: EditarMetaModalPr
 
     startTransition(async () => {
       try {
-        await salvarMeta({ monthly_goal: amount, dream })
+        await salvarMeta({ monthly_goal: amount, dream: '' })
         setOpen(false)
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Erro ao salvar')
@@ -61,7 +59,10 @@ export function EditarMetaModal({ currentGoal, currentDream }: EditarMetaModalPr
         >
           <div className="bg-white rounded-2xl w-full max-w-md shadow-xl">
             <div className="flex items-center justify-between px-5 pt-5 pb-3">
-              <h2 className="text-base font-bold text-gray-900">Sua meta e sonho</h2>
+              <div>
+                <h2 className="text-base font-bold text-gray-900">Meta de faturamento</h2>
+                <p className="text-xs text-gray-400 mt-0.5">Quanto o negócio precisa faturar por mês?</p>
+              </div>
               <button onClick={handleClose} className="p-1 rounded-lg hover:bg-gray-100 transition-colors">
                 <X className="w-4 h-4 text-gray-500" />
               </button>
@@ -76,28 +77,13 @@ export function EditarMetaModal({ currentGoal, currentDream }: EditarMetaModalPr
                   min="1"
                   value={goal}
                   onChange={(e) => setGoal(e.currentTarget.value)}
-                  placeholder="Ex: 5000"
+                  placeholder="Ex: 8000"
                   required
+                  autoFocus
                   className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm outline-none focus:border-[#0F40CB] focus:ring-2 focus:ring-[#0F40CB]/10 transition"
                 />
                 <p className="text-[10px] text-gray-400 mt-1">
-                  Quanto você quer faturar por mês?
-                </p>
-              </div>
-
-              <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">
-                  Seu sonho <span className="text-gray-300">(opcional)</span>
-                </label>
-                <input
-                  type="text"
-                  value={dream}
-                  onChange={(e) => setDream(e.currentTarget.value)}
-                  placeholder="Ex: Viagem para Europa, trocar de carro..."
-                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm outline-none focus:border-[#0F40CB] focus:ring-2 focus:ring-[#0F40CB]/10 transition"
-                />
-                <p className="text-[10px] text-gray-400 mt-1">
-                  O Sócio vai usar isso nas mensagens motivacionais.
+                  O Sócio vai acompanhar o progresso e te avisar como está o ritmo de vendas.
                 </p>
               </div>
 

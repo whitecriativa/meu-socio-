@@ -123,8 +123,8 @@ export default async function MetasPage() {
     <div className="px-4 py-5 md:px-8 md:py-8 max-w-2xl space-y-5">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-xl font-bold text-gray-900">Metas</h1>
-          <p className="text-sm text-gray-500 mt-0.5">Acompanhe seu progresso de {monthLabel}</p>
+          <h1 className="text-xl font-bold text-gray-900">Metas do negócio</h1>
+          <p className="text-sm text-gray-500 mt-0.5">Faturamento e desempenho — {monthLabel}</p>
         </div>
         <EditarMetaModal currentGoal={target} currentDream="" />
       </div>
@@ -136,7 +136,7 @@ export default async function MetasPage() {
             <CardTitle className="flex items-center justify-between text-sm font-semibold text-gray-700">
               <span className="flex items-center gap-1.5">
                 <Target className="w-4 h-4 text-[#0F40CB]" />
-                Meta de {monthLabel}
+                Meta de faturamento — {monthLabel}
               </span>
               <span
                 className={`text-xs font-semibold px-2.5 py-1 rounded-full ${
@@ -182,8 +182,8 @@ export default async function MetasPage() {
         <Card>
           <CardContent className="py-8 text-center">
             <Target className="w-8 h-8 text-gray-300 mx-auto mb-2" />
-            <p className="text-sm font-medium text-gray-600">Meta mensal não definida</p>
-            <p className="text-xs text-gray-400 mt-1">Use o botão &quot;Editar meta&quot; acima ou mande mensagem no WhatsApp</p>
+            <p className="text-sm font-medium text-gray-600">Meta de faturamento não definida</p>
+            <p className="text-xs text-gray-400 mt-1">Defina quanto o negócio precisa faturar por mês para acompanhar o progresso.</p>
           </CardContent>
         </Card>
       )}
@@ -208,7 +208,7 @@ export default async function MetasPage() {
         <CardHeader>
           <CardTitle className="flex items-center gap-1.5 text-sm font-semibold text-gray-700">
             <Lightbulb className="w-4 h-4 text-[#0F40CB]" />
-            O que seu Sócio recomenda
+            Análise do negócio
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">

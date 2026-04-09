@@ -1,13 +1,13 @@
 import { createClient } from '@supabase/supabase-js'
 import { getAuthenticatedUserId } from '@/lib/get-user-id'
-import { HeroCard }            from '@/components/dashboard/hero-card'
-import { QuickAccess }         from '@/components/dashboard/quick-access'
-import { AlertsList }          from '@/components/dashboard/alerts-list'
-import { FinancialHealth }     from '@/components/dashboard/financial-health'
-import { AppointmentsCard }    from '@/components/dashboard/appointments-card'
-import { TasksCard }           from '@/components/dashboard/tasks-card'
-import { GamificationCompact } from '@/components/dashboard/gamification-compact'
-import { LearnPreview }        from '@/components/dashboard/learn-preview'
+import { HeroCard }         from '@/components/dashboard/hero-card'
+import { QuickAccess }      from '@/components/dashboard/quick-access'
+import { AlertsList }       from '@/components/dashboard/alerts-list'
+import { FinancialHealth }  from '@/components/dashboard/financial-health'
+import { AppointmentsCard } from '@/components/dashboard/appointments-card'
+import { TasksCard }        from '@/components/dashboard/tasks-card'
+import { LearnPreview }     from '@/components/dashboard/learn-preview'
+import { BusinessInsights } from '@/components/dashboard/business-insights'
 
 export const dynamic = 'force-dynamic'
 
@@ -19,9 +19,9 @@ function adminClient() {
   )
 }
 
-
-type TxRow    = { type: string | null; amount: number | null; competence_date: string | null }
-type AptRow   = { id: string; service: string | null; scheduled_at: string | null; status: string | null; notes: string | null; client_name?: string | null; clients: { name: string | null }[] | null }
+type TxRow  = { type: string | null; amount: number | null; competence_date: string | null; client_id: string | null }
+type AptRow = { id: string; service: string | null; scheduled_at: string | null; status: string | null; notes: string | null; client_name?: string | null; clients: { name: string | null }[] | null }
+type TaskRow = { id: string; title: string | null; quadrant: string | null; completed_at: string | null }
 
 const GENERIC_NAMES = new Set(['cliente', 'sem nome', 'amigo', 'usuário', 'user', '', 'null', 'undefined'])
 function extractAptName(row: AptRow): string {
@@ -36,9 +36,6 @@ function extractAptName(row: AptRow): string {
   }
   return ''
 }
-type TaskRow  = { id: string; title: string | null; quadrant: string | null; completed_at: string | null }
-type AlertRow = { id: string; type: string; title: string; message: string; created_at: string }
-type GamifRow = { total_points: number | null; current_level: string | null; current_streak: number | null }
 
 async function getDashboardData() {
   const userId = (await getAuthenticatedUserId()) ?? process.env.NEXT_PUBLIC_DEMO_USER_ID!
@@ -49,9 +46,8 @@ async function getDashboardData() {
   const yesterday  = new Date(now.getTime() - 86400000).toISOString().substring(0, 10)
   const monthStart = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`
 
-  // Mês passado
-  const prevMonth     = now.getMonth() === 0 ? 11 : now.getMonth() - 1
-  const prevYear      = now.getMonth() === 0 ? now.getFullYear() - 1 : now.getFullYear()
+  const prevMonth      = now.getMonth() === 0 ? 11 : now.getMonth() - 1
+  const prevYear       = now.getMonth() === 0 ? now.getFullYear() - 1 : now.getFullYear()
   const prevMonthStart = `${prevYear}-${String(prevMonth + 1).padStart(2, '0')}-01`
   const prevMonthEnd   = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`
 
@@ -62,11 +58,10 @@ async function getDashboardData() {
     { data: txPrevMonth },
     { data: apts },
     { data: tasks },
-    { data: gamif },
   ] = await Promise.all([
     supabase.from('users').select('name, monthly_goal').eq('id', userId).maybeSingle(),
     supabase.from('transactions').select('amount').eq('user_id', userId).eq('type', 'receita').eq('competence_date', yesterday),
-    supabase.from('transactions').select('type, amount').eq('user_id', userId).gte('competence_date', monthStart).lte('competence_date', today),
+    supabase.from('transactions').select('type, amount, client_id').eq('user_id', userId).gte('competence_date', monthStart).lte('competence_date', today),
     supabase.from('transactions').select('amount').eq('user_id', userId).eq('type', 'receita').gte('competence_date', prevMonthStart).lt('competence_date', prevMonthEnd),
     supabase.from('appointments').select('id, service, scheduled_at, status, notes, client_name, clients(name)')
       .eq('user_id', userId)
@@ -79,14 +74,11 @@ async function getDashboardData() {
       .eq('user_id', userId)
       .order('created_at', { ascending: false })
       .limit(5),
-    supabase.from('user_gamification')
-      .select('total_points, current_level, current_streak')
-      .eq('user_id', userId)
-      .maybeSingle(),
   ])
 
-  const monthTxs = (txMonth as TxRow[] ?? [])
-  const revenueMonth  = monthTxs.filter((t) => t.type === 'receita').reduce((s, t) => s + Number(t.amount ?? 0), 0)
+  const monthTxs      = (txMonth as TxRow[] ?? [])
+  const receitas      = monthTxs.filter((t) => t.type === 'receita')
+  const revenueMonth  = receitas.reduce((s, t) => s + Number(t.amount ?? 0), 0)
   const expensesMonth = monthTxs.filter((t) => t.type === 'despesa').reduce((s, t) => s + Number(t.amount ?? 0), 0)
 
   const revenueYesterday = (txYesterday as { amount: number | null }[] ?? []).reduce((s, t) => s + Number(t.amount ?? 0), 0)
@@ -97,6 +89,14 @@ async function getDashboardData() {
   const vsLastMonth = revenuePrevMonth > 0
     ? Math.round(((revenueMonth - revenuePrevMonth) / revenuePrevMonth) * 100)
     : 0
+
+  // Indicadores do negócio
+  const totalVendas    = receitas.length
+  const ticketMedio    = totalVendas > 0 ? Math.round(revenueMonth / totalVendas) : 0
+  const clientesUnicos = new Set(receitas.map((t) => t.client_id).filter(Boolean)).size
+  const daysInMonth    = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate()
+  const daysPassed     = now.getDate()
+  const projecao       = daysPassed > 0 ? Math.round((revenueMonth / daysPassed) * daysInMonth) : 0
 
   // Appointments
   const aptRows = (apts as AptRow[] ?? [])
@@ -119,17 +119,6 @@ async function getDashboardData() {
     done:     Boolean(t.completed_at),
   }))
 
-  // Gamification
-  const gRow = gamif as GamifRow | null
-  const LEVEL_LABELS: Record<string, string> = {
-    semente: 'Nível Semente 🌱', broto: 'Nível Broto 🌿', arvore: 'Nível Árvore 🌳',
-    estrela: 'Nível Estrela ⭐', cristal: 'Nível Cristal 💎', socio_ouro: 'Sócio Ouro 🏆',
-  }
-  const XP_NEEDED: Record<string, number> = {
-    semente: 500, broto: 1500, arvore: 4000, estrela: 10000, cristal: 25000, socio_ouro: 50000,
-  }
-  const currentLevel = String(gRow?.current_level ?? 'semente')
-
   return {
     revenueMonth,
     expensesMonth,
@@ -138,26 +127,14 @@ async function getDashboardData() {
     goalPercent,
     vsLastMonth,
     appointments,
-    tasks:      taskList,
+    tasks: taskList,
     smartAlerts: [],
-    gamification: gRow ? {
-      levelKey:   currentLevel,
-      levelLabel: LEVEL_LABELS[currentLevel] ?? 'Nível Semente 🌱',
-      xpCurrent:  Number(gRow.total_points ?? 0),
-      xpNeeded:   XP_NEEDED[currentLevel] ?? 500,
-      streak:     Number(gRow.current_streak ?? 0),
-    } : null,
+    insights: { totalVendas, ticketMedio, clientesUnicos, projecao },
   }
 }
 
 export default async function DashboardPage() {
   const d = await getDashboardData()
-
-  const MOCK_MISSIONS = [
-    { id: 'm1', title: 'Registrar 1 venda hoje',   completed: d.revenueMonth > 0 },
-    { id: 'm2', title: 'Verificar agenda do dia',   completed: d.appointments.length > 0 },
-    { id: 'm3', title: 'Concluir 1 tarefa da lista', completed: d.tasks.some((t) => t.done) },
-  ]
 
   return (
     <div className="px-4 py-5 md:px-8 md:py-8 max-w-2xl space-y-4">
@@ -190,30 +167,28 @@ export default async function DashboardPage() {
       {/* 3. Acesso rápido */}
       <QuickAccess />
 
-      {/* 3. Alertas */}
+      {/* 4. Alertas */}
       {d.smartAlerts.length > 0 && <AlertsList alerts={d.smartAlerts} />}
 
-      {/* 4. Saúde financeira */}
+      {/* 5. Saúde financeira */}
       <FinancialHealth revenue={d.revenueMonth} expenses={d.expensesMonth} />
 
-      {/* 5. Agenda + Tarefas */}
+      {/* 6. Indicadores do negócio */}
+      <BusinessInsights
+        totalVendas={d.insights.totalVendas}
+        ticketMedio={d.insights.ticketMedio}
+        clientesUnicos={d.insights.clientesUnicos}
+        projecao={d.insights.projecao}
+        goalTarget={d.goalTarget}
+      />
+
+      {/* 7. Agenda + Tarefas */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <AppointmentsCard appointments={d.appointments} />
         <TasksCard tasks={d.tasks} />
       </div>
 
-      {/* 6. Gamificação compacta */}
-      {d.gamification && (
-        <GamificationCompact
-          level={d.gamification.levelLabel}
-          xpCurrent={d.gamification.xpCurrent}
-          xpNeeded={d.gamification.xpNeeded}
-          streak={d.gamification.streak}
-          missions={MOCK_MISSIONS}
-        />
-      )}
-
-      {/* 7. Preview do Aprenda */}
+      {/* 8. Preview do Aprenda */}
       <LearnPreview />
     </div>
   )
