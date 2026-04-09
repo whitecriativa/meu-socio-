@@ -10,6 +10,7 @@ export interface CustoFixo {
   amount: number
   periodicity: string
   category: string
+  due_day?: number | null
 }
 
 const CATEGORIAS = [

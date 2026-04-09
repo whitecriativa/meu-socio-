@@ -86,7 +86,7 @@ async function getData(selectedPeriod?: string) {
       .order('created_at', { ascending: false }),
     supabase
       .from('costs_fixed')
-      .select('id, name, amount, periodicity, category')
+      .select('id, name, amount, periodicity, category, due_day')
       .eq('user_id', userId)
       .order('created_at', { ascending: true }),
   ])
@@ -276,16 +276,40 @@ async function getData(selectedPeriod?: string) {
     contratos: [],
   }
 
-  type CostRow = { id: string; name: string; amount: number | null; periodicity: string | null; category: string | null }
+  type CostRow = { id: string; name: string; amount: number | null; periodicity: string | null; category: string | null; due_day: number | null }
   const custosFixos = (rawCosts as CostRow[] ?? []).map((c) => ({
     id:          c.id,
     name:        c.name,
     amount:      Number(c.amount ?? 0),
     periodicity: c.periodicity ?? 'mensal',
     category:    c.category ?? 'outro',
+    due_day:     c.due_day ?? null,
   }))
 
-  return { pjData, pfData, custosFixos, currentPeriod }
+  // Pagamentos futuros: custos_fixos com due_day, cruzados com despesas do mês
+  const expenseNamesThisMonth = new Set(
+    currentTxs
+      .filter((t) => t.type === 'despesa')
+      .flatMap((t) => [t.description, t.category].filter(Boolean).map((s) => s!.toLowerCase().trim()))
+  )
+
+  const pagamentosFuturos = custosFixos
+    .filter((c) => c.periodicity === 'mensal' || c.periodicity === 'semanal')
+    .map((c) => {
+      const nameLow = c.name.toLowerCase().trim()
+      const paid = [...expenseNamesThisMonth].some(
+        (s) => s.includes(nameLow) || nameLow.includes(s)
+      )
+      const dueDate = c.due_day
+        ? `${year}-${String(month).padStart(2, '0')}-${String(c.due_day).padStart(2, '0')}`
+        : null
+      const today2 = `${year}-${String(month).padStart(2, '0')}-${String(new Date().getDate()).padStart(2, '0')}`
+      const overdue = !paid && dueDate !== null && dueDate < today2 && isCurrentMonth
+      return { ...c, paid, dueDate, overdue }
+    })
+    .sort((a, b) => (a.due_day ?? 99) - (b.due_day ?? 99))
+
+  return { pjData, pfData, custosFixos, currentPeriod, pagamentosFuturos }
 }
 
 export default async function FinanceiroPage({
@@ -294,11 +318,11 @@ export default async function FinanceiroPage({
   searchParams?: Promise<{ mes?: string }>
 }) {
   const params = await (searchParams ?? Promise.resolve({} as { mes?: string }))
-  const { pjData, pfData, custosFixos, currentPeriod } = await getData(params.mes)
+  const { pjData, pfData, custosFixos, currentPeriod, pagamentosFuturos } = await getData(params.mes)
 
   return (
     <div className="px-4 py-5 md:px-8 md:py-8 max-w-5xl">
-      <FinanceiroClient pj={pjData} pf={pfData} custosFixos={custosFixos} currentPeriod={currentPeriod} />
+      <FinanceiroClient pj={pjData} pf={pfData} custosFixos={custosFixos} currentPeriod={currentPeriod} pagamentosFuturos={pagamentosFuturos} />
     </div>
   )
 }

@@ -11,6 +11,7 @@ import { LancamentosList } from './lancamentos-list'
 import { ContratosList } from './contratos-list'
 import { CustosFixos, type CustoFixo } from './custos-fixos'
 import { PeriodSelector } from './period-selector'
+import { ProximosPagamentos, type PagamentoFuturo } from './proximos-pagamentos'
 import type { FinanceiroData } from './types'
 
 export function FinanceiroClient({
@@ -18,11 +19,13 @@ export function FinanceiroClient({
   pf,
   custosFixos,
   currentPeriod,
+  pagamentosFuturos,
 }: {
   pj: FinanceiroData
   pf: FinanceiroData
   custosFixos: CustoFixo[]
   currentPeriod: string
+  pagamentosFuturos: PagamentoFuturo[]
 }) {
   const [tab, setTab] = useState<'pj' | 'pf'>('pj')
   const data = tab === 'pj' ? pj : pf
@@ -94,6 +97,9 @@ export function FinanceiroClient({
 
       {/* Pagamentos recorrentes */}
       <ContratosList contratos={data.contratos} />
+
+      {/* Pagamentos do mês */}
+      <ProximosPagamentos items={pagamentosFuturos} />
 
       {/* Custos Fixos */}
       <CustosFixos initial={custosFixos} />
