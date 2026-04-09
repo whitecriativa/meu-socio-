@@ -152,21 +152,65 @@ export default async function ConfiguracoesPage({
                 className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm outline-none focus:border-[#0F40CB] focus:ring-2 focus:ring-[#0F40CB]/10 transition"
               />
               <datalist id="profissao-sugestoes">
+                {/* Geral */}
                 <option value="Autônomo(a)" />
                 <option value="Freelancer" />
                 <option value="Consultor(a)" />
                 <option value="Prestador(a) de serviços" />
                 <option value="Profissional liberal" />
-                <option value="Designer" />
-                <option value="Desenvolvedor(a)" />
-                <option value="Fotógrafo(a)" />
-                <option value="Advogado(a)" />
+                {/* Beleza & Estética */}
+                <option value="Manicure / Pedicure" />
+                <option value="Cabeleireiro(a)" />
+                <option value="Barbeiro(a)" />
+                <option value="Esteticista" />
+                <option value="Maquiadora(or)" />
+                <option value="Lashista / Designer de sobrancelhas" />
+                <option value="Massoterapeuta" />
+                <option value="Depiladora(or)" />
+                {/* Saúde */}
                 <option value="Psicólogo(a)" />
                 <option value="Nutricionista" />
                 <option value="Personal trainer" />
-                <option value="Esteticista" />
+                <option value="Fisioterapeuta" />
+                <option value="Terapeuta" />
+                <option value="Dentista" />
+                <option value="Enfermeiro(a)" />
+                <option value="Médico(a)" />
+                <option value="Fonoaudiólogo(a)" />
+                {/* Digital & Criativo */}
+                <option value="Designer" />
+                <option value="Designer gráfico(a)" />
+                <option value="Desenvolvedor(a)" />
+                <option value="Programador(a)" />
+                <option value="Social media" />
+                <option value="Copywriter" />
+                <option value="Videomaker" />
+                <option value="Fotógrafo(a)" />
+                <option value="Editor(a) de vídeo" />
+                <option value="Gestor(a) de tráfego" />
+                <option value="Criador(a) de conteúdo" />
+                {/* Serviços & Manutenção */}
+                <option value="Eletricista" />
+                <option value="Encanador(a)" />
+                <option value="Pintor(a)" />
+                <option value="Marceneiro(a)" />
+                <option value="Diarista / Faxineira" />
+                <option value="Jardineiro(a)" />
+                <option value="Técnico(a) em informática" />
+                <option value="Mecânico(a)" />
+                <option value="Pedreiro(a)" />
+                {/* Educação */}
+                <option value="Professor(a) particular" />
+                <option value="Coach" />
+                <option value="Instrutor(a)" />
+                {/* Negócios & Jurídico */}
+                <option value="Advogado(a)" />
                 <option value="Contador(a)" />
                 <option value="Arquiteto(a)" />
+                <option value="Engenheiro(a)" />
+                <option value="Corretor(a) de imóveis" />
+                <option value="Corretor(a) de seguros" />
+                <option value="Assistente virtual" />
               </datalist>
             </div>
 
