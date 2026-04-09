@@ -52,7 +52,16 @@ export function ProximosPagamentos({ items }: { items: PagamentoFuturo[] }) {
     })
   }
 
-  if (list.length === 0) return null
+  if (list.length === 0) {
+    return (
+      <div className="bg-white rounded-2xl border border-gray-100 px-5 py-4">
+        <p className="text-sm font-semibold text-gray-800 mb-1">Pagamentos do mês</p>
+        <p className="text-xs text-gray-400">
+          Nenhum custo fixo cadastrado ainda. Adicione seus custos fixos abaixo para acompanhar os vencimentos aqui.
+        </p>
+      </div>
+    )
+  }
 
   return (
     <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">

@@ -71,7 +71,7 @@ async function getData(selectedPeriod?: string) {
   const isCurrentMonth = year === nowYear && month === nowMonth
   const upperLimit = isCurrentMonth ? today : currentMonthEnd
 
-  const [{ data }, { data: rawContracts }, { data: rawCosts }] = await Promise.all([
+  const [{ data }, { data: rawContracts }, costsResult] = await Promise.all([
     supabase
       .from('transactions')
       .select('id, type, amount, category, description, payment_method, competence_date, client_id')
@@ -90,6 +90,11 @@ async function getData(selectedPeriod?: string) {
       .eq('user_id', userId)
       .order('created_at', { ascending: true }),
   ])
+
+  // Fallback sem due_day se a coluna ainda não existir no banco
+  const rawCosts = costsResult.data ?? (costsResult.error
+    ? (await supabase.from('costs_fixed').select('id, name, amount, periodicity, category').eq('user_id', userId).order('created_at', { ascending: true })).data
+    : [])
 
   const allTxs = (data as TxRow[] ?? [])
 
