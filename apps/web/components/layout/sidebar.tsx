@@ -14,7 +14,6 @@ import {
   Settings,
   Zap,
   BookOpen,
-  Radio,
   MoreHorizontal,
   X,
 } from 'lucide-react'
@@ -25,10 +24,9 @@ const NAV_ITEMS = [
   { href: '/financeiro',    label: 'Financeiro',   icon: DollarSign },
   { href: '/agenda',        label: 'Agenda',       icon: CalendarDays },
   { href: '/clientes',      label: 'Clientes',     icon: Users },
+  { href: '/servicos',      label: 'Serviços',     icon: Zap },
   { href: '/tarefas',       label: 'Tarefas',      icon: CheckSquare },
   { href: '/metas',         label: 'Metas',        icon: Target },
-  { href: '/gamificacao',   label: 'Conquistas',   icon: Zap },
-  { href: '/radar',         label: 'Radar',        icon: Radio },
   { href: '/aprenda',       label: 'Aprenda',      icon: BookOpen },
   { href: '/calculadora',   label: 'Calculadora',  icon: Calculator },
 ]
@@ -38,7 +36,7 @@ const MOBILE_MAIN = [
   { href: '/',            label: 'Dashboard',  icon: LayoutDashboard },
   { href: '/financeiro',  label: 'Financeiro', icon: DollarSign },
   { href: '/agenda',      label: 'Agenda',     icon: CalendarDays },
-  { href: '/aprenda',     label: 'Aprenda',    icon: BookOpen },
+  { href: '/servicos',    label: 'Serviços',   icon: Zap },
 ]
 
 // Itens do menu "Mais"
@@ -46,9 +44,8 @@ const MOBILE_MORE = [
   { href: '/clientes',    label: 'Clientes',    icon: Users },
   { href: '/tarefas',     label: 'Tarefas',     icon: CheckSquare },
   { href: '/metas',       label: 'Metas',       icon: Target },
-  { href: '/gamificacao', label: 'Conquistas',  icon: Zap },
-  { href: '/radar',       label: 'Radar',       icon: Radio },
   { href: '/calculadora', label: 'Calculadora', icon: Calculator },
+  { href: '/aprenda',     label: 'Aprenda',     icon: BookOpen },
   { href: '/configuracoes', label: 'Config.',   icon: Settings },
 ]
 
