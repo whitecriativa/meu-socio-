@@ -71,7 +71,7 @@ async function getData(selectedPeriod?: string) {
   const isCurrentMonth = year === nowYear && month === nowMonth
   const upperLimit = isCurrentMonth ? today : currentMonthEnd
 
-  const [{ data }, { data: rawContracts }, costsResult] = await Promise.all([
+  const [{ data }, { data: rawContracts }, costsResult, { data: rawPending }] = await Promise.all([
     supabase
       .from('transactions')
       .select('id, type, amount, category, description, payment_method, competence_date, client_id')
@@ -89,6 +89,14 @@ async function getData(selectedPeriod?: string) {
       .select('id, name, amount, periodicity, category, due_day')
       .eq('user_id', userId)
       .order('created_at', { ascending: true }),
+    // Transações pendentes (pagamentos futuros avulsos)
+    supabase
+      .from('transactions')
+      .select('id, type, amount, category, description, competence_date')
+      .eq('user_id', userId)
+      .eq('type', 'despesa')
+      .is('paid_at', null)
+      .order('competence_date', { ascending: true }),
   ])
 
   // Fallback sem due_day se a coluna ainda não existir no banco
@@ -298,7 +306,10 @@ async function getData(selectedPeriod?: string) {
       .flatMap((t) => [t.description, t.category].filter(Boolean).map((s) => s!.toLowerCase().trim()))
   )
 
-  const pagamentosFuturos = custosFixos
+  const today2 = `${nowYear}-${String(nowMonth).padStart(2, '0')}-${String(new Date().getDate()).padStart(2, '0')}`
+
+  // 1. Custos fixos recorrentes como pagamentos do mês
+  const recorrentes = custosFixos
     .filter((c) => c.periodicity === 'mensal' || c.periodicity === 'semanal')
     .map((c) => {
       const nameLow = c.name.toLowerCase().trim()
@@ -308,10 +319,41 @@ async function getData(selectedPeriod?: string) {
       const dueDate = c.due_day
         ? `${year}-${String(month).padStart(2, '0')}-${String(c.due_day).padStart(2, '0')}`
         : null
-      const today2 = `${year}-${String(month).padStart(2, '0')}-${String(new Date().getDate()).padStart(2, '0')}`
       const overdue = !paid && dueDate !== null && dueDate < today2 && isCurrentMonth
-      return { ...c, paid, dueDate, overdue }
+      return {
+        id:          c.id,
+        name:        c.name,
+        amount:      c.amount,
+        periodicity: c.periodicity,
+        category:    c.category,
+        due_day:     c.due_day ?? null,
+        paid,
+        dueDate,
+        overdue,
+        avulso:      false,
+      }
     })
+
+  // 2. Transações pendentes avulsas (paid_at = null)
+  type PendingRow = { id: string; type: string; amount: number | null; category: string | null; description: string | null; competence_date: string | null }
+  const avulsos = (rawPending as PendingRow[] ?? []).map((t) => {
+    const dueDate = t.competence_date ?? null
+    const overdue = dueDate !== null && dueDate < today2
+    return {
+      id:          t.id,
+      name:        t.description || t.category || 'Pagamento',
+      amount:      Number(t.amount ?? 0),
+      periodicity: 'avulso',
+      category:    t.category ?? 'outro',
+      due_day:     dueDate ? parseInt(dueDate.split('-')[2]!) : null,
+      paid:        false,
+      dueDate,
+      overdue,
+      avulso:      true,
+    }
+  })
+
+  const pagamentosFuturos = [...recorrentes, ...avulsos]
     .sort((a, b) => (a.due_day ?? 99) - (b.due_day ?? 99))
 
   return { pjData, pfData, custosFixos, currentPeriod, pagamentosFuturos }

@@ -26,6 +26,7 @@ export interface LancamentoInput {
   payment_method: string
   competence_date: string
   client_name?: string | undefined
+  pending?: boolean // true = pagamento futuro (paid_at = null)
 }
 
 async function findClientId(
@@ -67,7 +68,7 @@ export async function salvarLancamento(input: LancamentoInput) {
     description:     input.description || null,
     payment_method:  input.payment_method,
     competence_date: input.competence_date,
-    paid_at:         new Date().toISOString(),
+    paid_at:         input.pending ? null : new Date().toISOString(),
   })
 
   if (error) throw new Error(error.message)
@@ -80,6 +81,18 @@ export async function editarDataLancamento(id: string, competence_date: string) 
   const { error } = await supabase
     .from('transactions')
     .update({ competence_date })
+    .eq('id', id)
+    .eq('user_id', userId)
+  if (error) throw new Error(error.message)
+  revalidatePath('/financeiro')
+}
+
+export async function marcarTransacaoPaga(id: string) {
+  const userId = await requireUserId()
+  const supabase = adminClient()
+  const { error } = await supabase
+    .from('transactions')
+    .update({ paid_at: new Date().toISOString() })
     .eq('id', id)
     .eq('user_id', userId)
   if (error) throw new Error(error.message)
