@@ -2,6 +2,7 @@ import { createClient } from '@supabase/supabase-js'
 import { getAuthenticatedUserId } from '@/lib/get-user-id'
 import { Sidebar } from '@/components/layout/sidebar'
 import { Header } from '@/components/layout/header'
+import { SocioAgent } from '@/components/agent/socio-agent'
 
 function adminClient() {
   return createClient(
@@ -85,6 +86,9 @@ export default async function DashboardLayout({ children }: { children: React.Re
           {children}
         </main>
       </div>
+
+      {/* Agente IA flutuante */}
+      <SocioAgent />
     </div>
   )
 }
