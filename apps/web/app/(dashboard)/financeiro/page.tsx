@@ -27,16 +27,25 @@ type TxRow = {
   client_id: string | null
 }
 
-async function getData() {
+async function getData(selectedPeriod?: string) {
   const userId = (await getAuthenticatedUserId()) ?? process.env.NEXT_PUBLIC_DEMO_USER_ID!
   const supabase = adminClient()
 
   const now = new Date()
-  const year = now.getFullYear()
-  const month = now.getMonth() + 1
+  const nowYear = now.getFullYear()
+  const nowMonth = now.getMonth() + 1
+
+  // Parse selected period (YYYY-MM) ou usa mês atual
+  let year = nowYear
+  let month = nowMonth
+  if (selectedPeriod && /^\d{4}-\d{2}$/.test(selectedPeriod)) {
+    year  = parseInt(selectedPeriod.split('-')[0]!)
+    month = parseInt(selectedPeriod.split('-')[1]!)
+  }
+
   const today = now.toISOString().substring(0, 10)
 
-  // Build last 6 months metadata
+  // Build last 6 months metadata centrado no período selecionado
   const monthsMeta: { label: string; start: string; end: string }[] = []
   for (let i = 5; i >= 0; i--) {
     const d = new Date(year, month - 1 - i, 1)
@@ -54,8 +63,13 @@ async function getData() {
 
   const sixMonthsAgo      = monthsMeta[0]!.start
   const currentMonthStart = monthsMeta[5]!.start
+  const currentMonthEnd   = monthsMeta[5]!.end
   const prevMonthStart    = monthsMeta[4]!.start
   const prevMonthEnd      = monthsMeta[4]!.end
+
+  // Para meses passados, usa fim do mês como limite; para o mês atual, usa hoje
+  const isCurrentMonth = year === nowYear && month === nowMonth
+  const upperLimit = isCurrentMonth ? today : currentMonthEnd
 
   const [{ data }, { data: rawContracts }, { data: rawCosts }] = await Promise.all([
     supabase
@@ -63,7 +77,7 @@ async function getData() {
       .select('id, type, amount, category, description, payment_method, competence_date, client_id')
       .eq('user_id', userId)
       .gte('competence_date', sixMonthsAgo)
-      .lte('competence_date', today)
+      .lte('competence_date', upperLimit)
       .order('competence_date', { ascending: false }),
     supabase
       .from('contracts')
@@ -81,7 +95,7 @@ async function getData() {
 
   // Current month
   const currentTxs = allTxs.filter(
-    (t) => t.competence_date && t.competence_date >= currentMonthStart,
+    (t) => t.competence_date && t.competence_date >= currentMonthStart && t.competence_date <= currentMonthEnd,
   )
   const revenues = currentTxs.filter((t) => t.type === 'receita')
   const expenses = currentTxs.filter((t) => t.type === 'despesa')
@@ -206,8 +220,10 @@ async function getData() {
     })),
   }))
 
-  const monthName  = now.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })
+  const selectedDate = new Date(year, month - 1, 1)
+  const monthName  = selectedDate.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })
   const monthLabel = monthName.charAt(0).toUpperCase() + monthName.slice(1)
+  const currentPeriod = `${year}-${String(month).padStart(2, '0')}`
 
   const lancamentosDoMes = currentTxs.map((t) => ({
     id:              t.id,
@@ -269,15 +285,20 @@ async function getData() {
     category:    c.category ?? 'outro',
   }))
 
-  return { pjData, pfData, custosFixos }
+  return { pjData, pfData, custosFixos, currentPeriod }
 }
 
-export default async function FinanceiroPage() {
-  const { pjData, pfData, custosFixos } = await getData()
+export default async function FinanceiroPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ mes?: string }>
+}) {
+  const params = await (searchParams ?? Promise.resolve({}))
+  const { pjData, pfData, custosFixos, currentPeriod } = await getData(params.mes)
 
   return (
     <div className="px-4 py-5 md:px-8 md:py-8 max-w-5xl">
-      <FinanceiroClient pj={pjData} pf={pfData} custosFixos={custosFixos} />
+      <FinanceiroClient pj={pjData} pf={pfData} custosFixos={custosFixos} currentPeriod={currentPeriod} />
     </div>
   )
 }

@@ -10,9 +10,20 @@ import { NovoLancamentoModal } from './novo-lancamento-modal'
 import { LancamentosList } from './lancamentos-list'
 import { ContratosList } from './contratos-list'
 import { CustosFixos, type CustoFixo } from './custos-fixos'
+import { PeriodSelector } from './period-selector'
 import type { FinanceiroData } from './types'
 
-export function FinanceiroClient({ pj, pf, custosFixos }: { pj: FinanceiroData; pf: FinanceiroData; custosFixos: CustoFixo[] }) {
+export function FinanceiroClient({
+  pj,
+  pf,
+  custosFixos,
+  currentPeriod,
+}: {
+  pj: FinanceiroData
+  pf: FinanceiroData
+  custosFixos: CustoFixo[]
+  currentPeriod: string
+}) {
   const [tab, setTab] = useState<'pj' | 'pf'>('pj')
   const data = tab === 'pj' ? pj : pf
 
@@ -22,7 +33,7 @@ export function FinanceiroClient({ pj, pf, custosFixos }: { pj: FinanceiroData; 
       <div className="flex items-start justify-between gap-3">
         <div>
           <h1 className="text-xl font-bold text-gray-900">Financeiro</h1>
-          <p className="text-sm text-gray-500 mt-0.5">Visão completa do seu negócio</p>
+          <PeriodSelector currentPeriod={currentPeriod} />
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
           <NovoLancamentoModal />
@@ -36,21 +47,23 @@ export function FinanceiroClient({ pj, pf, custosFixos }: { pj: FinanceiroData; 
         </div>
       </div>
 
-      {/* Abas PJ / PF */}
+      {/* Abas PJ / PF — PF desativado por enquanto */}
       <div className="flex gap-1 bg-gray-100 p-1 rounded-xl w-fit">
-        {(['pj', 'pf'] as const).map((t) => (
-          <button
-            key={t}
-            onClick={() => setTab(t)}
-            className={`px-5 py-1.5 rounded-lg text-sm font-semibold transition-all ${
-              tab === t
-                ? 'bg-white text-[#0F40CB] shadow-sm'
-                : 'text-gray-500 hover:text-gray-700'
-            }`}
-          >
-            {t.toUpperCase()}
-          </button>
-        ))}
+        <button
+          onClick={() => setTab('pj')}
+          className={`px-5 py-1.5 rounded-lg text-sm font-semibold transition-all ${
+            tab === 'pj' ? 'bg-white text-[#0F40CB] shadow-sm' : 'text-gray-500 hover:text-gray-700'
+          }`}
+        >
+          PJ
+        </button>
+        <button
+          disabled
+          className="px-5 py-1.5 rounded-lg text-sm font-semibold text-gray-300 cursor-not-allowed"
+          title="Em breve"
+        >
+          PF
+        </button>
       </div>
 
       {/* DRE */}

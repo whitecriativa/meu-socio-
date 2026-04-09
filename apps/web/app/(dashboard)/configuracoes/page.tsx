@@ -29,30 +29,35 @@ async function updateSettings(formData: FormData) {
   const phone          = String(formData.get('phone') ?? '').trim().replace(/\D/g, '')
   const profileType    = String(formData.get('profile_type') ?? '').trim()
   const workModality   = String(formData.get('work_modality') ?? '')
-  const dream          = String(formData.get('dream') ?? '').trim()
   const monthlyGoal    = parseFloat(String(formData.get('monthly_goal') ?? '0').replace(',', '.'))
   const workStart      = String(formData.get('work_hours_start') ?? '08:00')
   const workEnd        = String(formData.get('work_hours_end') ?? '19:00')
   const radarMinutes   = parseInt(String(formData.get('radar_alert_minutes') ?? '30'))
   const bomDiaEnabled  = formData.get('bom_dia_enabled') === '1'
 
-  const updateData: Record<string, unknown> = {
-    name:                name || undefined,
-    profile_type:        profileType || null,
+  // Campos base — existem desde a migration inicial
+  const coreData: Record<string, unknown> = {
+    name:         name || null,
+    profile_type: profileType || null,
+    monthly_goal: monthlyGoal > 0 ? monthlyGoal : null,
+  }
+  if (phone && phone.length >= 10) coreData.phone = phone
+
+  // Campos estendidos — podem não existir se migrações não foram rodadas
+  const fullData: Record<string, unknown> = {
+    ...coreData,
     work_modality:       workModality || null,
-    dream:               dream || null,
-    monthly_goal:        monthlyGoal > 0 ? monthlyGoal : null,
     work_hours_start:    workStart,
     work_hours_end:      workEnd,
     radar_alert_minutes: radarMinutes > 0 ? radarMinutes : 30,
     bom_dia_enabled:     bomDiaEnabled,
   }
 
-  if (phone && phone.length >= 10) {
-    updateData.phone = phone
+  // Tenta update completo; se falhar (coluna ausente = 42703), faz update só dos campos base
+  const { error: fullError } = await supabase.from('users').update(fullData).eq('id', userId)
+  if (fullError) {
+    await supabase.from('users').update(coreData).eq('id', userId)
   }
-
-  await supabase.from('users').update(updateData).eq('id', userId)
 
   revalidatePath('/')
   revalidatePath('/configuracoes')
