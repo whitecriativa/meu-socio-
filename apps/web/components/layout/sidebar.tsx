@@ -16,12 +16,14 @@ import {
   BookOpen,
   MoreHorizontal,
   X,
+  BarChart2,
 } from 'lucide-react'
 import { LogoIcon } from '@/components/brand/logo'
 
 const NAV_ITEMS = [
   { href: '/',              label: 'Dashboard',    icon: LayoutDashboard },
   { href: '/financeiro',    label: 'Financeiro',   icon: DollarSign },
+  { href: '/dre',           label: 'DRE',          icon: BarChart2 },
   { href: '/agenda',        label: 'Agenda',       icon: CalendarDays },
   { href: '/clientes',      label: 'Clientes',     icon: Users },
   { href: '/servicos',      label: 'Serviços',     icon: Zap },
@@ -52,9 +54,10 @@ const MOBILE_MORE = [
 interface SidebarProps {
   userName: string
   userRole: string | null
+  avatarUrl?: string | null
 }
 
-export function Sidebar({ userName, userRole }: SidebarProps) {
+export function Sidebar({ userName, userRole, avatarUrl }: SidebarProps) {
   const pathname = usePathname()
   const [moreOpen, setMoreOpen] = useState(false)
   const isConfigActive = pathname === '/configuracoes'
@@ -128,9 +131,13 @@ export function Sidebar({ userName, userRole }: SidebarProps) {
             Configurações
           </Link>
           <div className="flex items-center gap-3 px-3 py-2.5 mt-1">
-            <div className="w-7 h-7 rounded-full bg-[#B6F273] flex items-center justify-center text-[#0F40CB] text-xs font-bold flex-shrink-0">
-              {initials}
-            </div>
+            {avatarUrl ? (
+              <img src={avatarUrl} alt={userName} className="w-7 h-7 rounded-full object-cover flex-shrink-0" />
+            ) : (
+              <div className="w-7 h-7 rounded-full bg-[#B6F273] flex items-center justify-center text-[#0F40CB] text-xs font-bold flex-shrink-0">
+                {initials}
+              </div>
+            )}
             <div className="min-w-0">
               <p className="text-sm font-medium text-white truncate">{userName}</p>
               {userRole && (

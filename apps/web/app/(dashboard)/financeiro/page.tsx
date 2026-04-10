@@ -3,6 +3,7 @@ import { createClient } from '@supabase/supabase-js'
 import { FinanceiroClient } from '@/components/financeiro/financeiro-client'
 import type { FinanceiroData } from '@/components/financeiro/types'
 import type { ContratoDado, Installment } from '@/components/financeiro/contratos-list'
+import { buildDreStructured, type TxRow } from '@/lib/dre'
 
 export const dynamic = 'force-dynamic'
 
@@ -14,17 +15,6 @@ function adminClient() {
     process.env.SUPABASE_SERVICE_ROLE_KEY!,
     { auth: { autoRefreshToken: false, persistSession: false } },
   )
-}
-
-type TxRow = {
-  id: string
-  type: string
-  amount: number | null
-  category: string | null
-  description: string | null
-  payment_method: string | null
-  competence_date: string | null
-  client_id: string | null
 }
 
 async function getData(selectedPeriod?: string) {
@@ -248,9 +238,12 @@ async function getData(selectedPeriod?: string) {
     competence_date: t.competence_date ?? '',
   }))
 
+  const dreStructured = buildDreStructured(revenues, expenses, totalRevenue, totalExpenses, monthLabel)
+
   const pjData: FinanceiroData = {
     month: monthLabel,
     dre,
+    dreStructured,
     indicators: {
       avg_ticket: avgTicket,
       retention,
@@ -275,6 +268,7 @@ async function getData(selectedPeriod?: string) {
       { label: '(+) Entradas pessoais', value: 0 },
       { label: '(=) Gestão pessoal em breve', value: 0, isResult: true },
     ],
+    dreStructured: buildDreStructured([], [], 0, 0, monthLabel),
     indicators: {
       avg_ticket: 0,
       retention: 0,
