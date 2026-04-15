@@ -117,6 +117,7 @@ export function CustosFixos({ initial }: { initial: CustoFixo[] }) {
                     <p className="text-sm font-medium text-gray-800 dark:text-white">{c.name}</p>
                     <p className="text-xs text-gray-400">
                       {fmt(c.amount)} / {PERIODICIDADES.find(p => p.value === c.periodicity)?.label ?? c.periodicity}
+                      {c.due_day ? ` · Vence dia ${c.due_day}` : ''}
                       {c.periodicity !== 'mensal' && (
                         <span className="ml-1 text-gray-300">= {fmt(toMonthly(c.amount, c.periodicity))}/mês</span>
                       )}

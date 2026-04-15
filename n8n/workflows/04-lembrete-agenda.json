@@ -6,9 +6,19 @@
       "name": "A cada 30 minutos",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1,
-      "position": [240, 300],
+      "position": [
+        240,
+        300
+      ],
       "parameters": {
-        "rule": { "interval": [{ "field": "cronExpression", "expression": "*/30 * * * *" }] }
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "*/30 * * * *"
+            }
+          ]
+        }
       }
     },
     {
@@ -17,15 +27,26 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 3,
       "alwaysOutputData": true,
-      "position": [460, 300],
+      "position": [
+        460,
+        300
+      ],
       "parameters": {
         "method": "GET",
         "url": "=https://qjgjqrhsrfxfcmxhuirf.supabase.co/rest/v1/appointments?scheduled_at=gte.{{ new Date(Date.now() + 50*60000).toISOString() }}&scheduled_at=lte.{{ new Date(Date.now() + 70*60000).toISOString() }}&status=eq.confirmado&select=id,user_id,service,scheduled_at,price,notes",
         "sendHeaders": true,
-        "headerParameters": { "parameters": [
-          { "name": "apikey", "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFqZ2pxcmhzcmZ4ZmNteGh1aXJmIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NDM3MTg3MCwiZXhwIjoyMDg5OTQ3ODcwfQ.hjH_yRcQdDAFE-Qk1xNB1tqmz4Dw6udrRNjy4DsUrU8" },
-          { "name": "Authorization", "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFqZ2pxcmhzcmZ4ZmNteGh1aXJmIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NDM3MTg3MCwiZXhwIjoyMDg5OTQ3ODcwfQ.hjH_yRcQdDAFE-Qk1xNB1tqmz4Dw6udrRNjy4DsUrU8" }
-        ]}
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFqZ2pxcmhzcmZ4ZmNteGh1aXJmIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NDM3MTg3MCwiZXhwIjoyMDg5OTQ3ODcwfQ.hjH_yRcQdDAFE-Qk1xNB1tqmz4Dw6udrRNjy4DsUrU8"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFqZ2pxcmhzcmZ4ZmNteGh1aXJmIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NDM3MTg3MCwiZXhwIjoyMDg5OTQ3ODcwfQ.hjH_yRcQdDAFE-Qk1xNB1tqmz4Dw6udrRNjy4DsUrU8"
+            }
+          ]
+        }
       }
     },
     {
@@ -33,10 +54,18 @@
       "name": "Tem agendamentos?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 1,
-      "position": [680, 300],
+      "position": [
+        680,
+        300
+      ],
       "parameters": {
         "conditions": {
-          "string": [{ "value1": "={{ $json.id }}", "operation": "isNotEmpty" }]
+          "string": [
+            {
+              "value1": "={{ $json.id }}",
+              "operation": "isNotEmpty"
+            }
+          ]
         }
       }
     },
@@ -45,23 +74,40 @@
       "name": "Loop agendamentos",
       "type": "n8n-nodes-base.splitInBatches",
       "typeVersion": 1,
-      "position": [900, 200],
-      "parameters": { "batchSize": 1, "options": {} }
+      "position": [
+        900,
+        200
+      ],
+      "parameters": {
+        "batchSize": 1,
+        "options": {}
+      }
     },
     {
       "id": "buscar-dono",
       "name": "Buscar dono do negócio",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 3,
-      "position": [1120, 200],
+      "position": [
+        1120,
+        200
+      ],
       "parameters": {
         "method": "GET",
         "url": "=https://qjgjqrhsrfxfcmxhuirf.supabase.co/rest/v1/users?id=eq.{{ $('Loop agendamentos').item.json.user_id }}&select=name,phone",
         "sendHeaders": true,
-        "headerParameters": { "parameters": [
-          { "name": "apikey", "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFqZ2pxcmhzcmZ4ZmNteGh1aXJmIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NDM3MTg3MCwiZXhwIjoyMDg5OTQ3ODcwfQ.hjH_yRcQdDAFE-Qk1xNB1tqmz4Dw6udrRNjy4DsUrU8" },
-          { "name": "Authorization", "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFqZ2pxcmhzcmZ4ZmNteGh1aXJmIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NDM3MTg3MCwiZXhwIjoyMDg5OTQ3ODcwfQ.hjH_yRcQdDAFE-Qk1xNB1tqmz4Dw6udrRNjy4DsUrU8" }
-        ]}
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFqZ2pxcmhzcmZ4ZmNteGh1aXJmIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NDM3MTg3MCwiZXhwIjoyMDg5OTQ3ODcwfQ.hjH_yRcQdDAFE-Qk1xNB1tqmz4Dw6udrRNjy4DsUrU8"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFqZ2pxcmhzcmZ4ZmNteGh1aXJmIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NDM3MTg3MCwiZXhwIjoyMDg5OTQ3ODcwfQ.hjH_yRcQdDAFE-Qk1xNB1tqmz4Dw6udrRNjy4DsUrU8"
+            }
+          ]
+        }
       }
     },
     {
@@ -69,9 +115,12 @@
       "name": "Montar lembrete",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1340, 200],
+      "position": [
+        1340,
+        200
+      ],
       "parameters": {
-        "jsCode": "const apt = $('Loop agendamentos').item.json;\nconst user = $input.first().json;\nconst horario = new Date(apt.scheduled_at).toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});\nconst cliente = apt.notes || 'cliente';\nconst texto = `⏰ *Lembrete de agendamento!*\\n\\n👤 ${cliente}\\n📋 ${apt.service}\\n🕐 Daqui 1 hora — ${horario}\\n💰 R$ ${parseFloat(apt.price||0).toFixed(2).replace('.',',')}\\n\\nTudo pronto para atender bem! 💪`;\nreturn [{ json: { userPhone: user.phone, texto, aptId: apt.id } }];"
+        "jsCode": "const apt = $('Loop agendamentos').item.json;\nconst user = $input.first().json;\nconst horario = new Date(apt.scheduled_at).toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit', timeZone:'America/Sao_Paulo'});\nconst cliente = apt.notes || 'cliente';\nconst texto = `⏰ *Lembrete de agendamento!*\\n\\n👤 ${cliente}\\n📋 ${apt.service}\\n🕐 Daqui 1 hora — ${horario}\\n💰 R$ ${parseFloat(apt.price||0).toFixed(2).replace('.',',')}\\n\\nTudo pronto para atender bem! 💪`;\nreturn [{ json: { userPhone: user.phone, texto, aptId: apt.id } }];"
       }
     },
     {
@@ -79,15 +128,26 @@
       "name": "Enviar lembrete",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 3,
-      "position": [1560, 200],
+      "position": [
+        1560,
+        200
+      ],
       "parameters": {
         "method": "POST",
         "url": "https://evolution-api-production-e9a3.up.railway.app/message/sendText/meu-socio",
         "sendHeaders": true,
-        "headerParameters": { "parameters": [
-          { "name": "apikey", "value": "762c9cac5efdde8e3b0aee288580ac2a3b11495fa892c757b5bc18dd2b0ec610" },
-          { "name": "Content-Type", "value": "application/json" }
-        ]},
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "762c9cac5efdde8e3b0aee288580ac2a3b11495fa892c757b5bc18dd2b0ec610"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
         "sendBody": true,
         "contentType": "raw",
         "rawContentType": "application/json",
@@ -96,14 +156,95 @@
     }
   ],
   "connections": {
-    "A cada 30 minutos": { "main": [[{ "node": "Agendamentos próxima hora", "type": "main", "index": 0 }]] },
-    "Agendamentos próxima hora": { "main": [[{ "node": "Tem agendamentos?", "type": "main", "index": 0 }]] },
-    "Tem agendamentos?": { "main": [[{ "node": "Loop agendamentos", "type": "main", "index": 0 }], []] },
-    "Loop agendamentos": { "main": [[{ "node": "Buscar dono do negócio", "type": "main", "index": 0 }], []] },
-    "Buscar dono do negócio": { "main": [[{ "node": "Montar lembrete", "type": "main", "index": 0 }]] },
-    "Montar lembrete": { "main": [[{ "node": "Enviar lembrete", "type": "main", "index": 0 }]] },
-    "Enviar lembrete": { "main": [[{ "node": "Loop agendamentos", "type": "main", "index": 0 }]] }
+    "A cada 30 minutos": {
+      "main": [
+        [
+          {
+            "node": "Agendamentos próxima hora",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agendamentos próxima hora": {
+      "main": [
+        [
+          {
+            "node": "Tem agendamentos?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tem agendamentos?": {
+      "main": [
+        [
+          {
+            "node": "Loop agendamentos",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Loop agendamentos": {
+      "main": [
+        [
+          {
+            "node": "Buscar dono do negócio",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Buscar dono do negócio": {
+      "main": [
+        [
+          {
+            "node": "Montar lembrete",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Montar lembrete": {
+      "main": [
+        [
+          {
+            "node": "Enviar lembrete",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enviar lembrete": {
+      "main": [
+        [
+          {
+            "node": "Loop agendamentos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
   },
-  "settings": { "executionOrder": "v1" },
-  "tags": [{ "name": "socio" }, { "name": "agenda" }]
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": [
+    {
+      "name": "socio"
+    },
+    {
+      "name": "agenda"
+    }
+  ]
 }

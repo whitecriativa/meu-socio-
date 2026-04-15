@@ -61,6 +61,31 @@ export async function reativarCliente(clientId: string) {
   revalidatePath(`/clientes/${clientId}`)
 }
 
+export async function editarNota(clientId: string, notes: string) {
+  const userId   = await requireUserId()
+  const supabase = adminClient()
+  const { error } = await supabase
+    .from('clients')
+    .update({ notes })
+    .eq('id', clientId)
+    .eq('user_id', userId)
+  if (error) throw new Error(error.message)
+  revalidatePath(`/clientes/${clientId}`)
+}
+
+export async function marcarVip(clientId: string) {
+  const userId   = await requireUserId()
+  const supabase = adminClient()
+  const { error } = await supabase
+    .from('clients')
+    .update({ status: 'vip' })
+    .eq('id', clientId)
+    .eq('user_id', userId)
+  if (error) throw new Error(error.message)
+  revalidatePath('/clientes')
+  revalidatePath(`/clientes/${clientId}`)
+}
+
 export async function editarCliente(clientId: string, input: { name: string; phone: string }) {
   const userId   = await requireUserId()
   const supabase = adminClient()

@@ -92,7 +92,7 @@ export async function marcarTransacaoPaga(id: string) {
   const supabase = adminClient()
   const { error } = await supabase
     .from('transactions')
-    .update({ paid_at: new Date().toISOString() })
+    .update({ paid_at: new Date().toISOString(), is_paid: true })
     .eq('id', id)
     .eq('user_id', userId)
   if (error) throw new Error(error.message)

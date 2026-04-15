@@ -42,6 +42,8 @@ export interface ClienteDetalhado {
   total_spent: number
   last_contact: string | null
   color: string
+  notes: string | null
+  frequency_per_month: number
   appointments: {
     id: string
     service: string
@@ -70,7 +72,7 @@ async function getCliente(id: string): Promise<ClienteDetalhado | null> {
   const [{ data: client }, { data: apts }, { data: txs }] = await Promise.all([
     supabase
       .from('clients')
-      .select('id, name, phone, status, total_spent, last_contact')
+      .select('id, name, phone, status, total_spent, last_contact, notes')
       .eq('id', id)
       .eq('user_id', userId)
       .maybeSingle(),
@@ -108,6 +110,20 @@ async function getCliente(id: string): Promise<ClienteDetalhado | null> {
   const colorIndex = id.charCodeAt(0) % COLORS.length
   const color = COLORS[colorIndex] ?? '#0F40CB'
 
+  // Frequência: visitas por mês desde o primeiro agendamento
+  const sortedApts = (apts as AptRow[]).filter(a => a.scheduled_at).sort(
+    (a, b) => new Date(a.scheduled_at!).getTime() - new Date(b.scheduled_at!).getTime()
+  )
+  let frequencyPerMonth = 0
+  if (sortedApts.length >= 2) {
+    const first = new Date(sortedApts[0]!.scheduled_at!)
+    const last  = new Date(sortedApts[sortedApts.length - 1]!.scheduled_at!)
+    const months = Math.max(1, (last.getTime() - first.getTime()) / (1000 * 60 * 60 * 24 * 30))
+    frequencyPerMonth = Math.round((sortedApts.length / months) * 10) / 10
+  } else if (sortedApts.length === 1) {
+    frequencyPerMonth = 1
+  }
+
   return {
     id: client.id,
     name: client.name ?? 'Sem nome',
@@ -116,6 +132,8 @@ async function getCliente(id: string): Promise<ClienteDetalhado | null> {
     total_spent: totalSpent,
     last_contact: client.last_contact,
     color,
+    notes: (client as { notes?: string | null }).notes ?? null,
+    frequency_per_month: frequencyPerMonth,
     appointments: (apts as AptRow[] ?? []).map((a) => ({
       id: a.id,
       service: a.service ?? '—',

@@ -39,17 +39,13 @@ function toStatus(
   totalSpent: number,
 ): ClientStatus {
   if (dbStatus === 'vip') return 'vip'
-
   if (totalSpent >= VIP_THRESHOLD) return 'vip'
-
   if (lastContact) {
     const days = (Date.now() - new Date(lastContact).getTime()) / (1000 * 60 * 60 * 24)
     if (days > INACTIVE_DAYS) return 'inativo'
     if (days > RISK_DAYS)     return 'em_risco'
   }
-
   if (dbStatus === 'inativo') return 'inativo'
-
   return 'ativo'
 }
 
@@ -92,10 +88,10 @@ async function getClients(): Promise<ClientItem[]> {
   }, {})
 
   return clients.map((c, i) => {
-    const clientApts  = aptsByClient[c.id] ?? []
-    const lastApt     = clientApts[0]
-    const totalSpent  = Number(c.total_spent ?? 0)
-    const lastIso     = lastApt?.scheduled_at ?? c.last_contact
+    const clientApts = aptsByClient[c.id] ?? []
+    const lastApt    = clientApts[0]
+    const totalSpent = Number(c.total_spent ?? 0)
+    const lastIso    = lastApt?.scheduled_at ?? c.last_contact
 
     return {
       id:           c.id,
@@ -112,7 +108,7 @@ async function getClients(): Promise<ClientItem[]> {
   })
 }
 
-export default async function ClientesPage() {
+export default async function CrmPage() {
   const clients = await getClients()
 
   return (

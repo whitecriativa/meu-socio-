@@ -6,9 +6,19 @@
       "name": "Todo domingo 8h",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1,
-      "position": [240, 300],
+      "position": [
+        240,
+        300
+      ],
       "parameters": {
-        "rule": { "interval": [{ "field": "cronExpression", "expression": "0 11 * * 0" }] }
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 11 * * 0"
+            }
+          ]
+        }
       }
     },
     {
@@ -16,15 +26,26 @@
       "name": "Buscar usuários",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 3,
-      "position": [460, 300],
+      "position": [
+        460,
+        300
+      ],
       "parameters": {
         "method": "GET",
         "url": "https://qjgjqrhsrfxfcmxhuirf.supabase.co/rest/v1/users?select=id,name,phone,monthly_goal&phone=like.55*&onboarding_step=neq.aguardando_email",
         "sendHeaders": true,
-        "headerParameters": { "parameters": [
-          { "name": "apikey", "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFqZ2pxcmhzcmZ4ZmNteGh1aXJmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzNzE4NzAsImV4cCI6MjA4OTk0Nzg3MH0.7XW8nHUNrECAAc8Ynn6DbKIwvNVnGbQk6G7KvhvH6E0" },
-          { "name": "Authorization", "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFqZ2pxcmhzcmZ4ZmNteGh1aXJmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzNzE4NzAsImV4cCI6MjA4OTk0Nzg3MH0.7XW8nHUNrECAAc8Ynn6DbKIwvNVnGbQk6G7KvhvH6E0" }
-        ]}
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFqZ2pxcmhzcmZ4ZmNteGh1aXJmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzNzE4NzAsImV4cCI6MjA4OTk0Nzg3MH0.7XW8nHUNrECAAc8Ynn6DbKIwvNVnGbQk6G7KvhvH6E0"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFqZ2pxcmhzcmZ4ZmNteGh1aXJmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzNzE4NzAsImV4cCI6MjA4OTk0Nzg3MH0.7XW8nHUNrECAAc8Ynn6DbKIwvNVnGbQk6G7KvhvH6E0"
+            }
+          ]
+        }
       }
     },
     {
@@ -32,8 +53,14 @@
       "name": "Loop por usuário",
       "type": "n8n-nodes-base.splitInBatches",
       "typeVersion": 1,
-      "position": [680, 300],
-      "parameters": { "batchSize": 1, "options": {} }
+      "position": [
+        680,
+        300
+      ],
+      "parameters": {
+        "batchSize": 1,
+        "options": {}
+      }
     },
     {
       "id": "buscar-transacoes-semana",
@@ -41,15 +68,26 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 3,
       "alwaysOutputData": true,
-      "position": [900, 300],
+      "position": [
+        900,
+        300
+      ],
       "parameters": {
         "method": "GET",
         "url": "=https://qjgjqrhsrfxfcmxhuirf.supabase.co/rest/v1/transactions?user_id=eq.{{ $('Loop por usuário').item.json.id }}&competence_date=gte.{{ new Date(Date.now() - 7*86400000).toISOString().substring(0,10) }}&select=type,amount,category,description",
         "sendHeaders": true,
-        "headerParameters": { "parameters": [
-          { "name": "apikey", "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFqZ2pxcmhzcmZ4ZmNteGh1aXJmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzNzE4NzAsImV4cCI6MjA4OTk0Nzg3MH0.7XW8nHUNrECAAc8Ynn6DbKIwvNVnGbQk6G7KvhvH6E0" },
-          { "name": "Authorization", "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFqZ2pxcmhzcmZ4ZmNteGh1aXJmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzNzE4NzAsImV4cCI6MjA4OTk0Nzg3MH0.7XW8nHUNrECAAc8Ynn6DbKIwvNVnGbQk6G7KvhvH6E0" }
-        ]}
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFqZ2pxcmhzcmZ4ZmNteGh1aXJmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzNzE4NzAsImV4cCI6MjA4OTk0Nzg3MH0.7XW8nHUNrECAAc8Ynn6DbKIwvNVnGbQk6G7KvhvH6E0"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFqZ2pxcmhzcmZ4ZmNteGh1aXJmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzNzE4NzAsImV4cCI6MjA4OTk0Nzg3MH0.7XW8nHUNrECAAc8Ynn6DbKIwvNVnGbQk6G7KvhvH6E0"
+            }
+          ]
+        }
       }
     },
     {
@@ -57,9 +95,12 @@
       "name": "Calcular resumo",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1120, 300],
+      "position": [
+        1120,
+        300
+      ],
       "parameters": {
-        "jsCode": "const user = $('Loop por usuário').item.json;\nconst txs = $input.all().map(i => i.json).filter(t => t && t.type);\nconst receita = txs.filter(t => t.type === 'receita').reduce((s, t) => s + parseFloat(t.amount || 0), 0);\nconst despesa = txs.filter(t => t.type === 'despesa').reduce((s, t) => s + parseFloat(t.amount || 0), 0);\nconst liquido = receita - despesa;\nconst meta = parseFloat(user.monthly_goal || 0);\nconst progressoMeta = meta > 0 ? Math.round((receita / meta) * 100) : 0;\nconst hoje = new Date();\nconst semanaInicio = new Date(hoje - 7*86400000).toLocaleDateString('pt-BR', {day:'2-digit',month:'2-digit'});\nconst semanaFim = hoje.toLocaleDateString('pt-BR', {day:'2-digit',month:'2-digit'});\nreturn [{ json: { userId: user.id, userName: user.name, userPhone: user.phone, receita: receita.toFixed(2), despesa: despesa.toFixed(2), liquido: liquido.toFixed(2), meta: meta.toFixed(2), progressoMeta, totalTx: txs.length, semanaInicio, semanaFim } }];"
+        "jsCode": "const user = $('Loop por usuário').item.json;\nconst txs = $input.all().map(i => i.json).filter(t => t && t.type);\nconst receita = txs.filter(t => t.type === 'receita').reduce((s, t) => s + parseFloat(t.amount || 0), 0);\nconst despesa = txs.filter(t => t.type === 'despesa').reduce((s, t) => s + parseFloat(t.amount || 0), 0);\nconst liquido = receita - despesa;\nconst meta = parseFloat(user.monthly_goal || 0);\nconst progressoMeta = meta > 0 ? Math.round((receita / meta) * 100) : 0;\nconst margemPct = receita > 0 ? Math.round((liquido / receita) * 100) : 0;\n\n// Classificar a semana\nlet classificacao;\nif (meta > 0) {\n  const metaSemanal = meta / 4;\n  const pctMetaSemanal = receita / metaSemanal * 100;\n  if (pctMetaSemanal >= 120 && margemPct >= 70) classificacao = 'EXCELENTE';\n  else if (pctMetaSemanal >= 80 && margemPct >= 50) classificacao = 'BOA';\n  else if (pctMetaSemanal >= 40) classificacao = 'REGULAR';\n  else classificacao = 'FRACA';\n} else {\n  if (receita > 0 && margemPct >= 80) classificacao = 'BOA';\n  else if (receita > 0) classificacao = 'REGULAR';\n  else classificacao = 'FRACA';\n}\n\nconst hoje = new Date();\nconst semanaInicio = new Date(hoje - 7*86400000).toLocaleDateString('pt-BR', {day:'2-digit',month:'2-digit'});\nconst semanaFim = hoje.toLocaleDateString('pt-BR', {day:'2-digit',month:'2-digit'});\n\nconst firstName = (user.name || 'Amigo').split(' ')[0];\n\nreturn [{ json: { userId: user.id, userName: user.name, firstName, userPhone: user.phone, receita: receita.toFixed(2), despesa: despesa.toFixed(2), liquido: liquido.toFixed(2), meta: meta.toFixed(2), progressoMeta, margemPct, totalTx: txs.length, semanaInicio, semanaFim, classificacao } }];"
       }
     },
     {
@@ -67,19 +108,30 @@
       "name": "GPT gerar resumo",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 3,
-      "position": [1340, 300],
+      "position": [
+        1340,
+        300
+      ],
       "parameters": {
         "method": "POST",
         "url": "https://api.openai.com/v1/chat/completions",
         "sendHeaders": true,
-        "headerParameters": { "parameters": [
-          { "name": "Authorization", "value": "Bearer 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" },
-          { "name": "Content-Type", "value": "application/json" }
-        ]},
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer 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"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
         "sendBody": true,
         "contentType": "raw",
         "rawContentType": "application/json",
-        "body": "={{ JSON.stringify({ model: 'gpt-4o-mini', temperature: 0.7, max_tokens: 350, messages: [{ role: 'user', content: 'Você é o Meu Sócio. Gere o resumo semanal de ' + $json.userName + ' (' + $json.semanaInicio + ' a ' + $json.semanaFim + ').\\n\\nDADOS:\\n- Receita: R$ ' + $json.receita + '\\n- Despesa: R$ ' + $json.despesa + '\\n- Líquido: R$ ' + $json.liquido + '\\n- Lançamentos: ' + $json.totalTx + '\\n- Meta mensal: R$ ' + $json.meta + '\\n- Progresso na meta: ' + $json.progressoMeta + '%\\n\\nEscreva em no máximo 8 linhas. Chame pelo nome, mostre os números, dê um feedback honesto da semana e um incentivo para a próxima. Use emojis.' }] }) }}"
+        "body": "={{ JSON.stringify({ model: 'gpt-4o-mini', temperature: 0.8, max_tokens: 400, messages: [{ role: 'user', content: 'Você é o Meu Sócio, o parceiro de negócios de autônomos. Gere o RESUMO SEMANAL de ' + $json.firstName + ' (' + $json.semanaInicio + ' a ' + $json.semanaFim + ').\\n\\nDADOS:\\n- Receita: R$ ' + $json.receita + '\\n- Despesas: R$ ' + $json.despesa + '\\n- Líquido: R$ ' + $json.liquido + '\\n- Margem: ' + $json.margemPct + '%\\n- Lançamentos: ' + $json.totalTx + '\\n- Meta mensal: R$ ' + $json.meta + '\\n- Progresso na meta: ' + $json.progressoMeta + '%\\n- CLASSIFICAÇÃO DA SEMANA: ' + $json.classificacao + '\\n\\nTOM OBRIGATÓRIO por classificação:\\n- EXCELENTE: Celebre com energia real! Destaque os números incríveis, parabenize genuinamente pelo resultado, mostre o impacto na meta.\\n- BOA: Tom positivo e motivador. Reconheça o esforço, aponte 1 ponto que pode potencializar ainda mais.\\n- REGULAR: Honesto mas acolhedor. Identifique o principal ponto de atenção e dê 1 dica prática para virar o jogo.\\n- FRACA: Empático e humano. Normalize que semanas difíceis acontecem. Foque em 1 ação concreta para a próxima semana. NUNCA use frases genéricas de incentivo vazio.\\n\\nREGRAS: máximo 8 linhas. Use o primeiro nome. Inclua os números reais. No máximo 3 emojis. NUNCA diga \\'ótimo trabalho\\' quando a semana foi REGULAR ou FRACA.' }] }) }}"
       }
     },
     {
@@ -87,7 +139,10 @@
       "name": "Extrair resumo",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1560, 300],
+      "position": [
+        1560,
+        300
+      ],
       "parameters": {
         "jsCode": "const texto = $input.first().json.choices[0].message.content;\nconst dados = $('Calcular resumo').item.json;\nreturn [{ json: { ...dados, texto } }];"
       }
@@ -97,15 +152,26 @@
       "name": "Enviar resumo WhatsApp",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 3,
-      "position": [1780, 300],
+      "position": [
+        1780,
+        300
+      ],
       "parameters": {
         "method": "POST",
         "url": "https://evolution-api-production-e9a3.up.railway.app/message/sendText/meu-socio",
         "sendHeaders": true,
-        "headerParameters": { "parameters": [
-          { "name": "apikey", "value": "762c9cac5efdde8e3b0aee288580ac2a3b11495fa892c757b5bc18dd2b0ec610" },
-          { "name": "Content-Type", "value": "application/json" }
-        ]},
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "762c9cac5efdde8e3b0aee288580ac2a3b11495fa892c757b5bc18dd2b0ec610"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
         "sendBody": true,
         "contentType": "raw",
         "rawContentType": "application/json",
@@ -114,15 +180,105 @@
     }
   ],
   "connections": {
-    "Todo domingo 8h": { "main": [[{ "node": "Buscar usuários", "type": "main", "index": 0 }]] },
-    "Buscar usuários": { "main": [[{ "node": "Loop por usuário", "type": "main", "index": 0 }]] },
-    "Loop por usuário": { "main": [[{ "node": "Transações da semana", "type": "main", "index": 0 }], []] },
-    "Transações da semana": { "main": [[{ "node": "Calcular resumo", "type": "main", "index": 0 }]] },
-    "Calcular resumo": { "main": [[{ "node": "GPT gerar resumo", "type": "main", "index": 0 }]] },
-    "GPT gerar resumo": { "main": [[{ "node": "Extrair resumo", "type": "main", "index": 0 }]] },
-    "Extrair resumo": { "main": [[{ "node": "Enviar resumo WhatsApp", "type": "main", "index": 0 }]] },
-    "Enviar resumo WhatsApp": { "main": [[{ "node": "Loop por usuário", "type": "main", "index": 0 }]] }
+    "Todo domingo 8h": {
+      "main": [
+        [
+          {
+            "node": "Buscar usuários",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar usuários": {
+      "main": [
+        [
+          {
+            "node": "Loop por usuário",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop por usuário": {
+      "main": [
+        [
+          {
+            "node": "Transações da semana",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Transações da semana": {
+      "main": [
+        [
+          {
+            "node": "Calcular resumo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Calcular resumo": {
+      "main": [
+        [
+          {
+            "node": "GPT gerar resumo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GPT gerar resumo": {
+      "main": [
+        [
+          {
+            "node": "Extrair resumo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extrair resumo": {
+      "main": [
+        [
+          {
+            "node": "Enviar resumo WhatsApp",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enviar resumo WhatsApp": {
+      "main": [
+        [
+          {
+            "node": "Loop por usuário",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
   },
-  "settings": { "executionOrder": "v1" },
-  "tags": [{ "name": "socio" }, { "name": "resumo" }]
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": [
+    {
+      "name": "socio"
+    },
+    {
+      "name": "resumo"
+    }
+  ]
 }
