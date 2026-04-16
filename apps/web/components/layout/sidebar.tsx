@@ -17,7 +17,7 @@ import {
   MoreHorizontal,
   X,
   BarChart2,
-  ContactRound,
+  Users2,
 } from 'lucide-react'
 import { LogoIcon } from '@/components/brand/logo'
 
@@ -27,7 +27,7 @@ const NAV_ITEMS = [
   { href: '/dre',           label: 'DRE',          icon: BarChart2 },
   { href: '/agenda',        label: 'Agenda',       icon: CalendarDays },
   { href: '/clientes',      label: 'Clientes',     icon: Users },
-  { href: '/crm',           label: 'CRM',          icon: ContactRound },
+  { href: '/clientes',      label: 'CRM',          icon: Users2 },
   { href: '/servicos',      label: 'Serviços',     icon: Zap },
   { href: '/tarefas',       label: 'Tarefas',      icon: CheckSquare },
   { href: '/metas',         label: 'Metas',        icon: Target },
@@ -46,7 +46,7 @@ const MOBILE_MAIN = [
 // Itens do menu "Mais"
 const MOBILE_MORE = [
   { href: '/clientes',    label: 'Clientes',    icon: Users },
-  { href: '/crm',         label: 'CRM',         icon: ContactRound },
+  { href: '/clientes',    label: 'CRM',         icon: Users2 },
   { href: '/tarefas',     label: 'Tarefas',     icon: CheckSquare },
   { href: '/metas',       label: 'Metas',       icon: Target },
   { href: '/calculadora', label: 'Calculadora', icon: Calculator },
@@ -85,11 +85,10 @@ export function Sidebar({ userName, userRole, avatarUrl }: SidebarProps) {
         {/* Nav */}
         <nav className="flex-1 px-2 py-4 space-y-0.5">
           {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
-            const isActive = pathname === href ||
-              (href === '/crm' && (pathname === '/crm' || pathname.startsWith('/clientes')))
+            const isActive = pathname === href || pathname.startsWith(href + '/')
             return (
               <Link
-                key={href}
+                key={label}
                 href={href}
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
                   isActive
