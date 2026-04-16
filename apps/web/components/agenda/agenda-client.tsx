@@ -5,14 +5,15 @@ import { Calendar } from './calendar'
 import { AppointmentsList } from './appointments-list'
 import { NovoAgendamentoModal } from './novo-agendamento-modal'
 import { getSeasonalDatesForMonth } from '@/lib/seasonal-dates'
-import type { Appointment, AppointmentStatus } from './types'
+import type { Appointment, AppointmentStatus, FinancialCommitment } from './types'
 
 interface AgendaClientProps {
   appointments: Appointment[]
+  financialCommitments: FinancialCommitment[]
   initialDate: string   // 'YYYY-MM-DD'
 }
 
-export function AgendaClient({ appointments, initialDate }: AgendaClientProps) {
+export function AgendaClient({ appointments, financialCommitments, initialDate }: AgendaClientProps) {
   const [selected, setSelected] = useState(initialDate)
   const [navYear,  setNavYear]  = useState(() => Number(initialDate.slice(0, 4)))
   const [navMonth, setNavMonth] = useState(() => Number(initialDate.slice(5, 7)) - 1)
@@ -30,7 +31,14 @@ export function AgendaClient({ appointments, initialDate }: AgendaClientProps) {
     if (!list.includes(apt.status)) list.push(apt.status)
   }
 
+  // Mapa: 'YYYY-MM-DD' → true (dias com compromissos financeiros)
+  const finDotMap: Record<string, boolean> = {}
+  for (const fc of financialCommitments) {
+    finDotMap[fc.date] = true
+  }
+
   const dayAppointments = appointments.filter((a) => a.date === selected)
+  const dayFinancial    = financialCommitments.filter((f) => f.date === selected)
   const selectedSeasonal = seasonalDates[selected]
 
   // Resumo do mês visível
@@ -38,6 +46,7 @@ export function AgendaClient({ appointments, initialDate }: AgendaClientProps) {
   const monthApts = appointments.filter((a) => a.date.startsWith(monthStr))
   const confirmed = monthApts.filter((a) => a.status === 'confirmado' || a.status === 'concluido').length
   const pending   = monthApts.filter((a) => a.status === 'pendente').length
+  const monthFin  = financialCommitments.filter((f) => f.date.startsWith(monthStr))
 
   function prevMonth() {
     if (navMonth === 0) { setNavYear((y) => y - 1); setNavMonth(11) }
@@ -57,6 +66,7 @@ export function AgendaClient({ appointments, initialDate }: AgendaClientProps) {
           <p className="text-sm text-gray-500 mt-0.5">
             {confirmed} confirmado{confirmed !== 1 ? 's' : ''}
             {pending > 0 && ` · ${pending} pendente${pending !== 1 ? 's' : ''}`}
+            {monthFin.length > 0 && ` · ${monthFin.length} pagamento${monthFin.length !== 1 ? 's' : ''} a vencer`}
             {' '}este mês
           </p>
         </div>
@@ -71,6 +81,7 @@ export function AgendaClient({ appointments, initialDate }: AgendaClientProps) {
             month={navMonth}
             selected={selected}
             dotMap={dotMap}
+            finDotMap={finDotMap}
             seasonalDates={seasonalDates}
             onSelect={setSelected}
             onPrev={prevMonth}
@@ -78,7 +89,13 @@ export function AgendaClient({ appointments, initialDate }: AgendaClientProps) {
           />
         </div>
         <div className="lg:col-span-3">
-          <AppointmentsList key={selected} date={selected} appointments={dayAppointments} seasonalLabel={selectedSeasonal} />
+          <AppointmentsList
+            key={selected}
+            date={selected}
+            appointments={dayAppointments}
+            financialCommitments={dayFinancial}
+            seasonalLabel={selectedSeasonal}
+          />
         </div>
       </div>
     </div>

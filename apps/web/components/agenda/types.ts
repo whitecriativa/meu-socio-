@@ -12,3 +12,12 @@ export interface Appointment {
   client_phone?: string | undefined
   notes_raw?: string | undefined
 }
+
+export interface FinancialCommitment {
+  id: string
+  date: string          // 'YYYY-MM-DD'
+  description: string
+  amount: number
+  type: 'avulso' | 'recorrente'
+  transactionId?: string  // avulso: id da transaction pendente
+}

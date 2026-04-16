@@ -24,13 +24,13 @@ const LEVEL_LABELS: Record<string, string> = {
 async function getLayoutData() {
   try {
     const userId = await getAuthenticatedUserId()
-    if (!userId) return { userName: 'Usuário', businessLevel: 'Nível Semente 🌱', alertCount: 0 }
+    if (!userId) return { userName: 'Usuário', userAvatarUrl: null, businessLevel: 'Nível Semente 🌱', alertCount: 0 }
 
     const supabase = adminClient()
 
     const { data: user } = await supabase
       .from('users')
-      .select('name, profile_type')
+      .select('name, profile_type, avatar_url')
       .eq('id', userId)
       .maybeSingle()
 
@@ -57,21 +57,22 @@ async function getLayoutData() {
     } catch { /* tabela não existe ainda */ }
 
     return {
-      userName:      (user?.name as string) || 'Usuário',
-      businessLevel: LEVEL_LABELS[currentLevel] ?? 'Nível Semente 🌱',
+      userName:       (user?.name as string) || 'Usuário',
+      userAvatarUrl:  (user?.avatar_url as string) || null,
+      businessLevel:  LEVEL_LABELS[currentLevel] ?? 'Nível Semente 🌱',
       alertCount,
     }
   } catch {
-    return { userName: 'Usuário', businessLevel: 'Nível Semente 🌱', alertCount: 0 }
+    return { userName: 'Usuário', userAvatarUrl: null, businessLevel: 'Nível Semente 🌱', alertCount: 0 }
   }
 }
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const { userName, businessLevel, alertCount } = await getLayoutData()
+  const { userName, userAvatarUrl, businessLevel, alertCount } = await getLayoutData()
 
   return (
     <div className="flex min-h-screen" style={{ backgroundColor: 'var(--bg-base)' }}>
-      <Sidebar userName={userName} userRole={null} />
+      <Sidebar userName={userName} userRole={null} avatarUrl={userAvatarUrl} />
 
       <div className="flex-1 flex flex-col min-w-0">
         {/* Header fixo — ocupa toda a largura acima do main */}

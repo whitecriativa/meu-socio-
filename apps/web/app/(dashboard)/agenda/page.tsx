@@ -1,7 +1,7 @@
 import { getAuthenticatedUserId } from '@/lib/get-user-id'
 import { createClient } from '@supabase/supabase-js'
 import { AgendaClient } from '@/components/agenda/agenda-client'
-import type { Appointment, AppointmentStatus } from '@/components/agenda/types'
+import type { Appointment, AppointmentStatus, FinancialCommitment } from '@/components/agenda/types'
 
 export const dynamic = 'force-dynamic'
 
@@ -114,13 +114,79 @@ async function getAppointments(): Promise<Appointment[]> {
   })
 }
 
+async function getFinancialCommitments(): Promise<FinancialCommitment[]> {
+  const userId = (await getAuthenticatedUserId()) ?? process.env.NEXT_PUBLIC_DEMO_USER_ID!
+  const supabase = adminClient()
+  const result: FinancialCommitment[] = []
+
+  // 1. Pagamentos avulsos pendentes (transactions com paid_at IS NULL)
+  const { data: pending } = await supabase
+    .from('transactions')
+    .select('id, description, amount, competence_date')
+    .eq('user_id', userId)
+    .eq('type', 'despesa')
+    .is('paid_at', null)
+    .not('competence_date', 'is', null)
+    .order('competence_date', { ascending: true })
+
+  for (const t of pending ?? []) {
+    result.push({
+      id: `tx-${t.id}`,
+      date: (t.competence_date as string).slice(0, 10),
+      description: t.description ?? 'Pagamento pendente',
+      amount: Number(t.amount ?? 0),
+      type: 'avulso',
+      transactionId: t.id,
+    })
+  }
+
+  // 2. Custos recorrentes (costs_fixed com due_day) — gera datas para os próximos 3 meses
+  try {
+    const { data: recurring } = await supabase
+      .from('costs_fixed')
+      .select('id, name, amount, due_day')
+      .eq('user_id', userId)
+      .not('due_day', 'is', null)
+
+    if (recurring && recurring.length > 0) {
+      const now = new Date()
+      for (let m = 0; m < 3; m++) {
+        const year  = now.getMonth() + m > 11 ? now.getFullYear() + 1 : now.getFullYear()
+        const month = ((now.getMonth() + m) % 12) + 1
+        for (const c of recurring) {
+          const day = Math.min(Number(c.due_day), new Date(year, month, 0).getDate())
+          const date = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+          result.push({
+            id: `cf-${c.id}-${date}`,
+            date,
+            description: c.name ?? 'Custo recorrente',
+            amount: Number(c.amount ?? 0),
+            type: 'recorrente',
+          })
+        }
+      }
+    }
+  } catch {
+    // costs_fixed ou due_day não existem ainda — silencioso
+  }
+
+  return result
+}
+
 export default async function AgendaPage() {
-  const appointments = await getAppointments()
+  const [appointments, financialCommitments] = await Promise.all([
+    getAppointments(),
+    getFinancialCommitments(),
+  ])
   const today = new Date().toISOString().slice(0, 10)
 
   return (
     <div className="px-4 py-5 md:px-8 md:py-8 max-w-5xl">
-      <AgendaClient appointments={appointments} initialDate={today} />
+      <AgendaClient
+        appointments={appointments}
+        financialCommitments={financialCommitments}
+        initialDate={today}
+      />
     </div>
   )
 }

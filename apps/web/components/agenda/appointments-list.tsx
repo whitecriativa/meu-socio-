@@ -4,14 +4,17 @@ import { useState, useTransition } from 'react'
 import {
   Clock, Tag, DollarSign, Calendar, CheckCircle,
   XCircle, CheckCheck, Trash2, Star, MessageCircle, X, Phone,
+  Banknote, RefreshCw, AlertCircle,
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { atualizarStatusAgendamento, excluirAgendamento } from '@/app/(dashboard)/agenda/actions'
-import type { Appointment, AppointmentStatus } from './types'
+import { marcarTransacaoPaga } from '@/app/(dashboard)/financeiro/actions'
+import type { Appointment, AppointmentStatus, FinancialCommitment } from './types'
 
 interface AppointmentsListProps {
   date: string
   appointments: Appointment[]
+  financialCommitments?: FinancialCommitment[]
   seasonalLabel?: string | undefined
 }
 
@@ -283,8 +286,57 @@ function AptCard({ apt, index, onDelete }: { apt: Appointment; index: number; on
   )
 }
 
-export function AppointmentsList({ date, appointments: initialAppointments, seasonalLabel }: AppointmentsListProps) {
+function FinancialCard({ item, onPago }: { item: FinancialCommitment; onPago: (id: string) => void }) {
+  const [paid, setPaid] = useState(false)
+  const [, startT] = useTransition()
+
+  if (paid) return null
+
+  function handlePagar() {
+    setPaid(true)
+    if (item.transactionId) {
+      startT(() => { marcarTransacaoPaga(item.transactionId!) })
+    }
+    onPago(item.id)
+  }
+
+  return (
+    <div className="flex items-center gap-3 p-3 rounded-xl border border-orange-100 bg-orange-50/40 relative overflow-hidden">
+      <div className="absolute left-0 top-0 bottom-0 w-0.5 rounded-l-xl bg-[#F4845F]" />
+      <div className="w-8 h-8 rounded-full bg-[#F4845F]/15 flex items-center justify-center flex-shrink-0">
+        {item.type === 'recorrente'
+          ? <RefreshCw className="w-3.5 h-3.5 text-[#F4845F]" />
+          : <Banknote className="w-3.5 h-3.5 text-[#F4845F]" />
+        }
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-semibold text-gray-800 truncate">{item.description}</p>
+        <div className="flex items-center gap-2 mt-0.5">
+          <span className="text-xs text-[#F4845F] font-semibold">
+            {fmt(item.amount)}
+          </span>
+          <span className="text-[10px] text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded-full">
+            {item.type === 'recorrente' ? 'Recorrente' : 'Avulso'}
+          </span>
+        </div>
+      </div>
+      {item.transactionId && (
+        <button
+          onClick={handlePagar}
+          className="flex items-center gap-1 text-xs font-semibold px-3 py-1.5 rounded-lg text-white flex-shrink-0 transition-opacity hover:opacity-90"
+          style={{ backgroundColor: '#2D6A4F' }}
+        >
+          <CheckCircle className="w-3 h-3" />
+          Pagar
+        </button>
+      )}
+    </div>
+  )
+}
+
+export function AppointmentsList({ date, appointments: initialAppointments, financialCommitments: initialFinancial = [], seasonalLabel }: AppointmentsListProps) {
   const [appointments, setAppointments] = useState(initialAppointments)
+  const [financial, setFinancial]       = useState(initialFinancial)
   const [, startTransitionList] = useTransition()
   const today   = new Date().toISOString().slice(0, 10)
   const isToday = date === today
@@ -295,9 +347,15 @@ export function AppointmentsList({ date, appointments: initialAppointments, seas
     startTransitionList(() => { excluirAgendamento(id) })
   }
 
+  function handlePago(id: string) {
+    setFinancial((prev) => prev.filter((f) => f.id !== id))
+  }
+
   const totalRevenue = appointments
     .filter((a) => a.status !== 'cancelado')
     .reduce((s, a) => s + a.price, 0)
+
+  const totalPagamentos = financial.reduce((s, f) => s + f.amount, 0)
 
   return (
     <Card className="flex flex-col">
@@ -307,43 +365,69 @@ export function AppointmentsList({ date, appointments: initialAppointments, seas
             <Calendar className="w-3.5 h-3.5 text-[#0F40CB]" />
             {label}
           </span>
-          {appointments.length > 0 && (
-            <span className="text-xs text-gray-400">
-              {fmt(totalRevenue)} esperado
-            </span>
-          )}
+          <div className="flex items-center gap-2">
+            {appointments.length > 0 && (
+              <span className="text-xs text-gray-400">{fmt(totalRevenue)} a receber</span>
+            )}
+            {financial.length > 0 && (
+              <span className="text-xs text-[#F4845F] font-medium">{fmt(totalPagamentos)} a pagar</span>
+            )}
+          </div>
         </CardTitle>
       </CardHeader>
 
-      <CardContent className="flex-1 pt-0">
+      <CardContent className="flex-1 pt-0 space-y-4">
         {seasonalLabel && (
-          <div className="flex items-center gap-2 bg-amber-50 border border-amber-100 rounded-xl px-3 py-2 mb-3">
+          <div className="flex items-center gap-2 bg-amber-50 border border-amber-100 rounded-xl px-3 py-2">
             <Star className="w-3.5 h-3.5 text-amber-500 flex-shrink-0" />
             <p className="text-xs font-medium text-amber-700">{seasonalLabel}</p>
           </div>
         )}
 
-        {appointments.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-10 text-center">
-            <div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center mb-3">
-              <Calendar className="w-5 h-5 text-gray-300" />
+        {/* Seção: Agendamentos com clientes */}
+        <div>
+          {appointments.length > 0 && (
+            <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide mb-2 flex items-center gap-1">
+              <Calendar className="w-3 h-3" /> Agendamentos
+            </p>
+          )}
+          {appointments.length === 0 && financial.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-10 text-center">
+              <div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center mb-3">
+                <Calendar className="w-5 h-5 text-gray-300" />
+              </div>
+              <p className="text-sm text-gray-400">Nada agendado para este dia</p>
+              <p className="text-xs text-gray-300 mt-1">Clique em "Novo agendamento" para adicionar</p>
             </div>
-            <p className="text-sm text-gray-400">Nenhum agendamento para este dia</p>
-            <p className="text-xs text-gray-300 mt-1">Clique em "Novo agendamento" para adicionar</p>
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {appointments
-              .sort((a, b) => a.time.localeCompare(b.time))
-              .map((apt, i) => (
-                <div key={apt.id} className="group/apt relative">
-                  <AptCard
-                    apt={apt}
-                    index={i}
-                    onDelete={() => handleDeleteApt(apt.id)}
-                  />
-                </div>
+          ) : appointments.length === 0 ? null : (
+            <div className="space-y-3">
+              {appointments
+                .sort((a, b) => a.time.localeCompare(b.time))
+                .map((apt, i) => (
+                  <div key={apt.id} className="group/apt relative">
+                    <AptCard
+                      apt={apt}
+                      index={i}
+                      onDelete={() => handleDeleteApt(apt.id)}
+                    />
+                  </div>
+                ))}
+            </div>
+          )}
+        </div>
+
+        {/* Seção: Compromissos financeiros */}
+        {financial.length > 0 && (
+          <div>
+            <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide mb-2 flex items-center gap-1">
+              <AlertCircle className="w-3 h-3 text-[#F4845F]" />
+              <span className="text-[#F4845F]">Pagamentos a vencer</span>
+            </p>
+            <div className="space-y-2">
+              {financial.map((item) => (
+                <FinancialCard key={item.id} item={item} onPago={handlePago} />
               ))}
+            </div>
           </div>
         )}
       </CardContent>

@@ -9,6 +9,7 @@ interface CalendarProps {
   month: number             // 0-indexed
   selected: string          // 'YYYY-MM-DD'
   dotMap: Record<string, AppointmentStatus[]>   // date → statuses present
+  finDotMap?: Record<string, boolean>           // date → has financial commitment
   seasonalDates?: Record<string, string>        // date → label
   onSelect: (date: string) => void
   onPrev: () => void
@@ -30,7 +31,7 @@ const STATUS_COLOR: Record<AppointmentStatus, string> = {
 
 function pad(n: number) { return String(n).padStart(2, '0') }
 
-export function Calendar({ year, month, selected, dotMap, seasonalDates = {}, onSelect, onPrev, onNext }: CalendarProps) {
+export function Calendar({ year, month, selected, dotMap, finDotMap = {}, seasonalDates = {}, onSelect, onPrev, onNext }: CalendarProps) {
   const today = new Date().toISOString().slice(0, 10)
 
   // Dias do mês
@@ -87,6 +88,7 @@ export function Calendar({ year, month, selected, dotMap, seasonalDates = {}, on
             const isSelected = dateStr === selected
             const isToday    = dateStr === today
             const dots       = dotMap[dateStr] ?? []
+            const hasFin     = finDotMap[dateStr] ?? false
             const seasonal   = seasonalDates[dateStr]
 
             return (
@@ -115,6 +117,12 @@ export function Calendar({ year, month, selected, dotMap, seasonalDates = {}, on
                       }}
                     />
                   ))}
+                  {hasFin && (
+                    <span
+                      className="w-1 h-1 rounded-full flex-shrink-0"
+                      style={{ backgroundColor: isSelected ? 'rgba(255,255,255,0.8)' : '#F4845F' }}
+                    />
+                  )}
                   {seasonal && (
                     <span
                       className="text-[7px] leading-none"
@@ -137,6 +145,10 @@ export function Calendar({ year, month, selected, dotMap, seasonalDates = {}, on
               {status}
             </span>
           ))}
+          <span className="flex items-center gap-1 text-xs text-gray-500">
+            <span className="w-2 h-2 rounded-full" style={{ backgroundColor: '#F4845F' }} />
+            pagamento
+          </span>
           <span className="flex items-center gap-1 text-xs text-gray-500">
             ⭐ Data especial
           </span>
