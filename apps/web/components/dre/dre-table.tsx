@@ -1,7 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { ChevronDown, ChevronRight, TrendingUp, TrendingDown, Download } from 'lucide-react'
+import { ChevronDown, ChevronRight, TrendingUp, TrendingDown, Download, ArrowUpRight, ArrowDownRight, Minus } from 'lucide-react'
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import { PeriodSelector } from '@/components/financeiro/period-selector'
 import type { DreStructured, DreGroup } from '@/components/financeiro/types'
 
@@ -201,14 +202,37 @@ function SubtotalRow({ label, value, totalReceita, highlight = false }: {
   )
 }
 
+function HistoryTooltip({ active, payload, label }: any) {
+  if (!active || !payload?.length) return null
+  return (
+    <div className="bg-white border border-gray-100 rounded-xl shadow-lg px-3 py-2.5 text-sm">
+      <p className="font-semibold text-gray-700 mb-1">{label}</p>
+      {payload.map((p: any) => (
+        <p key={p.name} style={{ color: p.fill }} className="tabular-nums text-xs">
+          {p.name === 'revenue' ? 'Receita' : 'Despesas'}: {fmt(p.value)}
+        </p>
+      ))}
+    </div>
+  )
+}
+
 interface DreTableProps {
   dre: DreStructured
   currentPeriod: string
+  revenueHistory?: { month: string; revenue: number; expenses: number }[]
 }
 
-export function DreTable({ dre, currentPeriod }: DreTableProps) {
+export function DreTable({ dre, currentPeriod, revenueHistory }: DreTableProps) {
   const hasData = dre.totalReceitas > 0 || dre.totalDespesas > 0
   const total = dre.totalReceitas
+
+  // Trend vs last month from history
+  const prevMonthRevenue = revenueHistory && revenueHistory.length >= 2
+    ? revenueHistory[revenueHistory.length - 2]!.revenue
+    : null
+  const trendPct = prevMonthRevenue && prevMonthRevenue > 0
+    ? Math.round(((dre.totalReceitas - prevMonthRevenue) / prevMonthRevenue) * 100)
+    : null
 
   return (
     <div className="space-y-5">
@@ -227,21 +251,83 @@ export function DreTable({ dre, currentPeriod }: DreTableProps) {
         </button>
       </div>
 
-      {/* Período + margem */}
-      <div className="flex items-center gap-3">
-        <p className="text-sm text-gray-500">{dre.period}</p>
-        {dre.resultado !== 0 && (
-          <span className={`flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full ${
-            dre.resultado >= 0 ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-600'
-          }`}>
-            {dre.resultado >= 0
-              ? <TrendingUp className="w-3 h-3" />
-              : <TrendingDown className="w-3 h-3" />
-            }
-            Margem {dre.margem}%
-          </span>
-        )}
+      {/* Período */}
+      <p className="text-sm text-gray-500 -mt-2">{dre.period}</p>
+
+      {/* KPI cards */}
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        {/* Receitas */}
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-xs font-medium text-gray-400">Receitas</p>
+            {trendPct !== null && (
+              <span className={`flex items-center gap-0.5 text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${
+                trendPct >= 0 ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-500'
+              }`}>
+                {trendPct > 0 ? <ArrowUpRight className="w-3 h-3" /> : trendPct < 0 ? <ArrowDownRight className="w-3 h-3" /> : <Minus className="w-3 h-3" />}
+                {Math.abs(trendPct)}%
+              </span>
+            )}
+          </div>
+          <p className="text-xl font-bold text-[#0F40CB] tabular-nums">{fmt(dre.totalReceitas)}</p>
+        </div>
+
+        {/* Despesas */}
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
+          <p className="text-xs font-medium text-gray-400 mb-2">Despesas</p>
+          <p className="text-xl font-bold text-red-500 tabular-nums">{fmt(dre.totalDespesas)}</p>
+        </div>
+
+        {/* Resultado */}
+        <div className={`rounded-2xl border shadow-sm p-4 ${dre.resultado >= 0 ? 'bg-green-50 border-green-100' : 'bg-red-50 border-red-100'}`}>
+          <p className="text-xs font-medium text-gray-400 mb-2">Resultado</p>
+          <p className={`text-xl font-bold tabular-nums ${dre.resultado >= 0 ? 'text-[#2D6A4F]' : 'text-red-600'}`}>
+            {fmt(dre.resultado)}
+          </p>
+        </div>
+
+        {/* Margem */}
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
+          <p className="text-xs font-medium text-gray-400 mb-2">Margem líquida</p>
+          <div className="flex items-end gap-1">
+            <p className={`text-xl font-bold tabular-nums ${dre.margem >= 0 ? 'text-gray-800' : 'text-red-500'}`}>
+              {dre.margem}%
+            </p>
+          </div>
+          {/* progress bar */}
+          <div className="mt-2 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+            <div
+              className={`h-full rounded-full ${dre.margem >= 0 ? 'bg-[#B6F273]' : 'bg-red-300'}`}
+              style={{ width: `${Math.min(Math.abs(dre.margem), 100)}%` }}
+            />
+          </div>
+        </div>
       </div>
+
+      {/* Gráfico histórico 6 meses */}
+      {revenueHistory && revenueHistory.some(d => d.revenue > 0 || d.expenses > 0) && (
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
+          <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-4">Evolução 6 meses</p>
+          <ResponsiveContainer width="100%" height={160}>
+            <BarChart data={revenueHistory} barGap={2} barCategoryGap="30%">
+              <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" vertical={false} />
+              <XAxis dataKey="month" tick={{ fontSize: 11, fill: '#9ca3af' }} axisLine={false} tickLine={false} />
+              <YAxis hide />
+              <Tooltip content={<HistoryTooltip />} cursor={{ fill: '#f9fafb' }} />
+              <Bar dataKey="revenue" name="revenue" fill="#0F40CB" radius={[4,4,0,0]} />
+              <Bar dataKey="expenses" name="expenses" fill="#fca5a5" radius={[4,4,0,0]} />
+            </BarChart>
+          </ResponsiveContainer>
+          <div className="flex items-center gap-4 mt-2">
+            <span className="flex items-center gap-1.5 text-xs text-gray-400">
+              <span className="w-2.5 h-2.5 rounded-sm bg-[#0F40CB] inline-block" />Receitas
+            </span>
+            <span className="flex items-center gap-1.5 text-xs text-gray-400">
+              <span className="w-2.5 h-2.5 rounded-sm bg-red-300 inline-block" />Despesas
+            </span>
+          </div>
+        </div>
+      )}
 
       {/* Tabela DRE */}
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
@@ -319,23 +405,6 @@ export function DreTable({ dre, currentPeriod }: DreTableProps) {
         )}
       </div>
 
-      {/* Resumo rápido */}
-      {hasData && (
-        <div className="grid grid-cols-3 gap-3">
-          <div className="bg-white rounded-xl border border-gray-100 p-4 text-center">
-            <p className="text-xs text-gray-400 mb-1">Total Receitas</p>
-            <p className="text-sm font-bold text-gray-900 tabular-nums">{fmt(dre.totalReceitas)}</p>
-          </div>
-          <div className="bg-white rounded-xl border border-gray-100 p-4 text-center">
-            <p className="text-xs text-gray-400 mb-1">Total Despesas</p>
-            <p className="text-sm font-bold text-gray-900 tabular-nums">{fmt(dre.totalDespesas)}</p>
-          </div>
-          <div className={`rounded-xl border p-4 text-center ${dre.resultado >= 0 ? 'bg-green-50 border-green-100' : 'bg-red-50 border-red-100'}`}>
-            <p className="text-xs text-gray-400 mb-1">Resultado</p>
-            <p className={`text-sm font-bold tabular-nums ${dre.resultado >= 0 ? 'text-[#2D6A4F]' : 'text-red-600'}`}>{fmt(dre.resultado)}</p>
-          </div>
-        </div>
-      )}
     </div>
   )
 }
