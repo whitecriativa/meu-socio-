@@ -139,6 +139,7 @@ async function getNameFromAuth(authUserId: string, cookieStore: Awaited<ReturnTy
 async function ensureUserExists(authUserId: string, cookieStore: Awaited<ReturnType<typeof cookies>>) {
   const admin = adminClient()
 
+  // 1. Busca por auth UUID (caso normal — usuário já vinculado)
   const { data: existing } = await admin
     .from('users')
     .select('id, name, email')
@@ -147,12 +148,10 @@ async function ensureUserExists(authUserId: string, cookieStore: Awaited<ReturnT
 
   if (existing?.id) {
     const updates: Record<string, string> = {}
-    // Atualiza nome se ainda estiver como "Usuário"
     if (existing.name === 'Usuário' || !existing.name) {
       const name = await getNameFromAuth(authUserId, cookieStore)
       if (name && name !== 'Usuário') updates.name = name
     }
-    // Salva email se ainda não estiver salvo
     if (!existing.email) {
       try {
         const { data: authData } = await admin.auth.admin.getUserById(authUserId)
@@ -165,32 +164,67 @@ async function ensureUserExists(authUserId: string, cookieStore: Awaited<ReturnT
     return authUserId
   }
 
-  const name = await getNameFromAuth(authUserId, cookieStore)
+  // 2. Busca email e telefone do Supabase Auth
+  let authEmail: string | undefined
+  let authPhone: string | undefined
+  try {
+    const { data: authData } = await admin.auth.admin.getUserById(authUserId)
+    authEmail = authData?.user?.email
+    const rawP = (authData?.user?.user_metadata?.phone as string | undefined || '').replace(/\D/g, '')
+    authPhone = rawP ? (rawP.startsWith('55') ? rawP : `55${rawP}`) : undefined
+  } catch { /* ignora */ }
+
+  // 3. Tenta vincular a usuário existente pelo EMAIL (criado pelo bot via onboarding)
+  if (authEmail) {
+    const { data: byEmail } = await admin
+      .from('users')
+      .select('id, name, email')
+      .eq('email', authEmail)
+      .maybeSingle()
+
+    if (byEmail?.id) {
+      // Usuário do bot encontrado pelo email — retorna o ID dele
+      // para que o dashboard veja os dados registrados via WhatsApp
+      return byEmail.id
+    }
+  }
+
+  // 4. Tenta vincular pelo TELEFONE
   const meta = extractMetaFromCookies(cookieStore.getAll())
-  const rawPhone = (meta.phone || '').replace(/\D/g, '')
+  const rawPhone = (authPhone || meta.phone || '').replace(/\D/g, '')
   const userPhone = rawPhone
     ? (rawPhone.startsWith('55') ? rawPhone : `55${rawPhone}`)
     : `uid_${authUserId.replace(/-/g, '')}`
 
-  // Busca email do auth
-  let userEmail: string | undefined
-  try {
-    const { data: authData } = await admin.auth.admin.getUserById(authUserId)
-    userEmail = authData?.user?.email
-  } catch { /* ignora */ }
+  if (rawPhone) {
+    const { data: byPhone } = await admin
+      .from('users')
+      .select('id')
+      .eq('phone', userPhone)
+      .maybeSingle()
+
+    if (byPhone?.id) {
+      // Vincula email ao usuário existente para futuros logins
+      if (authEmail) {
+        await admin.from('users').update({ email: authEmail }).eq('id', byPhone.id)
+      }
+      return byPhone.id
+    }
+  }
+
+  // 5. Cria novo usuário (primeiro acesso sem conta no bot)
+  const name = await getNameFromAuth(authUserId, cookieStore)
 
   const { error } = await admin.from('users').insert({
     id:           authUserId,
     name,
     phone:        userPhone,
-    email:        userEmail,
+    email:        authEmail,
     profile_type: 'outro',
   })
 
   if (error) {
-    // Se é conflito de unicidade, o usuário pode ter sido criado por outra request
     if (error.message.includes('duplicate') || error.message.includes('unique') || error.code === '23505') {
-      // Tenta buscar novamente
       const { data: retry } = await admin.from('users').select('id').eq('id', authUserId).maybeSingle()
       return retry?.id ?? authUserId
     }
