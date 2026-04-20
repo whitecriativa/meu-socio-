@@ -147,17 +147,37 @@ async function ensureUserExists(authUserId: string, cookieStore: Awaited<ReturnT
     .single()
 
   if (existing?.id) {
+    // Verifica se existe um registro melhor (criado pelo bot) com o mesmo email
+    // Isso corrige usuários que fizeram login antes do fix e têm registro duplicado
+    let resolvedEmail = existing.email
+    if (!resolvedEmail) {
+      try {
+        const { data: authData } = await admin.auth.admin.getUserById(authUserId)
+        resolvedEmail = authData?.user?.email
+      } catch { /* ignora */ }
+    }
+
+    if (resolvedEmail) {
+      const { data: byEmail } = await admin
+        .from('users')
+        .select('id')
+        .eq('email', resolvedEmail)
+        .neq('id', authUserId)
+        .maybeSingle()
+
+      if (byEmail?.id) {
+        // Existe registro do bot com este email — usa ele e descarta o duplicado web
+        return byEmail.id
+      }
+    }
+
+    // Registro existente é o correto — atualiza nome/email se necessário
     const updates: Record<string, string> = {}
     if (existing.name === 'Usuário' || !existing.name) {
       const name = await getNameFromAuth(authUserId, cookieStore)
       if (name && name !== 'Usuário') updates.name = name
     }
-    if (!existing.email) {
-      try {
-        const { data: authData } = await admin.auth.admin.getUserById(authUserId)
-        if (authData?.user?.email) updates.email = authData.user.email
-      } catch { /* ignora */ }
-    }
+    if (!existing.email && resolvedEmail) updates.email = resolvedEmail
     if (Object.keys(updates).length > 0) {
       await admin.from('users').update(updates).eq('id', authUserId)
     }
